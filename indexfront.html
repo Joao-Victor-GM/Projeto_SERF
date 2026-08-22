@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso - SERF</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container" id="container">
+        
+        <!-- TELA DE CADASTRO (Fica escondida à esquerda inicialmente) -->
+        <div class="form-container sign-up-container">
+            <form action="#">
+                <img src="serflogo.png" alt="Logo SERF" class="logo">
+                <h2>Criar Conta</h2>
+                
+                <!-- Escolha B2B -->
+                <div class="perfil-opcoes">
+                    <label class="perfil-card">
+                        <input type="radio" name="perfil" checked>
+                        <span>Comprar(Microempresa)</span>
+                    </label>
+                    <label class="perfil-card">
+                        <input type="radio" name="perfil">
+                        <span>Vender(Fornecedor)</span>
+                    </label>
+                </div>
+
+                <input type="text" placeholder="CNPJ" required />
+                <input type="text" placeholder="Razão Social" required />
+                <input type="email" placeholder="E-mail" required />
+                <input type="password" placeholder="Senha" required />
+                
+                <button type="submit" class="btn-solid">Cadastrar</button>
+            </form>
+        </div>
+
+        <!-- TELA DE LOGIN (Fica visível à esquerda inicialmente) -->
+        <div class="form-container sign-in-container">
+            <form action="#">
+                <img src="serflogo.png" alt="Logo SERF" class="logo">
+                <h2>Acesse sua conta</h2>
+                <span class="subtitle">Insira seus dados para continuar.</span>
+                
+                <input type="text" placeholder="CNPJ" required />
+                <input type="password" placeholder="Senha" required />
+                
+                <a href="#" class="forgot-pass">Esqueceu a senha?</a>
+                <button type="submit" class="btn-solid">Entrar</button>
+            </form>
+        </div>
+
+        <!-- PAINEL DESLIZANTE (A parte colorida que faz a animação) -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <!-- Conteúdo do painel quando está na esquerda -->
+                <div class="overlay-panel overlay-left">
+                    <h2>Já é membro?</h2>
+                    <p>Faça login para continuar de onde parou e acessar a cadeia de suprimentos.</p>
+                    <button class="btn-ghost" id="signIn">Fazer Login</button>
+                </div>
+                
+                <!-- Conteúdo do painel quando está na direita -->
+                <div class="overlay-panel overlay-right">
+                    <h2>Novo por aqui?</h2>
+                    <p>Crie sua conta em poucos segundos e desbloqueie toda a experiência B2B.</p>
+                    <button class="btn-ghost" id="signUp">Criar Conta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DA ANIMAÇÃO -->
+    <script>
+        const signUpButton = document.getElementById('signUp');
+        const signInButton = document.getElementById('signIn');
+        const container = document.getElementById('container');
+
+        // Quando clica em "Criar Conta", adiciona a classe que move tudo para a esquerda
+        signUpButton.addEventListener('click', () => {
+            container.classList.add("right-panel-active");
+        });
+
+        // Quando clica em "Fazer Login", remove a classe e volta para o padrão
+        signInButton.addEventListener('click', () => {
+            container.classList.remove("right-panel-active");
+        });
+    </script>
+</body>
+</html>
