@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SERF - Redefinir Senha</title>
+    <!-- Fonte moderna de alta tecnologia -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #001f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .card-redefinir {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .card-redefinir h2 {
+            color: #003366;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .card-redefinir p {
+            font-size: 14px;
+            color: #666666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .input-grupo {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-grupo label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #003366;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .card-redefinir input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .card-redefinir input:focus {
+            border-color: orange;
+        }
+
+        .btn-salvar {
+            width: 100%;
+            padding: 14px;
+            background-color: orange;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-salvar:hover {
+            background-color: #ff8c00;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="card-redefinir">
+        <h2>Nova Senha</h2>
+        <p>Crie uma senha forte com no mínimo 6 caracteres para reestabelecer o acesso à sua conta.</p>
+
+        <form id="formRedefinir">
+            <div class="input-grupo">
+                <label for="novaSenha">Nova Senha</label>
+                <input type="password" id="novaSenha" placeholder="Digite sua nova senha" required minlength="6">
+            </div>
+            <div class="input-grupo">
+                <label for="confirmaNovaSenha">Confirmar Nova Senha</label>
+                <input type="password" id="confirmaNovaSenha" placeholder="Confirme a senha" required minlength="6">
+            </div>
+            <button type="submit" class="btn-salvar">Atualizar Senha</button>
+        </form>
+    </div>
+
+    <!-- SDK do Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // CONFIGURAÇÕES DO SUPABASE (Mesmas credenciais do seu app-v2.js)
+        const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const form = document.getElementById('formRedefinir');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmaNovaSenha = document.getElementById('confirmaNovaSenha').value;
+
+            if (novaSenha !== confirmaNovaSenha) {
+                alert('As senhas digitadas não coincidem. Por favor, verifique!');
+                return;
+            }
+
+            try {
+                const btn = form.querySelector('button');
+                btn.innerText = 'Salvando...';
+                btn.disabled = true;
+
+                // O Supabase Auth detecta os tokens hash da URL automaticamente para autenticar essa alteração
+                const { error } = await supabaseClient.auth.updateUser({
+                    password: novaSenha
+                });
+
+                if (error) throw error;
+
+                alert('Senha alterada com sucesso! Você já pode acessar a plataforma.');
+                window.location.href = 'indexfront.html'; // Redireciona para o login
+
+            } catch (error) {
+                console.error('Erro na redefinição:', error);
+                alert('Erro ao redefinir a senha: ' + error.message);
+
+                const btn = form.querySelector('button');
+                btn.innerText = 'Atualizar Senha';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

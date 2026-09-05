@@ -239,3 +239,107 @@ if (formLogin) {
         }
     });
 }
+
+const modalRecuperar = document.getElementById('modalRecuperar');
+const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
+const closeModal = document.querySelector('.close-modal');
+const formRecuperar = document.getElementById('formRecuperar');
+const cnpjRecuperar = document.getElementById('cnpjRecuperar');
+
+// Aplica a máscara de CNPJ no campo do modal se a função existir no seu app-v2.js
+if (typeof aplicarMascaraCNPJ === 'function') {
+    aplicarMascaraCNPJ(cnpjRecuperar);
+}
+
+// Abre o Modal ao clicar no link de esqueceu senha
+if (linkEsqueceuSenha) {
+    linkEsqueceuSenha.addEventListener('click', (e) => {
+        e.preventDefault();
+        modalRecuperar.style.display = 'flex';
+    });
+}
+
+// Fecha o Modal ao clicar no "X"
+if (closeModal) {
+    closeModal.addEventListener('click', () => {
+        modalRecuperar.style.display = 'none';
+    });
+}
+
+// Fecha o Modal ao clicar fora do conteúdo
+window.addEventListener('click', (e) => {
+    if (e.target === modalRecuperar) {
+        modalRecuperar.style.display = 'none';
+    }
+});
+
+// Envio do formulário de recuperação
+if (formRecuperar) {
+    formRecuperar.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const cnpj = cnpjRecuperar.value.replace(/\D/g, '');
+        
+        if (cnpj.length !== 14) {
+            alert('Por favor, insira um CNPJ válido de 14 dígitos.');
+            return;
+        }
+
+        try {
+            // Feedback visual no botão
+            const btn = formRecuperar.querySelector('button');
+            btn.innerText = 'Buscando cadastro...';
+            btn.disabled = true;
+
+            let emailAssociado = null;
+
+            // 1. Procurar e-mail na tabela de Compradores (usuarios)
+            const { data: comprador } = await supabaseClient
+                .from('usuarios')
+                .select('email')
+                .eq('cnpj', cnpj)
+                .maybeSingle();
+
+            if (comprador) {
+                emailAssociado = comprador.email;
+            } else {
+                // 2. Se não achou, procurar na tabela de Fornecedores
+                const { data: fornecedor } = await supabaseClient
+                    .from('fornecedores')
+                    .select('email')
+                    .eq('cnpj', cnpj)
+                    .maybeSingle();
+
+                if (fornecedor) {
+                    emailAssociado = fornecedor.email;
+                }
+            }
+
+            if (!emailAssociado) {
+                throw new Error('Nenhuma empresa localizada com este CNPJ.');
+            }
+
+            btn.innerText = 'Disparando e-mail...';
+
+            // 3. Disparar link de reset de senha para o e-mail encontrado
+            const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(emailAssociado, {
+                redirectTo: window.location.origin + '/redefinir-senha.html'
+            });
+
+            if (resetError) throw resetError;
+
+            alert(`E-mail de recuperação enviado com sucesso para a caixa de: ${emailAssociado.replace(/(.{3})(.*)(@.*)/, "$1***$3")}\n\nAbra o link do e-mail para cadastrar sua nova senha.`);
+            
+            modalRecuperar.style.display = 'none';
+            formRecuperar.reset();
+
+        } catch (error) {
+            console.error('Erro na recuperação de senha:', error);
+            alert('Erro ao recuperar senha: ' + error.message);
+        } finally {
+            const btn = formRecuperar.querySelector('button');
+            btn.innerText = 'Enviar Link de Recuperação';
+            btn.disabled = false;
+        }
+    });
+}

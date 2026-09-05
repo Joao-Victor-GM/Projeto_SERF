@@ -54,7 +54,7 @@
           <input type="text" id="cnpjLogin" placeholder="CNPJ" required />
           <input type="password" id="senhaLogin" placeholder="Senha" required />
 
-          <a href="#" class="forgot-pass">Esqueceu a senha?</a>
+          <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
           <button type="submit" class="btn-solid">Entrar</button>
         </form>
       </div>
@@ -112,6 +112,16 @@
     <script src="app-v2.js"></script>
     <script src="particles-config.js"></script>
 
-
+    <div id="modalRecuperar" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Recuperar Senha</h3>
+        <p>Digite o CNPJ da sua empresa cadastrada. Enviaremos um link de redefinição de senha para o e-mail associado.</p>
+        <form id="formRecuperar">
+            <input type="text" id="cnpjRecuperar" placeholder="00.000.000/0000-00" required>
+            <button type="submit" class="btn-recuperar">Enviar Link de Recuperação</button>
+        </form>
+    </div>
+</div>
   </body>
 </html>
