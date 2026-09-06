@@ -7,9 +7,7 @@
     font-family: 'Poppins', sans-serif;
 }
 
-/* =========================================================
-   FUNDO DA TELA (Imagem Animada com Blocos)
-   ========================================================= */
+/* ========================================================= FUNDO DA TELA (Imagem Animada com @keyframes) ========================================================= */
 body {
     margin: 0;
     min-height: 100vh;
@@ -26,39 +24,43 @@ body {
 body::before {
     content: "";
     position: absolute;
-    /* Damos uma margem negativa para a imagem ter espaço para se mover sem mostrar bordas em branco */
-    top: -5%; left: -5%; right: -5%; bottom: -5%; 
+    /* Margem negativa para a imagem se mover sem mostrar bordas em branco */
+    top: -5%;
+    left: -5%;
+    right: -5%;
+    bottom: -5%;
     background-image: url('backgroundserfv2.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     z-index: -1; /* Mantém o fundo atrás do container do formulário */
-    
     /* Animação de 25 segundos, vai e volta suavemente */
     animation: moveBlocks 25s ease-in-out infinite alternate;
 }
 
 /* Movimento suave de escala (zoom) e translação (deslocamento) */
 @keyframes moveBlocks {
-    0% {
-        transform: scale(1) translate(0, 0);
-    }
-    33% {
-        transform: scale(1.03) translate(1.5%, 1.5%);
-    }
-    66% {
-        transform: scale(1.01) translate(-1%, 0.5%);
-    }
-    100% {
-        transform: scale(1.05) translate(0.5%, -1.5%);
-    }
+    0% { transform: scale(1) translate(0, 0); }
+    33% { transform: scale(1.03) translate(1.5%, 1.5%); }
+    66% { transform: scale(1.01) translate(-1%, 0.5%); }
+    100% { transform: scale(1.05) translate(0.5%, -1.5%); }
 }
 
-/* =========================================================
-   CONTAINER PRINCIPAL DO FORMULÁRIO
-   ========================================================= */
+/* ========================================================= ANIMAÇÃO DE TREMER (SHAKE ERROR) ========================================================= */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-10px); }
+    30%, 60%, 90% { transform: translateX(10px); }
+}
+
+.shake-error {
+    animation: shake 0.4s ease-in-out;
+}
+
+/* ========================================================= CONTAINER PRINCIPAL DO FORMULÁRIO ========================================================= */
 .container {
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.95); /* Branco suave com leve transparência */
+    backdrop-filter: blur(5px); /* Efeito de vidro fosco moderno */
     border-radius: 20px;
     box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
     position: relative;
@@ -134,44 +136,6 @@ input:focus {
     border-color: #f77f00;
 }
 
-.forgot-pass {
-    color: #1d2d5c;
-    font-size: 13px;
-    text-decoration: none;
-    margin: 15px 0;
-    font-weight: 500;
-}
-
-/* OPÇÕES DE PERFIL (CADASTRO B2B) */
-.perfil-opcoes {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.perfil-card {
-    flex: 1;
-    background-color: #f4f7f6;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.perfil-card input {
-    display: none;
-}
-
-.perfil-card:has(input:checked) {
-    background-color: #fff3e0;
-    border-color: #f77f00;
-    color: #f77f00;
-    font-weight: 600;
-}
-
 /* BOTÕES */
 button {
     border-radius: 8px;
@@ -201,9 +165,7 @@ button:active {
     color: #ffffff;
 }
 
-/* =====================================================================
-   PAINEL DESLIZANTE COM EFEITO DE CORTE (CLIP-PATH)
-   ===================================================================== */
+/* ===================================================================== PAINEL DESLIZANTE COM EFEITO DE CORTE ===================================================================== */
 .overlay-container {
     position: absolute;
     top: 0;
@@ -263,7 +225,6 @@ button:active {
 }
 
 /* === AÇÕES DA ANIMAÇÃO QUANDO A CLASSE "right-panel-active" ENTRA EM CENA === */
-
 .container.right-panel-active .sign-in-container {
     transform: translateX(100%);
     opacity: 0;
@@ -299,50 +260,41 @@ button:active {
 }
 
 #particles-js {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: #001f3f; /* Azul escuro corporativo de alto contraste */
-  z-index: -1; /* Garante que fique atrás das caixas de login/cadastro */
-}
-/* Garanta que o seu container central de login tenha um fundo levemente opaco ou sólido para contraste */
-.container {
-  background-color: rgba(255, 255, 255, 0.95); /* Branco suave com leve transparência */
-  backdrop-filter: blur(5px); /* Efeito de vidro fosco moderno */
-  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #001f3f; /* Azul escuro corporativo */
+    z-index: -1; /* Mantém atrás do container */
 }
 
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
+input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #333;
-  -webkit-box-shadow: 0 0 0px 1000px #f4f6f9 inset; /* Mantém o cinza suave de fundo */
-  transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: #333;
+    -webkit-box-shadow: 0 0 0px 1000px #f4f6f9 inset;
+    transition: background-color 5000s ease-in-out 0s;
 }
 
-/* ==========================================
-   ESTILOS DO MODAL DE RECUPERAÇÃO DE SENHA 
-   ========================================== */
-
-/* Estilo do link de recuperação existente */
+/* ========================================== ESTILOS DO MODAL DE RECUPERAÇÃO DE SENHA ========================================== */
 .forgot-pass {
     display: block;
     text-align: right;
-    font-size: 12px;
+    font-size: 13px;
     color: #e67e22; /* Laranja SERF */
     text-decoration: none;
-    margin-top: 5px;
+    margin: 15px 0;
     font-weight: 600;
 }
+
 .forgot-pass:hover {
     text-decoration: underline;
 }
 
 /* Estrutura do Modal */
 .modal {
-    display: none; /* Escondido por padrão, o JS muda para flex ao abrir */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -350,7 +302,7 @@ input:-webkit-autofill:focus {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px); /* Desfoca suavemente o fundo de partículas */
+    backdrop-filter: blur(4px);
     justify-content: center;
     align-items: center;
 }
@@ -381,12 +333,13 @@ input:-webkit-autofill:focus {
     cursor: pointer;
     color: #888;
 }
+
 .close-modal:hover {
     color: #333;
 }
 
 .modal-content h3 {
-    color: #003366; /* Azul Escuro SERF */
+    color: #003366;
     margin-bottom: 12px;
     font-size: 22px;
 }
@@ -409,7 +362,7 @@ input:-webkit-autofill:focus {
 .btn-recuperar {
     width: 100%;
     padding: 12px;
-    background-color: #e67e22; /* Laranja SERF */
+    background-color: #e67e22;
     color: white;
     border: none;
     border-radius: 6px;
@@ -418,6 +371,7 @@ input:-webkit-autofill:focus {
     cursor: pointer;
     transition: 0.3s;
 }
+
 .btn-recuperar:hover {
     background-color: #ff8c00;
 }

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F. - Conexão B2B e Leilão de Urgência</title>
+    <!-- Importação do arquivo CSS original -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Fonte corporativa utilizada no projeto -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Camada para as partículas de fundo (Particles.js) -->
+<div id="particles-js"></div>
+
+<div class="container" id="container">
+    <!-- TELA DE CADASTRO (Escondida à esquerda inicialmente) -->
+    <div class="form-container sign-up-container">
+        <form id="formCadastro">
+            <img src="serflogo.png" alt="Logo SERF" class="logo" />
+            <h2>Criar Conta</h2>
+            <span class="subtitle">Insira os dados da sua empresa para começar.</span>
+
+            <!-- Inputs diretos para cadastro unificado sem escolha de perfil nesta etapa -->
+            <input type="text" id="cnpjCadastro" placeholder="CNPJ" required />
+            <input type="text" id="razaoSocialCadastro" placeholder="Razão Social" required />
+            <input type="email" id="emailCadastro" placeholder="E-mail" required />
+            <input type="password" id="senhaCadastro" placeholder="Senha" required />
+            <!-- Campo Novo: Confirmar Senha -->
+            <input type="password" id="confirmarSenhaCadastro" placeholder="Confirmar Senha" required />
+
+            <button type="submit" class="btn-solid">Cadastrar</button>
+        </form>
+    </div>
+
+    <!-- TELA DE LOGIN (Visível à direita inicialmente) -->
+    <div class="form-container sign-in-container">
+        <form id="formLogin">
+            <img src="serflogo.png" alt="Logo SERF" class="logo" />
+            <h2>Acesse sua conta</h2>
+            <span class="subtitle">Insira seus dados para continuar.</span>
+
+            <input type="text" id="cnpjLogin" placeholder="CNPJ" required />
+            <input type="password" id="senhaLogin" placeholder="Senha" required />
+
+            <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
+            <button type="submit" class="btn-solid">Entrar</button>
+        </form>
+    </div>
+
+    <!-- PAINEL DESLIZANTE (Animação de transição lateral) -->
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h2>Já é membro?</h2>
+                <p>Faça login para continuar de onde parou e acessar a cadeia de suprimentos.</p>
+                <button class="btn-ghost" id="signIn">Fazer Login</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+                <h2>Novo por aqui?</h2>
+                <p>Crie sua conta em poucos segundos e desbloqueie toda a experiência B2B.</p>
+                <button class="btn-ghost" id="signUp">Criar Conta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE RECUPERAÇÃO DE SENHA (Posicionado antes dos scripts para evitar falha no clique) -->
+<div id="modalRecuperar" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Recuperar Senha</h3>
+        <p>Digite o CNPJ da sua empresa cadastrada. Enviaremos um link de redefinição de senha para o e-mail associado.</p>
+        <form id="formRecuperar">
+            <input type="text" id="cnpjRecuperar" placeholder="00.000.000/0000-00" required>
+            <button type="submit" class="btn-recuperar">Enviar Link de Recuperação</button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== SCRIPTS DE SISTEMA ========================================== -->
+
+<!-- Biblioteca do Supabase Auth & Database -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Biblioteca do SweetAlert2 (Para Alertas Customizados e Sem Cara de IA) -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Script de controle da animação nativa do slide lateral -->
+<script>
+    const signUpButton = document.getElementById("signUp");
+    const signInButton = document.getElementById("signIn");
+    const container = document.getElementById("container");
+
+    signUpButton.addEventListener("click", () => {
+        container.classList.add("right-panel-active");
+    });
+
+    signInButton.addEventListener("click", () => {
+        container.classList.remove("right-panel-active");
+    });
+</script>
+
+<!-- Biblioteca externa Particles.js para as partículas flutuantes -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<!-- Scripts lógicos e de configurações do app -->
+<script src="app-v2.js"></script>
+<script src="particles-config.js"></script>
+
+</body>
+</html>

@@ -1,14 +1,6 @@
-// =========================================================================
-// S.E.R.F. - SCRIPT DE INTEGRAÇÃO COMPLETO (app-v2.js)
-// Conecta a Tela de Login/Cadastro ao Supabase + Validação de CNPJ (BrasilAPI)
-// =========================================================================
-
 // 1. CONFIGURAÇÕES DE ACESSO AO BANCO DE DADOS (SUPABASE)
-// CORREÇÃO: Removido o '/rest/v1/' do final da URL
-const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
-
-// Sua chave pública padrão (mantenha como está)
-const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
+const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC';
 
 // Inicializa o cliente do Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -93,20 +85,18 @@ if (cnpjCadastro) {
 
 
 // =========================================================================
-// FUNCIONALIDADE 3: FLUXO DE CADASTRO (CRIAR CONTA)
+// FUNCIONALIDADE 3: FLUXO DE CADASTRO COM SALVAMENTO IMEDIATO E METADADOS
 // =========================================================================
 if (formCadastro) {
     formCadastro.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede o navegador de recarregar a página e perder os dados
+        e.preventDefault();
 
-        // Captura os dados atuais das caixinhas de texto
         const email = document.getElementById('emailCadastro').value.trim();
         const senha = document.getElementById('senhaCadastro').value;
+        const confirmarSenha = document.getElementById('confirmarSenhaCadastro').value;
         const cnpj = cnpjCadastro.value.replace(/\D/g, '');
         const razaoSocial = campoRazao.value.trim();
-        const perfilSelecionado = document.querySelector('input[name="perfil"]:checked').value;
 
-        // Validações de segurança antes de chamar a internet
         if (cnpj.length !== 14) {
             alert('Por favor, digite um CNPJ válido com 14 números.');
             return;
@@ -115,58 +105,59 @@ if (formCadastro) {
             alert('Por favor, preencha ou valide a Razão Social antes de continuar.');
             return;
         }
+        if (senha !== confirmarSenha) {
+            alert('A confirmação de senha não bate com a senha digitada!');
+            return;
+        }
 
         try {
-            // ETAPA A: Cadastra as credenciais de login no Supabase Auth (E-mail e Senha)
+            // ETAPA A: Cadastra no Auth do Supabase inserindo a etiqueta 'segmentacao_concluida: false' nos metadados
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email: email,
-                password: senha
+                password: senha,
+                options: {
+                    data: {
+                        segmentacao_concluida: false,
+                        cnpj: cnpj,
+                        razao_social: razaoSocial
+                    }
+                }
             });
 
             if (authError) throw authError;
 
-            // Pega o UUID exclusivo criado para essa nova conta
             const uuidUsuario = authData.user?.id;
+            if (!uuidUsuario) throw new Error('Erro ao gerar ID de segurança no banco.');
 
-            if (!uuidUsuario) {
-                throw new Error('Erro ao gerar ID de segurança no banco.');
-            }
+            // ETAPA B: Salva imediatamente na tabela 'usuarios' como provisório para evitar erro de CNPJ inexistente
+            const { error: dbError } = await supabaseClient
+                .from('usuarios')
+                .insert([{
+                    auth_user_id: uuidUsuario,
+                    nome_empresa: razaoSocial,
+                    cnpj: cnpj,
+                    email: email
+                }]);
 
-            // ETAPA B: Salva as informações da empresa na tabela correspondente ao perfil B2B
-            if (perfilSelecionado === 'Comprador') {
-                const { error: dbError } = await supabaseClient
-                    .from('usuarios') // Sua tabela de microempresas
-                    .insert([{
-                        auth_user_id: uuidUsuario,
-                        nome_empresa: razaoSocial,
-                        cnpj: cnpj,
-                        email: email
-                    }]);
+            if (dbError) throw dbError;
 
-                if (dbError) throw dbError;
+            // Guarda no cache local para a tela de triagem saber quem atualizar
+            const dadosProvisorios = {
+                uid: uuidUsuario,
+                cnpj: cnpj,
+                razaoSocial: razaoSocial,
+                email: email
+            };
+            localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
 
-            } else if (perfilSelecionado === 'Fornecedor') {
-                const { error: dbError } = await supabaseClient
-                    .from('fornecedores') // Sua tabela de fornecedores locais
-                    .insert([{
-                        auth_user_id: uuidUsuario,
-                        razao_social: razaoSocial,
-                        cnpj: cnpj,
-                        email: email
-                    }]);
-
-                if (dbError) throw dbError;
-            }
-
-            // Se tudo correu perfeitamente:
-            alert('Parabéns! Sua conta B2B do SERF foi criada. Faça o seu login!');
+            alert('Cadastro efetuado com sucesso! Vamos configurar as preferências da sua empresa agora.');
             formCadastro.reset();
             
-            // Remove a classe de animação para a interface deslizar de volta à tela de login
-            document.getElementById('container').classList.remove("right-panel-active");
+            // Redireciona na hora para a triagem
+            window.location.href = 'segmentacao.html';
 
         } catch (error) {
-            console.error("Erro completo capturado no cadastro:", error);
+            console.error("Erro no cadastro:", error);
             alert('Ocorreu um erro ao cadastrar: ' + error.message);
         }
     });
@@ -174,13 +165,12 @@ if (formCadastro) {
 
 
 // =========================================================================
-// FUNCIONALIDADE 4: FLUXO DE LOGIN (ENTRAR COM CNPJ + SENHA)
+// FUNCIONALIDADE 4: FLUXO DE LOGIN COM VALIDAÇÃO DE SEGMENTAÇÃO
 // =========================================================================
 if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Limpa o CNPJ digitado deixando apenas números
         const cnpj = cnpjLogin.value.replace(/\D/g, '');
         const senha = document.getElementById('senhaLogin').value;
 
@@ -193,17 +183,17 @@ if (formLogin) {
             let emailAssociadoAoCnpj = null;
 
             // ETAPA A: Procuramos o e-mail correspondente na tabela de Compradores
-            const { data: usuario, error: errUser } = await supabaseClient
+            const { data: usuario } = await supabaseClient
                 .from('usuarios')
                 .select('email')
                 .eq('cnpj', cnpj)
-                .maybeSingle(); // Retorna o registro ou vazio sem dar erro crítico
+                .maybeSingle();
 
             if (usuario) {
                 emailAssociadoAoCnpj = usuario.email;
             } else {
                 // ETAPA B: Se não encontrou, procuramos na tabela de Fornecedores
-                const { data: fornecedor, error: errForn } = await supabaseClient
+                const { data: fornecedor } = await supabaseClient
                     .from('fornecedores')
                     .select('email')
                     .eq('cnpj', cnpj)
@@ -214,12 +204,11 @@ if (formLogin) {
                 }
             }
 
-            // Se varremos as duas tabelas e o CNPJ não apareceu em nenhuma delas:
             if (!emailAssociadoAoCnpj) {
                 throw new Error('Nenhuma empresa cadastrada com este CNPJ.');
             }
 
-            // ETAPA C: Autentica de verdade usando o e-mail descoberto e a senha fornecida
+            // ETAPA C: Autentica com E-mail + Senha no Supabase Auth
             const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
                 email: emailAssociadoAoCnpj,
                 password: senha
@@ -227,19 +216,44 @@ if (formLogin) {
 
             if (loginError) throw loginError;
 
-            // SUCESSO ABSOLUTO!
+            const user = sessionData.user;
+
+            // 🌟 VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
+            // Lê o metadado oculto da conta do usuário
+            const segmentado = user?.user_metadata?.segmentacao_concluida;
+
+            if (segmentado === false || segmentado === undefined) {
+                alert('Onboarding pendente! Vamos configurar o perfil e nicho da sua empresa antes de acessar o painel.');
+
+                // Salva temporariamente os dados para uso na tela de segmentação
+                const dadosProvisorios = {
+                    uid: user.id,
+                    cnpj: cnpj,
+                    razaoSocial: user.user_metadata?.razao_social || 'Empresa Local',
+                    email: user.email
+                };
+                localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
+
+                // Redireciona para a triagem
+                window.location.href = 'segmentacao.html';
+                return;
+            }
+
+            // Acesso liberado se já estiver segmentado!
             alert('Acesso autorizado! Bem-vindo de volta ao SERF.');
-            
-            // Redireciona para a página principal protegida do seu painel
             window.location.href = 'home.html';
 
         } catch (error) {
-            console.error("Erro completo capturado no login:", error);
+            console.error("Erro no login:", error);
             alert('Falha ao entrar no sistema: ' + error.message);
         }
     });
 }
 
+
+// =========================================================================
+// FUNCIONALIDADE 5: FLUXO DE RECUPERAÇÃO DE SENHA (MODAL)
+// =========================================================================
 const modalRecuperar = document.getElementById('modalRecuperar');
 const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
 const closeModal = document.querySelector('.close-modal');
@@ -277,7 +291,6 @@ window.addEventListener('click', (e) => {
 if (formRecuperar) {
     formRecuperar.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const cnpj = cnpjRecuperar.value.replace(/\D/g, '');
         
         if (cnpj.length !== 14) {
@@ -335,11 +348,33 @@ if (formRecuperar) {
 
         } catch (error) {
             console.error('Erro na recuperação de senha:', error);
-            alert('Erro ao recuperar senha: ' + error.message);
+            
+            // 🌟 TRATAMENTO DE ERRO PROFISSIONAL: Traduzindo erros do Supabase
+            let tituloErro = 'Erro de Recuperação';
+            let mensagemAmigavel = error.message;
+
+            if (error.message.includes('rate limit exceeded')) {
+                tituloErro = 'Limite Excedido';
+                mensagemAmigavel = 'Você já solicitou um link de recuperação recentemente. Por favor, aguarde alguns minutos antes de tentar novamente para evitar spam!';
+            } else if (error.message.includes('Nenhuma empresa localizada')) {
+                tituloErro = 'CNPJ não encontrado';
+                mensagemAmigavel = 'Não encontramos nenhuma empresa cadastrada com este CNPJ no S.E.R.F. Verifique o número!';
+            }
+
+            // Exibe o SweetAlert com a mensagem traduzida e bonita
+            Swal.fire({
+                title: tituloErro,
+                text: mensagemAmigavel,
+                icon: 'error',
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Entendido'
+            });
+
         } finally {
             const btn = formRecuperar.querySelector('button');
             btn.innerText = 'Enviar Link de Recuperação';
             btn.disabled = false;
         }
+
     });
 }
