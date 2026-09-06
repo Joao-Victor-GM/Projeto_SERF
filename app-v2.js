@@ -1,6 +1,11 @@
+// =========================================================================
+// S.E.R.F. - SCRIPT DE INTEGRAÇÃO COMPLETO (app-v2.js)
+// Conecta a Tela de Login/Cadastro ao Supabase + Validação de CNPJ (BrasilAPI)
+// =========================================================================
+
 // 1. CONFIGURAÇÕES DE ACESSO AO BANCO DE DADOS (SUPABASE)
-const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC';
+const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
+const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
 
 // Inicializa o cliente do Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -13,6 +18,24 @@ const formLogin = document.getElementById('formLogin');
 const cnpjCadastro = document.getElementById('cnpjCadastro');
 const cnpjLogin = document.getElementById('cnpjLogin');
 const campoRazao = document.getElementById('razaoSocialCadastro');
+const containerTela = document.getElementById('container');
+
+// Configurações Globais de Cores do SweetAlert2 (Identidade do S.E.R.F.)
+const swalConfig = {
+    background: '#ffffff',
+    color: '#1d2d5c',
+    confirmButtonColor: '#f77f00' // Laranja do SERF
+};
+
+// Função utilitária para fazer o container do login tremer fisicamente em caso de erro
+function tremerTela() {
+    if (containerTela) {
+        containerTela.classList.add('shake-error');
+        setTimeout(() => {
+            containerTela.classList.remove('shake-error');
+        }, 400);
+    }
+}
 
 // =========================================================================
 // FUNCIONALIDADE 1: MÁSCARA DE CNPJ EM TEMPO REAL
@@ -57,10 +80,20 @@ if (cnpjCadastro) {
         // Só dispara a consulta se o CNPJ tiver os 14 dígitos completos
         if (cnpjLimpo.length === 14) {
             try {
-                campoRazao.placeholder = "Buscando dados na Receita Federal...";
-                campoRazao.value = ""; // Limpa temporariamente o campo para dar feedback visual
+                // Feedback visual de busca utilizando SweetAlert2
+                Swal.fire({
+                    title: 'Buscando CNPJ...',
+                    text: 'Consultando dados públicos da Receita Federal.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
 
-                // Consulta pública, gratuita e segura para a API do Brasil
+                campoRazao.placeholder = "Buscando dados na Receita Federal...";
+                campoRazao.value = ""; 
+
+                // Consulta pública à API do Brasil
                 const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
 
                 if (!resposta.ok) {
@@ -68,14 +101,35 @@ if (cnpjCadastro) {
                 }
 
                 const dadosEmpresa = await resposta.json();
+                
+                // Fecha o loading
+                Swal.close();
 
-                // Insere a Razão Social retornada diretamente no campo de texto do HTML!
+                // Insere a Razão Social no HTML
                 campoRazao.value = dadosEmpresa.razao_social;
                 console.log(`CNPJ Validado com Sucesso: ${dadosEmpresa.razao_social}`);
 
+                // Alerta elegante de sucesso na busca do CNPJ
+                Swal.fire({
+                    ...swalConfig,
+                    title: 'Empresa Localizada!',
+                    text: dadosEmpresa.razao_social,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
             } catch (error) {
-                alert('Erro na validação do CNPJ: ' + error.message);
-                cnpjCadastro.value = ''; // Reseta os campos para o usuário corrigir
+                Swal.close();
+                tremerTela();
+                Swal.fire({
+                    ...swalConfig,
+                    title: 'Erro na Validação',
+                    text: error.message,
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+                cnpjCadastro.value = ''; 
                 campoRazao.value = '';
                 campoRazao.placeholder = 'Razão Social';
             }
@@ -89,7 +143,7 @@ if (cnpjCadastro) {
 // =========================================================================
 if (formCadastro) {
     formCadastro.addEventListener('submit', async (e) => {
-        e.preventDefault();
+        e.preventDefault(); 
 
         const email = document.getElementById('emailCadastro').value.trim();
         const senha = document.getElementById('senhaCadastro').value;
@@ -98,19 +152,47 @@ if (formCadastro) {
         const razaoSocial = campoRazao.value.trim();
 
         if (cnpj.length !== 14) {
-            alert('Por favor, digite um CNPJ válido com 14 números.');
+            tremerTela();
+            Swal.fire({
+                ...swalConfig,
+                title: 'Dados Incompletos',
+                text: 'Por favor, digite um CNPJ válido com 14 números.',
+                icon: 'warning'
+            });
             return;
         }
         if (!razaoSocial) {
-            alert('Por favor, preencha ou valide a Razão Social antes de continuar.');
+            tremerTela();
+            Swal.fire({
+                ...swalConfig,
+                title: 'Atenção',
+                text: 'Por favor, preencha ou valide a Razão Social antes de continuar.',
+                icon: 'warning'
+            });
             return;
         }
         if (senha !== confirmarSenha) {
-            alert('A confirmação de senha não bate com a senha digitada!');
+            tremerTela();
+            Swal.fire({
+                ...swalConfig,
+                title: 'Atenção',
+                text: 'A confirmação de senha não bate com a senha digitada!',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
             return;
         }
 
         try {
+            Swal.fire({
+                title: 'Criando Cadastro...',
+                text: 'Gravando credenciais no banco de dados.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             // ETAPA A: Cadastra no Auth do Supabase inserindo a etiqueta 'segmentacao_concluida: false' nos metadados
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email: email,
@@ -129,7 +211,7 @@ if (formCadastro) {
             const uuidUsuario = authData.user?.id;
             if (!uuidUsuario) throw new Error('Erro ao gerar ID de segurança no banco.');
 
-            // ETAPA B: Salva imediatamente na tabela 'usuarios' como provisório para evitar erro de CNPJ inexistente
+            // ETAPA B: Salva na tabela 'usuarios'
             const { error: dbError } = await supabaseClient
                 .from('usuarios')
                 .insert([{
@@ -141,7 +223,7 @@ if (formCadastro) {
 
             if (dbError) throw dbError;
 
-            // Guarda no cache local para a tela de triagem saber quem atualizar
+            // Guarda no cache local para a triagem de segmentação
             const dadosProvisorios = {
                 uid: uuidUsuario,
                 cnpj: cnpj,
@@ -150,15 +232,30 @@ if (formCadastro) {
             };
             localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
 
-            alert('Cadastro efetuado com sucesso! Vamos configurar as preferências da sua empresa agora.');
-            formCadastro.reset();
-            
-            // Redireciona na hora para a triagem
-            window.location.href = 'segmentacao.html';
+            Swal.close();
+
+            // Mensagem de sucesso bonita com direcionamento para segmentação
+            Swal.fire({
+                ...swalConfig,
+                title: 'Cadastro Realizado!',
+                text: 'Sua conta foi criada! Vamos configurar as preferências da sua empresa agora.',
+                icon: 'success'
+            }).then(() => {
+                formCadastro.reset();
+                window.location.href = 'segmentacao.html';
+            });
 
         } catch (error) {
+            Swal.close();
+            tremerTela();
             console.error("Erro no cadastro:", error);
-            alert('Ocorreu um erro ao cadastrar: ' + error.message);
+            Swal.fire({
+                ...swalConfig,
+                title: 'Erro ao Cadastrar',
+                text: error.message,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
         }
     });
 }
@@ -175,11 +272,26 @@ if (formLogin) {
         const senha = document.getElementById('senhaLogin').value;
 
         if (cnpj.length !== 14) {
-            alert('Por favor, insira o CNPJ completo com 14 dígitos.');
+            tremerTela();
+            Swal.fire({
+                ...swalConfig,
+                title: 'CNPJ Incompleto',
+                text: 'Por favor, insira o CNPJ completo com 14 dígitos.',
+                icon: 'warning'
+            });
             return;
         }
 
         try {
+            Swal.fire({
+                title: 'Autenticando...',
+                text: 'Validando suas credenciais de acesso.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             let emailAssociadoAoCnpj = null;
 
             // ETAPA A: Procuramos o e-mail correspondente na tabela de Compradores
@@ -218,41 +330,60 @@ if (formLogin) {
 
             const user = sessionData.user;
 
-            // 🌟 VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
-            // Lê o metadado oculto da conta do usuário
+            // VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
             const segmentado = user?.user_metadata?.segmentacao_concluida;
 
+            Swal.close();
+
             if (segmentado === false || segmentado === undefined) {
-                alert('Onboarding pendente! Vamos configurar o perfil e nicho da sua empresa antes de acessar o painel.');
-
-                // Salva temporariamente os dados para uso na tela de segmentação
-                const dadosProvisorios = {
-                    uid: user.id,
-                    cnpj: cnpj,
-                    razaoSocial: user.user_metadata?.razao_social || 'Empresa Local',
-                    email: user.email
-                };
-                localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
-
-                // Redireciona para a triagem
-                window.location.href = 'segmentacao.html';
+                Swal.fire({
+                    ...swalConfig,
+                    title: 'Onboarding Pendente',
+                    text: 'Vamos configurar o perfil e nicho da sua empresa antes de acessar o painel.',
+                    icon: 'info'
+                }).then(() => {
+                    const dadosProvisorios = {
+                        uid: user.id,
+                        cnpj: cnpj,
+                        razaoSocial: user.user_metadata?.razao_social || 'Empresa Local',
+                        email: user.email
+                    };
+                    localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
+                    window.location.href = 'segmentacao.html';
+                });
                 return;
             }
 
             // Acesso liberado se já estiver segmentado!
-            alert('Acesso autorizado! Bem-vindo de volta ao SERF.');
-            window.location.href = 'home.html';
+            Swal.fire({
+                ...swalConfig,
+                title: 'Acesso Autorizado!',
+                text: 'Seja bem-vindo de volta ao S.E.R.F.!',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = 'home.html';
+            });
 
         } catch (error) {
+            Swal.close();
+            tremerTela();
             console.error("Erro no login:", error);
-            alert('Falha ao entrar no sistema: ' + error.message);
+            Swal.fire({
+                ...swalConfig,
+                title: 'Falha ao Acessar',
+                text: error.message,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
         }
     });
 }
 
 
 // =========================================================================
-// FUNCIONALIDADE 5: FLUXO DE RECUPERAÇÃO DE SENHA (MODAL)
+// FUNCIONALIDADE 5: FLUXO DE RECUPERAÇÃO DE SENHA (MODAL COM SWEETALERT2)
 // =========================================================================
 const modalRecuperar = document.getElementById('modalRecuperar');
 const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
@@ -260,7 +391,7 @@ const closeModal = document.querySelector('.close-modal');
 const formRecuperar = document.getElementById('formRecuperar');
 const cnpjRecuperar = document.getElementById('cnpjRecuperar');
 
-// Aplica a máscara de CNPJ no campo do modal se a função existir no seu app-v2.js
+// Aplica a máscara de CNPJ no campo do modal se a função existir
 if (typeof aplicarMascaraCNPJ === 'function') {
     aplicarMascaraCNPJ(cnpjRecuperar);
 }
@@ -294,15 +425,25 @@ if (formRecuperar) {
         const cnpj = cnpjRecuperar.value.replace(/\D/g, '');
         
         if (cnpj.length !== 14) {
-            alert('Por favor, insira um CNPJ válido de 14 dígitos.');
+            Swal.fire({
+                ...swalConfig,
+                title: 'CNPJ Inválido',
+                text: 'Por favor, insira um CNPJ válido de 14 dígitos.',
+                icon: 'warning'
+            });
             return;
         }
 
         try {
-            // Feedback visual no botão
-            const btn = formRecuperar.querySelector('button');
-            btn.innerText = 'Buscando cadastro...';
-            btn.disabled = true;
+            // Feedback visual no botão com SweetAlert2
+            Swal.fire({
+                title: 'Processando pedido...',
+                text: 'Buscando o e-mail cadastrado associado a esse CNPJ.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             let emailAssociado = null;
 
@@ -329,10 +470,8 @@ if (formRecuperar) {
             }
 
             if (!emailAssociado) {
-                throw new Error('Nenhuma empresa localizada com este CNPJ.');
+                throw new Error('Nenhuma empresa localizada com este CNPJ no banco de dados do S.E.R.F.');
             }
-
-            btn.innerText = 'Disparando e-mail...';
 
             // 3. Disparar link de reset de senha para o e-mail encontrado
             const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(emailAssociado, {
@@ -341,15 +480,26 @@ if (formRecuperar) {
 
             if (resetError) throw resetError;
 
-            alert(`E-mail de recuperação enviado com sucesso para a caixa de: ${emailAssociado.replace(/(.{3})(.*)(@.*)/, "$1***$3")}\n\nAbra o link do e-mail para cadastrar sua nova senha.`);
+            Swal.close();
+
+            // Mensagem elegante com e-mail parcialmente mascarado (ex: t***@gmail.com)
+            const emailMascarado = emailAssociado.replace(/(.{3})(.*)(@.*)/, "$1***$3");
+            
+            // 🌟 SUCESSO DE VERDADE COM SWEETALERT2
+            Swal.fire({
+                ...swalConfig,
+                title: 'E-mail Enviado!',
+                html: `Enviamos o link de redefinição para a caixa de: <strong>${emailMascarado}</strong>.<br><br>Verifique também a caixa de Spam ou Lixo Eletrônico!`,
+                icon: 'success'
+            });
             
             modalRecuperar.style.display = 'none';
             formRecuperar.reset();
 
         } catch (error) {
-            console.error('Erro na recuperação de senha:', error);
+            Swal.close();
             
-            // 🌟 TRATAMENTO DE ERRO PROFISSIONAL: Traduzindo erros do Supabase
+            // TRATAMENTO DE ERRO PROFISSIONAL: Traduzindo erros do Supabase
             let tituloErro = 'Erro de Recuperação';
             let mensagemAmigavel = error.message;
 
@@ -363,18 +513,13 @@ if (formRecuperar) {
 
             // Exibe o SweetAlert com a mensagem traduzida e bonita
             Swal.fire({
+                ...swalConfig,
                 title: tituloErro,
                 text: mensagemAmigavel,
                 icon: 'error',
                 confirmButtonColor: '#d33',
                 confirmButtonText: 'Entendido'
             });
-
-        } finally {
-            const btn = formRecuperar.querySelector('button');
-            btn.innerText = 'Enviar Link de Recuperação';
-            btn.disabled = false;
         }
-
     });
 }
