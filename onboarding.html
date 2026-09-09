@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurar conta - SERF</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="fivecon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="onboarding.css" />
+  </head>
+  <body>
+    <div class="fundo" aria-hidden="true">
+      <span class="brilho brilho-a"></span>
+      <span class="brilho brilho-b"></span>
+    </div>
+
+    <main class="palco">
+      <header class="topo">
+        <img src="serflogo.png" alt="SERF" class="topo-logo" />
+        <button type="button" id="btnSair" class="link-sair">Sair da conta</button>
+      </header>
+
+      <section class="cartao" aria-labelledby="tituloEtapa">
+        <div class="cartao-cabecalho">
+          <p class="saudacao" id="saudacao">Carregando seus dados…</p>
+          <h1 id="tituloEtapa">Vamos terminar seu cadastro</h1>
+          <p class="apoio" id="apoioEtapa">
+            São três etapas rápidas. Depois disso sua empresa fica visível na rede SERF.
+          </p>
+        </div>
+
+        <nav class="trilha" aria-label="Progresso do cadastro">
+          <div class="trilha-linha"><span class="trilha-preenchida" id="trilhaPreenchida"></span></div>
+          <ol class="trilha-itens">
+            <li class="trilha-item ativa" data-passo="1"><span class="marca">1</span>Dados da empresa</li>
+            <li class="trilha-item" data-passo="2"><span class="marca">2</span>Endereço</li>
+            <li class="trilha-item" data-passo="3"><span class="marca">3</span>Preferências</li>
+          </ol>
+        </nav>
+
+        <form id="formOnboarding" novalidate>
+          <!-- ETAPA 1 -->
+          <fieldset class="etapa ativa" data-passo="1">
+            <legend class="sr-only">Dados complementares da empresa</legend>
+
+            <div class="campo">
+              <label for="inscricaoEstadual">Inscrição estadual</label>
+              <input
+                type="text"
+                id="inscricaoEstadual"
+                inputmode="numeric"
+                placeholder="Somente números"
+                autocomplete="off"
+              />
+              <label class="caixa-isento">
+                <input type="checkbox" id="isentoIE" />
+                <span>Minha empresa é isenta de inscrição estadual</span>
+              </label>
+            </div>
+
+            <div class="campo">
+              <label for="telefone">Telefone ou WhatsApp</label>
+              <input
+                type="tel"
+                id="telefone"
+                inputmode="tel"
+                placeholder="(11) 99999-9999"
+                autocomplete="tel"
+                required
+              />
+              <p class="dica">É por aqui que compradores e fornecedores vão falar com você.</p>
+            </div>
+
+            <div class="campo">
+              <label for="responsavel">Quem responde pela conta</label>
+              <input
+                type="text"
+                id="responsavel"
+                placeholder="Nome de quem cuida das negociações"
+                autocomplete="name"
+                required
+              />
+            </div>
+          </fieldset>
+
+          <!-- ETAPA 2 -->
+          <fieldset class="etapa" data-passo="2">
+            <legend class="sr-only">Endereço da empresa</legend>
+
+            <div class="linha linha-cep">
+              <div class="campo">
+                <label for="cep">CEP</label>
+                <input
+                  type="text"
+                  id="cep"
+                  inputmode="numeric"
+                  placeholder="00000-000"
+                  autocomplete="postal-code"
+                  required
+                />
+                <p class="dica" id="statusCep">Preenchemos o resto do endereço para você.</p>
+              </div>
+              <div class="campo">
+                <label for="numero">Número</label>
+                <input type="text" id="numero" placeholder="123" required />
+              </div>
+            </div>
+
+            <div class="campo">
+              <label for="logradouro">Rua</label>
+              <input type="text" id="logradouro" placeholder="Rua, avenida ou estrada" required />
+            </div>
+
+            <div class="linha">
+              <div class="campo">
+                <label for="bairro">Bairro</label>
+                <input type="text" id="bairro" placeholder="Bairro" required />
+              </div>
+              <div class="campo">
+                <label for="complemento">Complemento</label>
+                <input type="text" id="complemento" placeholder="Sala, galpão, bloco" />
+              </div>
+            </div>
+
+            <div class="linha linha-cidade">
+              <div class="campo">
+                <label for="cidade">Cidade</label>
+                <input type="text" id="cidade" placeholder="Cidade" required />
+              </div>
+              <div class="campo">
+                <label for="estado">UF</label>
+                <input type="text" id="estado" maxlength="2" placeholder="SP" required />
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- ETAPA 3 -->
+          <fieldset class="etapa" data-passo="3">
+            <legend class="sr-only">Nichos de interesse</legend>
+
+            <!-- Os blocos de nicho são montados pelo JS: o perfil "Ambos"
+                 recebe duas listas separadas, o que compra e o que vende. -->
+            <div id="blocosNichos"></div>
+            <p class="dica" id="contadorNichos">Escolha ao menos uma categoria.</p>
+
+            <div class="campo campo-raio">
+              <label for="raioAtuacao">Até que distância você negocia</label>
+              <select id="raioAtuacao">
+                <option value="20">Só na minha cidade (até 20 km)</option>
+                <option value="80" selected>Região próxima (até 80 km)</option>
+                <option value="300">Todo o estado</option>
+                <option value="0">Brasil inteiro</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <p class="aviso" id="aviso" role="alert" hidden></p>
+
+          <footer class="acoes">
+            <button type="button" class="btn-voltar" id="btnVoltar" hidden>Voltar</button>
+            <button type="button" class="btn-principal" id="btnAvancar">Continuar</button>
+            <button type="submit" class="btn-principal" id="btnConcluir" hidden>
+              Salvar e entrar
+            </button>
+          </footer>
+        </form>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="onboarding.js"></script>
+  </body>
+</html>

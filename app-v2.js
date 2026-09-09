@@ -1,19 +1,11 @@
 // =========================================================================
-// S.E.R.F. - SCRIPT DE INTEGRAÇÃO COMPLETO (app-v2.js)
-// Conecta a Tela de Login/Cadastro ao Supabase + Validação de CNPJ (BrasilAPI)
+// S.E.R.F. - LOGIN, CADASTRO E RECUPERAÇÃO (app-v2.js)
+// Depende de supabase-config.js, que deve ser carregado antes.
 // =========================================================================
 
-// 1. CONFIGURAÇÕES DE ACESSO AO BANCO DE DADOS (SUPABASE)
-// CORREÇÃO: Removido o '/rest/v1/' do final da URL
-const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
-
-// Sua chave pública padrão (mantenha como está)
-const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
-
-// Inicializa o cliente do Supabase
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-console.log("🚀 Ponte com o Supabase configurada com sucesso!");
+const supabaseClient = window.SERF.db;
+const PAGINAS = window.SERF.PAGINAS;
+const traduzirErro = window.SERF.traduzirErro;
 
 // 2. CAPTURA DOS ELEMENTOS DO HTML (DOM)
 const formCadastro = document.getElementById('formCadastro');
@@ -27,16 +19,14 @@ const campoRazao = document.getElementById('razaoSocialCadastro');
 // =========================================================================
 function aplicarMascaraCNPJ(inputElement) {
     if (!inputElement) return;
-    
+
     inputElement.addEventListener('input', (e) => {
-        let value = e.target.value;
-        value = value.replace(/\D/g, ''); // Remove tudo que não é número
-        
+        let value = e.target.value.replace(/\D/g, '');
+
         if (value.length > 14) {
-            value = value.slice(0, 14); // Limita a 14 dígitos no máximo
+            value = value.slice(0, 14);
         }
-        
-        // Aplica os pontos, barra e traço dinamicamente conforme digita
+
         if (value.length > 12) {
             value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})$/, "$1.$2.$3/$4-$5");
         } else if (value.length > 8) {
@@ -46,14 +36,13 @@ function aplicarMascaraCNPJ(inputElement) {
         } else if (value.length > 2) {
             value = value.replace(/^(\d{2})(\d{1,3})$/, "$1.$2");
         }
-        
+
         e.target.value = value;
     });
 }
 
 aplicarMascaraCNPJ(cnpjCadastro);
 aplicarMascaraCNPJ(cnpjLogin);
-
 
 // =========================================================================
 // FUNCIONALIDADE 2: VALIDAÇÃO DE CNPJ E AUTO-PREENCHIMENTO (BRASILAPI)
@@ -62,51 +51,51 @@ if (cnpjCadastro) {
     cnpjCadastro.addEventListener('blur', async () => {
         const cnpjLimpo = cnpjCadastro.value.replace(/\D/g, '');
 
-        // Só dispara a consulta se o CNPJ tiver os 14 dígitos completos
-        if (cnpjLimpo.length === 14) {
-            try {
-                campoRazao.placeholder = "Buscando dados na Receita Federal...";
-                campoRazao.value = ""; // Limpa temporariamente o campo para dar feedback visual
+        if (cnpjLimpo.length !== 14) return;
 
-                // Consulta pública, gratuita e segura para a API do Brasil
-                const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
+        try {
+            campoRazao.placeholder = 'Buscando dados na Receita Federal...';
+            campoRazao.value = '';
 
-                if (!resposta.ok) {
-                    throw new Error('CNPJ inválido ou inexistente na Receita Federal.');
-                }
+            const resposta = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
 
-                const dadosEmpresa = await resposta.json();
-
-                // Insere a Razão Social retornada diretamente no campo de texto do HTML!
-                campoRazao.value = dadosEmpresa.razao_social;
-                console.log(`CNPJ Validado com Sucesso: ${dadosEmpresa.razao_social}`);
-
-            } catch (error) {
-                alert('Erro na validação do CNPJ: ' + error.message);
-                cnpjCadastro.value = ''; // Reseta os campos para o usuário corrigir
-                campoRazao.value = '';
-                campoRazao.placeholder = 'Razão Social';
+            if (!resposta.ok) {
+                throw new Error('CNPJ inválido ou inexistente na Receita Federal.');
             }
+
+            const dadosEmpresa = await resposta.json();
+            campoRazao.value = dadosEmpresa.razao_social;
+
+            // Avisa cedo se o CNPJ já tem conta, em vez de deixar o erro
+            // aparecer só depois de o usuário preencher senha e e-mail.
+            const { data: jaExiste } = await supabaseClient.rpc('cnpj_existe', { p_cnpj: cnpjLimpo });
+
+            if (jaExiste) {
+                alert('Este CNPJ já possui conta no SERF. Faça login ou recupere sua senha.');
+            }
+        } catch (error) {
+            alert('Erro na validação do CNPJ: ' + traduzirErro(error));
+            cnpjCadastro.value = '';
+            campoRazao.value = '';
+            campoRazao.placeholder = 'Razão Social';
         }
     });
 }
-
 
 // =========================================================================
 // FUNCIONALIDADE 3: FLUXO DE CADASTRO (CRIAR CONTA)
 // =========================================================================
 if (formCadastro) {
     formCadastro.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede o navegador de recarregar a página e perder os dados
+        e.preventDefault();
 
-        // Captura os dados atuais das caixinhas de texto
+        const botao = formCadastro.querySelector('button[type="submit"]');
         const email = document.getElementById('emailCadastro').value.trim();
         const senha = document.getElementById('senhaCadastro').value;
         const cnpj = cnpjCadastro.value.replace(/\D/g, '');
         const razaoSocial = campoRazao.value.trim();
         const perfilSelecionado = document.querySelector('input[name="perfil"]:checked').value;
 
-        // Validações de segurança antes de chamar a internet
         if (cnpj.length !== 14) {
             alert('Por favor, digite um CNPJ válido com 14 números.');
             return;
@@ -115,63 +104,61 @@ if (formCadastro) {
             alert('Por favor, preencha ou valide a Razão Social antes de continuar.');
             return;
         }
+        if (senha.length < 6) {
+            alert('A senha precisa ter no mínimo 6 caracteres.');
+            return;
+        }
+
+        botao.disabled = true;
+        botao.innerText = 'Criando conta...';
 
         try {
-            // ETAPA A: Cadastra as credenciais de login no Supabase Auth (E-mail e Senha)
+            // Checagem prévia: a RPC devolve só true/false, nunca o e-mail.
+            const { data: jaExiste, error: errCheck } = await supabaseClient
+                .rpc('cnpj_existe', { p_cnpj: cnpj });
+
+            if (errCheck) throw errCheck;
+            if (jaExiste) {
+                throw new Error('Este CNPJ já possui conta no SERF.');
+            }
+
+            // SCRUM-9: os dados da empresa viajam em options.data.
+            // O trigger tr_novo_usuario_serf lê esses campos e grava em
+            // usuarios e/ou fornecedores na MESMA transação do signUp.
+            // Por isso o cadastro funciona mesmo com confirmação de e-mail
+            // ligada, quando ainda não existe sessão no navegador.
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email: email,
-                password: senha
+                password: senha,
+                options: {
+                    data: {
+                        perfil: perfilSelecionado,
+                        razao_social: razaoSocial,
+                        cnpj: cnpj
+                    }
+                }
             });
 
             if (authError) throw authError;
 
-            // Pega o UUID exclusivo criado para essa nova conta
-            const uuidUsuario = authData.user?.id;
-
-            if (!uuidUsuario) {
-                throw new Error('Erro ao gerar ID de segurança no banco.');
-            }
-
-            // ETAPA B: Salva as informações da empresa na tabela correspondente ao perfil B2B
-            if (perfilSelecionado === 'Comprador') {
-                const { error: dbError } = await supabaseClient
-                    .from('usuarios') // Sua tabela de microempresas
-                    .insert([{
-                        auth_user_id: uuidUsuario,
-                        nome_empresa: razaoSocial,
-                        cnpj: cnpj,
-                        email: email
-                    }]);
-
-                if (dbError) throw dbError;
-
-            } else if (perfilSelecionado === 'Fornecedor') {
-                const { error: dbError } = await supabaseClient
-                    .from('fornecedores') // Sua tabela de fornecedores locais
-                    .insert([{
-                        auth_user_id: uuidUsuario,
-                        razao_social: razaoSocial,
-                        cnpj: cnpj,
-                        email: email
-                    }]);
-
-                if (dbError) throw dbError;
-            }
-
-            // Se tudo correu perfeitamente:
-            alert('Parabéns! Sua conta B2B do SERF foi criada. Faça o seu login!');
             formCadastro.reset();
-            
-            // Remove a classe de animação para a interface deslizar de volta à tela de login
-            document.getElementById('container').classList.remove("right-panel-active");
 
+            if (authData.session) {
+                alert('Conta criada. Vamos configurar seu perfil.');
+                window.location.href = PAGINAS.ONBOARDING;
+            } else {
+                alert('Conta criada. Confirme o e-mail que enviamos e depois faça login.');
+                document.getElementById('container').classList.remove('right-panel-active');
+            }
         } catch (error) {
-            console.error("Erro completo capturado no cadastro:", error);
-            alert('Ocorreu um erro ao cadastrar: ' + error.message);
+            console.error('Erro no cadastro:', error);
+            alert('Não foi possível criar a conta: ' + traduzirErro(error));
+        } finally {
+            botao.disabled = false;
+            botao.innerText = 'Cadastrar';
         }
     });
 }
-
 
 // =========================================================================
 // FUNCIONALIDADE 4: FLUXO DE LOGIN (ENTRAR COM CNPJ + SENHA)
@@ -180,7 +167,7 @@ if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Limpa o CNPJ digitado deixando apenas números
+        const botao = formLogin.querySelector('button[type="submit"]');
         const cnpj = cnpjLogin.value.replace(/\D/g, '');
         const senha = document.getElementById('senhaLogin').value;
 
@@ -189,37 +176,22 @@ if (formLogin) {
             return;
         }
 
+        botao.disabled = true;
+        botao.innerText = 'Entrando...';
+
         try {
-            let emailAssociadoAoCnpj = null;
+            // Descobre o e-mail vinculado ao CNPJ. Roda sem sessão, então
+            // precisa ser via RPC: com RLS ligado, um SELECT direto nas
+            // tabelas volta vazio. A função tem freio contra varredura.
+            const { data: emailAssociadoAoCnpj, error: errBusca } = await supabaseClient
+                .rpc('email_por_cnpj', { p_cnpj: cnpj });
 
-            // ETAPA A: Procuramos o e-mail correspondente na tabela de Compradores
-            const { data: usuario, error: errUser } = await supabaseClient
-                .from('usuarios')
-                .select('email')
-                .eq('cnpj', cnpj)
-                .maybeSingle(); // Retorna o registro ou vazio sem dar erro crítico
+            if (errBusca) throw errBusca;
 
-            if (usuario) {
-                emailAssociadoAoCnpj = usuario.email;
-            } else {
-                // ETAPA B: Se não encontrou, procuramos na tabela de Fornecedores
-                const { data: fornecedor, error: errForn } = await supabaseClient
-                    .from('fornecedores')
-                    .select('email')
-                    .eq('cnpj', cnpj)
-                    .maybeSingle();
-
-                if (fornecedor) {
-                    emailAssociadoAoCnpj = fornecedor.email;
-                }
-            }
-
-            // Se varremos as duas tabelas e o CNPJ não apareceu em nenhuma delas:
             if (!emailAssociadoAoCnpj) {
-                throw new Error('Nenhuma empresa cadastrada com este CNPJ.');
+                throw new Error('CNPJ ou senha incorretos.');
             }
 
-            // ETAPA C: Autentica de verdade usando o e-mail descoberto e a senha fornecida
             const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
                 email: emailAssociadoAoCnpj,
                 password: senha
@@ -227,15 +199,115 @@ if (formLogin) {
 
             if (loginError) throw loginError;
 
-            // SUCESSO ABSOLUTO!
-            alert('Acesso autorizado! Bem-vindo de volta ao SERF.');
-            
-            // Redireciona para a página principal protegida do seu painel
-            window.location.href = 'home.html';
+            // Decide o destino: onboarding pendente ou home.
+            const uuidLogado = sessionData.user.id;
 
+            const [registroComprador, registroFornecedor] = await Promise.all([
+                supabaseClient.from('usuarios')
+                    .select('onboarding_completo').eq('auth_user_id', uuidLogado).maybeSingle(),
+                supabaseClient.from('fornecedores')
+                    .select('onboarding_completo').eq('auth_user_id', uuidLogado).maybeSingle()
+            ]);
+
+            const registros = [registroComprador.data, registroFornecedor.data].filter(Boolean);
+
+            // Só libera a home quando todos os perfis da conta estão configurados.
+            const onboardingPendente =
+                registros.length === 0 || registros.some((r) => r.onboarding_completo !== true);
+
+            window.location.href = onboardingPendente ? PAGINAS.ONBOARDING : PAGINAS.HOME;
         } catch (error) {
-            console.error("Erro completo capturado no login:", error);
-            alert('Falha ao entrar no sistema: ' + error.message);
+            console.error('Erro no login:', error);
+            alert('Falha ao entrar: ' + traduzirErro(error));
+            botao.disabled = false;
+            botao.innerText = 'Entrar';
+        }
+    });
+}
+
+// =========================================================================
+// FUNCIONALIDADE 5: RECUPERAÇÃO DE SENHA
+//
+// Agora pede o E-MAIL, não o CNPJ. Dois motivos:
+//  - resetPasswordForEmail não revela se a conta existe, então some o
+//    oráculo que confirmava quais CNPJs estão cadastrados;
+//  - não precisa resolver CNPJ -> e-mail sem sessão.
+// =========================================================================
+const modalRecuperar = document.getElementById('modalRecuperar');
+const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
+const closeModal = document.querySelector('.close-modal');
+const formRecuperar = document.getElementById('formRecuperar');
+const emailRecuperar = document.getElementById('emailRecuperar');
+
+function abrirModal() {
+    modalRecuperar.style.display = 'flex';
+    if (emailRecuperar) emailRecuperar.focus();
+}
+
+function fecharModal() {
+    modalRecuperar.style.display = 'none';
+}
+
+if (linkEsqueceuSenha) {
+    linkEsqueceuSenha.addEventListener('click', (e) => {
+        e.preventDefault();
+        abrirModal();
+    });
+}
+
+if (closeModal) {
+    closeModal.addEventListener('click', fecharModal);
+    closeModal.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fecharModal();
+        }
+    });
+}
+
+if (modalRecuperar) {
+    window.addEventListener('click', (e) => {
+        if (e.target === modalRecuperar) fecharModal();
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalRecuperar.style.display === 'flex') fecharModal();
+    });
+}
+
+if (formRecuperar) {
+    formRecuperar.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const btn = formRecuperar.querySelector('button');
+        const email = emailRecuperar.value.trim();
+
+        if (!email) {
+            alert('Digite o e-mail cadastrado.');
+            return;
+        }
+
+        btn.innerText = 'Enviando...';
+        btn.disabled = true;
+
+        try {
+            const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/redefinir-senha.html'
+            });
+
+            if (resetError) throw resetError;
+
+            // Mensagem propositalmente neutra: não confirma se o e-mail existe.
+            alert('Se este e-mail estiver cadastrado, o link de recuperação chegará em instantes.\n\nConfira também a caixa de spam.');
+
+            fecharModal();
+            formRecuperar.reset();
+        } catch (error) {
+            console.error('Erro na recuperação de senha:', error);
+            alert('Erro ao enviar o link: ' + traduzirErro(error));
+        } finally {
+            btn.innerText = 'Enviar link de recuperação';
+            btn.disabled = false;
         }
     });
 }

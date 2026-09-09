@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SERF</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="fivecon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+      body { background: #001f3f; color: #fff; min-height: 100vh; padding: 40px 24px; }
+      .barra { display: flex; justify-content: space-between; align-items: center;
+               max-width: 900px; margin: 0 auto 40px; }
+      .barra img { width: 100px; }
+      .sair { background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
+              padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; }
+      .sair:hover { border-color: #f77f00; color: #f77f00; }
+      .painel { max-width: 900px; margin: 0 auto; background: rgba(255,255,255,0.07);
+                border: 1px solid rgba(255,255,255,0.16); border-radius: 20px;
+                backdrop-filter: blur(18px); padding: 36px; }
+      h1 { font-size: 26px; font-weight: 600; margin-bottom: 10px; }
+      p { color: rgba(255,255,255,0.68); line-height: 1.6; font-size: 14.5px; }
+      .selo { display: inline-block; margin-top: 18px; padding: 6px 14px; font-size: 12px;
+              border-radius: 999px; background: rgba(247,127,0,0.16); color: #f77f00; }
+    </style>
+  </head>
+  <body>
+    <div class="barra">
+      <img src="serflogo.png" alt="SERF" />
+      <button type="button" class="sair" id="btnSair">Sair da conta</button>
+    </div>
+
+    <main class="painel">
+      <h1 id="ola">Carregando…</h1>
+      <p>
+        Seu cadastro está completo. As telas de catálogo e pedidos entram nas próximas sprints.
+      </p>
+      <span class="selo" id="selo"></span>
+    </main>
+
+    <!-- Ordem obrigatória: SDK, config, guard, script da página. -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+      // O guard só dispara este evento depois de confirmar sessão e onboarding.
+      document.addEventListener('serf:autorizado', (e) => {
+        const { email, perfis } = e.detail;
+        document.getElementById('ola').textContent = `Bem-vindo, ${email}`;
+
+        const papeis = [];
+        if (perfis && perfis.comprador) papeis.push('comprador');
+        if (perfis && perfis.fornecedor) papeis.push('fornecedor');
+        document.getElementById('selo').textContent = papeis.join(' e ') || 'conta ativa';
+      });
+
+      document.getElementById('btnSair').addEventListener('click', async () => {
+        await window.SERF.db.auth.signOut();
+        window.location.replace(window.SERF.PAGINAS.LOGIN);
+      });
+    </script>
+  </body>
+</html>

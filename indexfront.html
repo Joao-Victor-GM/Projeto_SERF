@@ -18,17 +18,22 @@
           <img src="serflogo.png" alt="Logo SERF" class="logo" />
           <h2>Criar Conta</h2>
 
-          <!-- Escolha B2B -->
-          <div class="perfil-opcoes">
+          <!-- Escolha B2B (SCRUM-9: agora com perfil híbrido) -->
+          <div class="perfil-opcoes" role="radiogroup" aria-label="Como você vai usar o SERF">
             <label class="perfil-card">
-              <!-- ALTERADO: Adicionado value="Comprador" para o banco saber a escolha -->
               <input type="radio" name="perfil" value="Comprador" checked />
-              <span>Comprar(Microempresa)</span>
+              <span class="perfil-titulo">Comprar</span>
+              <span class="perfil-desc">Microempresa</span>
             </label>
             <label class="perfil-card">
-              <!-- ALTERADO: Adicionado value="Fornecedor" para o banco saber a escolha -->
               <input type="radio" name="perfil" value="Fornecedor" />
-              <span>Vender(Fornecedor)</span>
+              <span class="perfil-titulo">Vender</span>
+              <span class="perfil-desc">Fornecedor</span>
+            </label>
+            <label class="perfil-card">
+              <input type="radio" name="perfil" value="Ambos" />
+              <span class="perfil-titulo">Os dois</span>
+              <span class="perfil-desc">Comprar e vender</span>
             </label>
           </div>
 
@@ -54,7 +59,7 @@
           <input type="text" id="cnpjLogin" placeholder="CNPJ" required />
           <input type="password" id="senhaLogin" placeholder="Senha" required />
 
-          <a href="#" class="forgot-pass">Esqueceu a senha?</a>
+          <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
           <button type="submit" class="btn-solid">Entrar</button>
         </form>
       </div>
@@ -85,33 +90,53 @@
       </div>
     </div>
 
-    <!-- ALTERADO: Importamos o script do Supabase. Ele DEVE vir antes de qualquer outro script! -->
+    <!-- MODAL DE RECUPERAÇÃO
+         Precisa vir ANTES dos scripts: se ficar depois, o getElementById
+         do app-v2.js roda com o elemento inexistente e volta null. -->
+    <div id="modalRecuperar" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" role="button" tabindex="0" aria-label="Fechar">&times;</span>
+        <h3>Recuperar senha</h3>
+        <p>
+          Digite o e-mail cadastrado da sua empresa. Se ele existir na base,
+          enviamos um link para você criar uma nova senha.
+        </p>
+        <form id="formRecuperar">
+          <input
+            type="email"
+            id="emailRecuperar"
+            placeholder="email@suaempresa.com.br"
+            autocomplete="email"
+            required
+          />
+          <button type="submit" class="btn-recuperar">Enviar link de recuperação</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- SDK do Supabase. Deve vir antes de qualquer script do SERF. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- SCRIPT DA ANIMAÇÃO (Mantivemos exatamente como você fez) -->
+    <!-- Credenciais e cliente único compartilhado. -->
+    <script src="supabase-config.js"></script>
+
+    <!-- Animação do painel deslizante. -->
     <script>
       const signUpButton = document.getElementById("signUp");
       const signInButton = document.getElementById("signIn");
       const container = document.getElementById("container");
 
-      // Quando clica em "Criar Conta", adiciona a classe que move tudo para a esquerda
       signUpButton.addEventListener("click", () => {
         container.classList.add("right-panel-active");
       });
 
-      // Quando clica em "Fazer Login", remove a classe e volta para o padrão
       signInButton.addEventListener("click", () => {
         container.classList.remove("right-panel-active");
       });
     </script>
 
-       <!-- Biblioteca oficial Particles.js -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    
-    <!-- Seu arquivo app-v2.js e a inicialização -->
     <script src="app-v2.js"></script>
     <script src="particles-config.js"></script>
-
-
   </body>
 </html>
