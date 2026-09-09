@@ -1,0 +1,1163 @@
+/* =========================================================
+   SERF - LANDING PAGE
+   Estilos exclusivos da página pública.
+========================================================= */
+
+/* =========================================================
+   1. BASE DA LANDING
+========================================================= */
+
+html,
+body {
+    margin: 0;
+    background: #082B4C;
+    color: #FFFFFF;
+    overflow-x: hidden;
+}
+
+body {
+    position: relative;
+}
+
+#landing-background {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero,
+.rede-brasil,
+.comprar-vender,
+.contato-final {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* =========================================================
+   2. NAVBAR
+   Mantém a navegação no topo do Hero.
+========================================================= */
+
+.navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 20;
+
+    width: 100%;
+    height: 70px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 5%;
+    margin: 0;
+    background: transparent;
+}
+
+.navbar-logo a {
+    color: var(--serf-branco);
+    font-size: 24px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+}
+
+.navbar-menu a {
+    color: var(--serf-branco);
+    font-size: 15px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.navbar-menu a:hover {
+    color: var(--serf-laranja);
+}
+
+.navbar-acoes {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-entrar,
+.btn-criar-conta {
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-entrar {
+    padding: 10px 18px;
+    border: 1px solid var(--serf-branco);
+    color: var(--serf-branco);
+}
+
+.btn-criar-conta {
+    padding: 11px 18px;
+    background: var(--serf-laranja);
+    color: var(--serf-branco);
+}
+
+
+/* =========================================================
+   3. HERO
+   Título mais controlado e composição com maior personalidade.
+========================================================= */
+
+.hero {
+    min-height: 100vh;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+
+    padding: 90px 5% 45px;
+    overflow: hidden;
+
+    background: transparent;
+    color: var(--serf-branco);
+}
+
+#hero-particles {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero-conteudo,
+.hero-radar {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-conteudo {
+    width: 50%;
+    max-width: 620px;
+}
+
+.hero-etiqueta {
+    color: var(--serf-laranja);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.hero h1 {
+    max-width: 620px;
+    margin: 14px 0 18px;
+
+    font-size: clamp(2.7rem, 4vw, 3.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+}
+
+.hero h1 span {
+    display: block;
+    color: var(--serf-laranja);
+}
+
+.hero p {
+    max-width: 540px;
+    margin: 0;
+
+    color: var(--serf-branco);
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.hero-acoes {
+    display: flex;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.btn-comprador,
+.btn-fornecedor {
+    padding: 14px 20px;
+    border-radius: 8px;
+
+    color: var(--serf-branco);
+    font-weight: 700;
+    text-decoration: none;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-comprador {
+    background: var(--serf-laranja);
+}
+
+.btn-fornecedor {
+    background: var(--serf-azul-interacao);
+}
+
+.btn-comprador:hover,
+.btn-fornecedor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+
+/* =========================================================
+   4. RADAR DE OPORTUNIDADES
+========================================================= */
+
+.hero-radar {
+    width: 50%;
+    max-width: 520px;
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--serf-branco);
+    color: var(--serf-texto-principal);
+}
+
+.radar-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.radar-cabecalho span:last-child {
+    color: var(--serf-laranja);
+    font-size: 12px;
+}
+
+.radar-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: var(--serf-fundo);
+}
+
+.radar-item-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.radar-item > span {
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+}
+
+.radar-item small {
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.status {
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.status-urgente {
+    color: #B42318;
+    background: #FEE4E2;
+}
+
+.status-negociacao {
+    color: #B54708;
+    background: #FEF0C7;
+}
+
+.status-aberto {
+    color: var(--serf-azul-interacao);
+    background: #EAF3FB;
+}
+
+
+/* =========================================================
+   5. REDE BRASIL
+========================================================= */
+
+.rede-brasil {
+    min-height: 430px;
+    display: flex;
+    align-items: stretch;
+    background: transparent;
+}
+
+.rede-brasil-conteudo {
+    width: 48%;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 60px 4%;
+}
+
+.rede-brasil-etiqueta {
+    margin-bottom: 14px;
+    color: var(--serf-laranja);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.rede-brasil-conteudo h2 {
+    max-width: 470px;
+    margin: 0 0 20px;
+
+    color: #FFFFFF;
+    font-size: clamp(2.2rem, 3.1vw, 2.75rem);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+}
+
+.rede-brasil-conteudo h2 span {
+    display: block;
+}
+
+.rede-brasil-conteudo p {
+    max-width: 520px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.70);
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.rede-brasil-visual {
+    position: relative;
+    width: 52%;
+    min-height: 430px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    background: transparent;
+}
+
+.mapa-brasil-wrapper {
+    position: relative;
+    width: min(430px, 78%);
+    aspect-ratio: 1 / 1;
+}
+
+.mapa-brasil {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+}
+
+#brasil-particles {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.rede-brasil-mensagem {
+    position: absolute;
+    right: 4%;
+    bottom: 40px;
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+
+    color: var(--serf-branco);
+    font-size: 20px;
+}
+
+.rede-brasil-mensagem strong {
+    color: var(--serf-laranja);
+}
+
+
+/* =========================================================
+   6. REVEAL
+   Entrada suave controlada por landing.js.
+========================================================= */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(25px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal-ativo {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   7. TELA 3 - COMPRAR OU VENDER
+========================================================= */
+
+.comprar-vender {
+    padding: 44px 0 46px;
+    background: transparent;
+}
+
+.comprar-vender-container,
+.contato-final-container {
+    width: min(1180px, 90%);
+    margin: 0 auto;
+}
+
+.comprar-vender-header {
+    max-width: 760px;
+    margin-bottom: 26px;
+}
+
+.section-eyebrow {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--serf-laranja);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.comprar-vender-header h2 {
+    max-width: 720px;
+    margin: 0;
+
+    color: #FFFFFF;
+    font-size: clamp(2rem, 3vw, 2.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+}
+
+.comprar-vender-header h2 span {
+    display: block;
+    color: var(--serf-laranja);
+}
+
+.comprar-vender-header p {
+    max-width: 680px;
+    margin: 13px 0 0;
+    color: rgba(255, 255, 255, 0.70);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   8. CARDS DE PERFIL
+========================================================= */
+
+.comprar-vender-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-bottom: 30px;
+}
+
+.perfil-card,
+.funciona-etapa {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.perfil-card {
+    position: relative;
+    min-height: 270px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 22px 28px;
+    border-radius: 16px;
+    overflow: hidden;
+
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.perfil-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.30);
+}
+
+.comprador-card {
+    border-top: 3px solid var(--serf-laranja);
+}
+
+.fornecedor-card {
+    border-top: 3px solid var(--serf-azul-interacao);
+}
+
+.perfil-card-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.perfil-numero {
+    color: #9AABBA;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.perfil-tipo {
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+}
+
+.comprador-card .perfil-tipo {
+    color: #C45D13;
+    background: rgba(244, 122, 32, 0.11);
+}
+
+.fornecedor-card .perfil-tipo {
+    color: var(--serf-azul-interacao);
+    background: rgba(18, 104, 179, 0.10);
+}
+
+.perfil-icone {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 13px;
+    border-radius: 12px;
+}
+
+.perfil-icone svg {
+    width: 22px;
+    height: 22px;
+}
+
+.comprador-card .perfil-icone {
+    color: var(--serf-laranja);
+    background: rgba(244, 122, 32, 0.10);
+}
+
+.fornecedor-card .perfil-icone {
+    color: var(--serf-azul-interacao);
+    background: rgba(18, 104, 179, 0.10);
+}
+
+.perfil-card h3 {
+    margin: 0;
+    color: #172536;
+    font-size: 1.18rem;
+    line-height: 1.2;
+}
+
+.perfil-card > p {
+    margin: 10px 0 13px;
+    color: #66788A;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.perfil-beneficios {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 15px;
+}
+
+.beneficio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #415467;
+    font-size: 0.81rem;
+}
+
+.beneficio-marcador {
+    width: 5px;
+    height: 5px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.comprador-card .beneficio-marcador {
+    background: var(--serf-laranja);
+}
+
+.fornecedor-card .beneficio-marcador {
+    background: var(--serf-azul-interacao);
+}
+
+.perfil-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    width: fit-content;
+    margin-top: auto;
+
+    font-size: 0.83rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.comprador-link {
+    color: var(--serf-laranja);
+}
+
+.fornecedor-link {
+    color: var(--serf-azul-interacao);
+}
+
+
+/* =========================================================
+   9. COMO FUNCIONA
+========================================================= */
+
+.como-funciona-header {
+    margin-bottom: 18px;
+}
+
+.como-funciona-header h3 {
+    margin: 3px 0 0;
+    color: #FFFFFF;
+    font-size: 1.55rem;
+}
+
+.como-funciona-etapas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr) 50px minmax(0, 1fr);
+    align-items: center;
+}
+
+.funciona-etapa {
+    min-height: 125px;
+    box-sizing: border-box;
+    padding: 18px 20px;
+    border-radius: 14px;
+}
+
+.etapa-numero {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 11px;
+    border-radius: 50%;
+
+    background: var(--serf-azul-principal);
+    color: #FFFFFF;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.etapa-conteudo h4 {
+    margin: 0 0 6px;
+    color: #172536;
+    font-size: 0.93rem;
+}
+
+.etapa-conteudo p {
+    margin: 0;
+    color: #66788A;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.etapa-conector {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.etapa-conector span {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.etapa-conector span::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+
+    width: 6px;
+    height: 6px;
+
+    border-top: 1px solid var(--serf-laranja);
+    border-right: 1px solid var(--serf-laranja);
+
+    transform: translateY(-50%) rotate(45deg);
+}
+
+
+/* =========================================================
+   10. TELA 4 - FALE CONOSCO
+========================================================= */
+
+.contato-final {
+    padding: 60px 0 25px;
+    background: transparent;
+}
+
+.contato-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+
+    padding: 42px 48px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.contato-conteudo {
+    max-width: 650px;
+}
+
+.contato-conteudo h2 {
+    margin: 5px 0 0;
+    color: #FFFFFF;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.1;
+}
+
+.contato-conteudo p {
+    max-width: 620px;
+    margin: 14px 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.contato-acao {
+    flex-shrink: 0;
+}
+
+.btn-contato {
+    min-height: 46px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding: 0 24px;
+    border-radius: 9px;
+
+    background: var(--serf-laranja);
+    color: #FFFFFF;
+
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-contato:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(244, 122, 32, 0.20);
+}
+
+
+/* =========================================================
+   11. RODAPÉ
+========================================================= */
+
+.footer-serf {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 40px;
+
+    margin-top: 40px;
+    padding: 25px 0;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer-marca,
+.footer-assinatura {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-marca {
+    gap: 4px;
+}
+
+.footer-marca strong {
+    color: #FFFFFF;
+    font-size: 1.2rem;
+}
+
+.footer-marca span {
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.73rem;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.76rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: var(--serf-laranja);
+}
+
+.footer-assinatura {
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 0.76rem;
+}
+
+.footer-assinatura span {
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.footer-assinatura strong {
+    color: var(--serf-laranja);
+}
+
+.footer-final {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 18px 0 0;
+
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.66rem;
+}
+
+
+/* =========================================================
+   12. RESPONSIVIDADE - TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 0 4%;
+    }
+
+    .navbar-menu {
+        gap: 18px;
+    }
+
+    .hero {
+        min-height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 110px 6% 60px;
+    }
+
+    .hero-conteudo,
+    .hero-radar {
+        width: 100%;
+        max-width: none;
+    }
+
+    .rede-brasil {
+        flex-direction: column;
+    }
+
+    .rede-brasil-conteudo,
+    .rede-brasil-visual {
+        width: 100%;
+    }
+
+    .rede-brasil-conteudo {
+        padding: 55px 6%;
+    }
+
+    .rede-brasil-visual {
+        min-height: 420px;
+    }
+
+    .comprar-vender {
+        padding: 55px 0;
+    }
+
+    .comprar-vender-cards,
+    .como-funciona-etapas {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .etapa-conector {
+        display: none;
+    }
+
+    .contato-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 25px;
+        padding: 35px;
+    }
+
+    .footer-serf {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .footer-links {
+        flex-wrap: wrap;
+    }
+
+    .footer-assinatura {
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================================================
+   13. RESPONSIVIDADE - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+    .navbar {
+        height: auto;
+        min-height: 70px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px 5%;
+    }
+
+    .navbar-menu {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .navbar-menu a {
+        font-size: 12px;
+    }
+
+    .navbar-acoes {
+        gap: 7px;
+    }
+
+    .btn-entrar,
+    .btn-criar-conta {
+        padding: 8px 11px;
+        font-size: 12px;
+    }
+
+    .hero {
+        padding-top: 135px;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .hero p {
+        font-size: 16px;
+    }
+
+    .hero-acoes {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-comprador,
+    .btn-fornecedor {
+        text-align: center;
+    }
+
+    .rede-brasil-conteudo h2 {
+        font-size: 34px;
+    }
+
+    .mapa-brasil-wrapper {
+        width: min(360px, 90%);
+    }
+
+    .rede-brasil-mensagem {
+        right: 6%;
+        bottom: 25px;
+        font-size: 17px;
+    }
+
+    .contato-final {
+        padding-top: 45px;
+    }
+
+    .contato-box {
+        padding: 28px 24px;
+    }
+
+    .contato-acao,
+    .btn-contato {
+        width: 100%;
+    }
+
+    .footer-final {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+}
+
+
+/* =========================================================
+   14. PERSONALIDADE VISUAL DOS CARDS
+   Detalhes geométricos e microinterações reduzem a aparência
+   genérica e reforçam a identidade visual do SERF.
+========================================================= */
+
+.perfil-card,
+.funciona-etapa,
+.contato-box {
+    position: relative;
+}
+
+.perfil-card::after {
+    content: "";
+    position: absolute;
+    right: -25px;
+    bottom: -25px;
+
+    width: 80px;
+    height: 80px;
+
+    transform: rotate(45deg);
+    opacity: 0.06;
+
+    transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.comprador-card::after {
+    background: var(--serf-laranja);
+}
+
+.fornecedor-card::after {
+    background: var(--serf-azul-interacao);
+}
+
+.perfil-card:hover::after {
+    transform: rotate(45deg) scale(1.35);
+    opacity: 0.12;
+}
+
+.comprador-card:hover {
+    transform: translateY(-6px) translateX(-2px);
+}
+
+.fornecedor-card:hover {
+    transform: translateY(-6px) translateX(2px);
+}
+
+
+/* =========================================================
+   15. COMO FUNCIONA - NÓS DA REDE
+========================================================= */
+
+.funciona-etapa {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.funciona-etapa:hover {
+    transform: translateY(-5px);
+
+    border-color: rgba(244, 122, 32, 0.35);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.26);
+}
+
+.etapa-numero {
+    box-shadow: 0 0 0 6px rgba(8, 43, 76, 0.07);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.funciona-etapa:hover .etapa-numero {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(244, 122, 32, 0.10);
+}
+
+
+/* =========================================================
+   16. ENTRADA ESCALONADA
+   Pequenos atrasos fazem os blocos entrarem em sequência.
+========================================================= */
+
+.comprador-card.reveal {
+    transition-delay: 0.08s;
+}
+
+.fornecedor-card.reveal {
+    transition-delay: 0.18s;
+}
+
+.como-funciona.reveal {
+    transition-delay: 0.12s;
+}
+
+.contato-box.reveal {
+    transition-delay: 0.10s;
+}
