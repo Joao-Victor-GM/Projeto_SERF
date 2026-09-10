@@ -29,17 +29,18 @@ let alturaLanding;
 
 
 /* =========================================================
-   CONFIGURAÇÕES DA REDE
+   CONFIGURAÇÕES DA REDE GLOBAL
+
+   Mais partículas, porém menores e mais discretas.
 ========================================================= */
 
-// Quantidade de partículas em telas grandes
-let quantidadeLanding = 85;
+let quantidadeLanding = 115;
 
-// Distância máxima entre dois pontos conectados
-const distanciaConexao = 155;
+/* Distância para criação das linhas */
+const distanciaConexao = 120;
 
-// Velocidade base das partículas
-const velocidadeBase = 0.38;
+/* Movimento lento para manter aparência corporativa */
+const velocidadeBase = 0.18;
 
 // Lista que guarda todas as partículas
 const particulasLanding = [];
@@ -115,10 +116,12 @@ class ParticulaLanding {
 
 
         // Tamanho dos pontos
+        /* Pontos menores deixam a rede mais técnica e discreta */
+
         this.raio =
-            Math.random() *
-            1.15 +
-            0.85;
+            (Math.random() *
+                0.55 +
+                0.45);
     }
 
 
@@ -258,7 +261,7 @@ class ParticulaLanding {
         ctxLanding.arc(
             this.x,
             this.y,
-            this.raio * 3.3,
+            this.raio * 2.5,
             0,
             Math.PI * 2
         );
@@ -294,7 +297,7 @@ class ParticulaLanding {
             "rgba(255, 255, 255, 0.80)";
 
         ctxLanding.shadowBlur =
-            6;
+            4;
 
 
         ctxLanding.fillStyle =
@@ -316,35 +319,118 @@ class ParticulaLanding {
 /* =========================================================
    CRIAR PARTÍCULAS
 ========================================================= */
+/* =========================================================
+   CRIAR PARTÍCULAS COM DISTRIBUIÇÃO EQUILIBRADA
+
+   Em vez de posicionar todos os pontos de forma totalmente
+   aleatória, dividimos a tela em uma grade invisível.
+
+   Cada célula recebe aproximadamente uma partícula.
+   Isso reduz grandes espaços vazios sem criar um padrão rígido.
+========================================================= */
 
 function criarParticulasLanding() {
 
-    // Limpa a lista atual
     particulasLanding.length = 0;
 
 
-    for (
-        let i = 0;
-        i < quantidadeLanding;
-        i++
-    ) {
+    /* Quantidade aproximada de colunas */
 
-        particulasLanding.push(
-            new ParticulaLanding()
+    const colunas =
+        Math.ceil(
+            Math.sqrt(
+                quantidadeLanding *
+                (
+                    larguraLanding /
+                    alturaLanding
+                )
+            )
         );
 
+
+    /* Quantidade de linhas */
+
+    const linhas =
+        Math.ceil(
+            quantidadeLanding /
+            colunas
+        );
+
+
+    /* Tamanho de cada espaço da grade */
+
+    const larguraCelula =
+        larguraLanding /
+        colunas;
+
+    const alturaCelula =
+        alturaLanding /
+        linhas;
+
+
+    let contador = 0;
+
+
+    for (
+        let linha = 0;
+        linha < linhas;
+        linha++
+    ) {
+
+        for (
+            let coluna = 0;
+            coluna < colunas;
+            coluna++
+        ) {
+
+            if (
+                contador >=
+                quantidadeLanding
+            ) {
+                return;
+            }
+
+
+            const particula =
+                new ParticulaLanding();
+
+
+            /*
+               Colocamos o ponto próximo ao centro da célula,
+               com uma pequena variação aleatória.
+            */
+
+            particula.x =
+                coluna *
+                larguraCelula +
+                larguraCelula *
+                (
+                    0.25 +
+                    Math.random() *
+                    0.50
+                );
+
+
+            particula.y =
+                linha *
+                alturaCelula +
+                alturaCelula *
+                (
+                    0.25 +
+                    Math.random() *
+                    0.50
+                );
+
+
+            particulasLanding.push(
+                particula
+            );
+
+
+            contador++;
+        }
     }
 }
-
-
-/* =========================================================
-   CONEXÕES ENTRE PARTÍCULAS
-
-   Cada ponto verifica quais outros pontos estão próximos.
-
-   Se estiverem dentro da distância definida,
-   uma linha é desenhada entre eles.
-========================================================= */
 
 function conectarParticulasLanding() {
 
@@ -420,7 +506,7 @@ function conectarParticulasLanding() {
 
 
                 ctxLanding.lineWidth =
-                    0.7;
+                    0.45;
 
 
                 ctxLanding.stroke();
@@ -505,7 +591,7 @@ function conectarMouseLanding() {
                         244,
                         122,
                         32,
-                        ${intensidade * 0.22}
+                        ${intensidade * 0.11}
                     )`;
 
 

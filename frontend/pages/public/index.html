@@ -1,564 +1,249 @@
-<!-- =========================================================
-     SERF - LANDING PAGE
-
-     Página pública de apresentação da plataforma SERF.
-
-     Estrutura:
-     1. Navbar
-     2. Hero
-     3. Rede Brasil
-     4. Comprar ou Vender
-     5. Como funciona
-     6. Fale conosco
-     7. Rodapé
-========================================================= -->
-
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
-    <!-- =====================================================
-         CONFIGURAÇÕES BÁSICAS DA PÁGINA
-    ====================================================== -->
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SERF | Onde empresas encontram empresas</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <!-- CSS global: variáveis, tipografia e regras compartilhadas -->
+    <link rel="stylesheet" href="../../css/global.css">
 
-    <title>
-        SERF | Onde empresas encontram empresas
-    </title>
-
-
-    <!-- =====================================================
-         CSS GLOBAL DO PROJETO
-
-         Contém configurações utilizadas em diferentes
-         páginas do sistema.
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="../../css/global.css"
-    >
-
-
-    <!-- =====================================================
-         CSS ESPECÍFICO DA LANDING PAGE
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="../../css/landing.css"
-    >
-
+    <!-- CSS exclusivo da Landing Page -->
+    <link rel="stylesheet" href="../../css/landing.css">
 </head>
-
 
 <body>
 
-
-    <!-- =====================================================
-         REDE ANIMADA DE FUNDO
-
-         Este Canvas fica atrás das seções da Landing.
-
-         O JavaScript landing_background.js desenha os
-         pontos e conexões que representam a rede SERF.
-    ====================================================== -->
-
+    <!-- =========================================================
+         REDE ANIMADA GLOBAL
+         Canvas fixo controlado pelo landing_background.js.
+    ========================================================== -->
     <canvas id="landing-background"></canvas>
-
 
 
     <!-- =========================================================
          NAVBAR
-
-         Barra principal de navegação da Landing Page.
-    ========================================================= -->
-
+         Navegação principal da área pública.
+    ========================================================== -->
     <header class="navbar">
 
-
-        <!-- LOGO -->
-
         <div class="navbar-logo">
-
-            <a href="#">
-                SERF
-            </a>
-
+            <a href="#">SERF</a>
         </div>
 
-
-        <!-- MENU DE NAVEGAÇÃO -->
-
-        <nav class="navbar-menu">
-
-            <a href="#como-funciona">
-                Como funciona
-            </a>
-
-            <a href="#para-empresas">
-                Para empresas
-            </a>
-
-            <a href="#sobre-serf">
-                Sobre o SERF
-            </a>
-
-            <a href="#contato">
-                Fale conosco
-            </a>
-
+        <nav class="navbar-menu" aria-label="Navegação principal">
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#para-empresas">Para empresas</a>
+            <a href="#sobre-serf">Sobre o SERF</a>
+            <a href="#contato">Fale conosco</a>
         </nav>
 
-
-        <!-- AÇÕES DE ACESSO -->
-
         <div class="navbar-acoes">
-
-            <a
-                href="login.html"
-                class="btn-entrar"
-            >
-                Entrar
-            </a>
-
-            <a
-                href="cadastro.html"
-                class="btn-criar-conta"
-            >
-                Criar conta
-            </a>
-
+            <a href="login.html" class="btn-entrar">Entrar</a>
+            <a href="cadastro.html" class="btn-criar-conta">Criar conta</a>
         </div>
 
-
     </header>
-
-    <!-- FIM DA NAVBAR -->
-
 
 
     <!-- =========================================================
          TELA 1 - HERO
-
-         Primeira apresentação do SERF.
-
-         Objetivo:
-         explicar rapidamente o propósito da plataforma
-         e apresentar uma simulação de oportunidades B2B.
-    ========================================================= -->
-
+         Proposta de valor + Radar de Oportunidades.
+    ========================================================== -->
     <section class="hero">
 
-
-        <!-- =====================================================
-             CANVAS DO HERO
-
-             particles-config.js controla a animação.
-        ====================================================== -->
-
+        <!-- Partículas exclusivas do Hero -->
         <canvas id="hero-particles"></canvas>
 
-
-
-        <!-- =====================================================
-             COLUNA ESQUERDA
-        ====================================================== -->
-
         <div class="hero-conteudo">
-
 
             <span class="hero-etiqueta">
                 NEGÓCIOS ENTRE EMPRESAS
             </span>
 
-
             <h1>
-
                 Onde empresas
-
-                <span>
-                    encontram empresas.
-                </span>
-
+                <span>encontram empresas.</span>
             </h1>
 
-
             <p>
-                Publique sua necessidade, encontre empresas
-                e crie novas oportunidades em um ambiente 100% B2B.
+                Publique sua necessidade, encontre fornecedores
+                e negocie em um ambiente 100% B2B.
             </p>
 
-
-            <!-- =================================================
-                 BOTÕES PRINCIPAIS
-            ================================================== -->
-
             <div class="hero-acoes">
-
-                <a
-                    href="cadastro.html"
-                    class="btn-comprador"
-                >
+                <a href="cadastro.html" class="btn-comprador">
                     Cadastrar como comprador
                 </a>
 
-                <a
-                    href="cadastro.html"
-                    class="btn-fornecedor"
-                >
+                <a href="cadastro.html" class="btn-fornecedor">
                     Cadastrar como fornecedor
                 </a>
-
             </div>
-
 
         </div>
 
-        <!-- FIM DA COLUNA ESQUERDA -->
-
-
 
         <!-- =====================================================
-             COLUNA DIREITA - RADAR DE OPORTUNIDADES
-
-             O objetivo deste componente é demonstrar
-             visualmente como oportunidades podem aparecer
-             dentro da plataforma.
+             RADAR DE OPORTUNIDADES
+             Painel demonstrativo da dinâmica comercial do SERF.
         ====================================================== -->
-
         <div class="hero-radar">
 
-
-            <!-- CABEÇALHO -->
-
             <div class="radar-cabecalho">
+                <span>Radar de Oportunidades</span>
 
-                <span>
-                    Radar de Oportunidades
-                </span>
-
-                <span>
+                <span class="radar-status">
+                    <span class="radar-status-ponto"></span>
                     AO VIVO
                 </span>
-
             </div>
-
-
-            <!-- LISTA DE OPORTUNIDADES -->
 
             <div class="radar-lista">
 
-
-                <!-- =============================================
-                     OPORTUNIDADE 01
-                ============================================== -->
-
+                <!-- OPORTUNIDADE 1 -->
                 <div class="radar-item">
-
                     <div class="radar-item-topo">
-
-                        <strong>
-                            Embalagens para envio
-                        </strong>
+                        <strong>Embalagens para envio</strong>
 
                         <span class="status status-urgente">
                             URGENTE
                         </span>
-
                     </div>
 
-                    <span>
-                        5.000 unidades • São Paulo - SP
-                    </span>
-
-                    <small>
-                        Publicado há 1 hora
-                    </small>
-
+                    <span>5.000 unidades • São Paulo - SP</span>
+                    <small>Publicado há 1 hora</small>
                 </div>
 
-
-
-                <!-- =============================================
-                     OPORTUNIDADE 02
-                ============================================== -->
-
+                <!-- OPORTUNIDADE 2 -->
                 <div class="radar-item">
-
                     <div class="radar-item-topo">
-
-                        <strong>
-                            Material de escritório
-                        </strong>
+                        <strong>Material de escritório</strong>
 
                         <span class="status status-negociacao">
                             EM NEGOCIAÇÃO
                         </span>
-
                     </div>
 
-                    <span>
-                        300 unidades • Santo André - SP
-                    </span>
-
-                    <small>
-                        Publicado há 3 horas
-                    </small>
-
+                    <span>300 unidades • Santo André - SP</span>
+                    <small>Publicado há 3 horas</small>
                 </div>
 
-
-
-                <!-- =============================================
-                     OPORTUNIDADE 03
-                ============================================== -->
-
+                <!-- OPORTUNIDADE 3 -->
                 <div class="radar-item">
-
                     <div class="radar-item-topo">
-
-                        <strong>
-                            Uniformes profissionais
-                        </strong>
+                        <strong>Uniformes profissionais</strong>
 
                         <span class="status status-aberto">
                             EM ABERTO
                         </span>
-
                     </div>
 
-                    <span>
-                        200 unidades • Campinas - SP
-                    </span>
-
-                    <small>
-                        Publicado há 5 horas
-                    </small>
-
+                    <span>200 unidades • Campinas - SP</span>
+                    <small>Publicado há 5 horas</small>
                 </div>
-
 
             </div>
 
-            <!-- FIM DA LISTA -->
-
-
         </div>
 
-        <!-- FIM DO RADAR -->
-
-
     </section>
-
-    <!-- FIM DO HERO -->
-
 
 
     <!-- =========================================================
          TELA 2 - REDE BRASIL
+         Mostra a expansão da rede SERF pelo país.
+    ========================================================== -->
+    <section class="rede-brasil" id="sobre-serf">
 
-         Representa visualmente a proposta do SERF
-         de conectar empresas em diferentes regiões do Brasil.
-    ========================================================= -->
-
-    <section
-        class="rede-brasil"
-        id="sobre-serf"
-    >
-
-
-        <!-- =====================================================
-             COLUNA DE TEXTO
-        ====================================================== -->
-
-        <div class="rede-brasil-conteudo">
-
+        <div class="rede-brasil-conteudo reveal">
 
             <span class="rede-brasil-etiqueta">
                 UMA REDE QUE MOVE O BRASIL
             </span>
 
-
             <h2>
-
                 Mais negócios,
-
-                <span>
-                    menos distância.
-                </span>
-
+                <span>menos distância.</span>
             </h2>
-
 
             <p>
                 O SERF aproxima empresas compradoras e fornecedoras
-                em uma única rede, criando novas conexões e oportunidades
-                de negócio em diferentes regiões do país.
+                em uma única rede, facilitando novas conexões e
+                oportunidades de negócio em diferentes regiões do país.
             </p>
-
 
         </div>
 
-        <!-- FIM DA COLUNA DE TEXTO -->
 
+        <div class="rede-brasil-visual reveal">
 
-
-        <!-- =====================================================
-             MAPA DO BRASIL
-        ====================================================== -->
-
-        <div class="rede-brasil-visual">
-
-
-            <!-- =================================================
-                 MAPA + CANVAS
-
-                 O SVG fornece a silhueta do Brasil.
-
-                 O Canvas recebe as conexões criadas pelo
-                 landing_particle.js.
-            ================================================== -->
-
+            <!-- MAPA + CANVAS -->
             <div class="mapa-brasil-wrapper">
 
                 <img
                     src="../../assets/images/mapa-brasil.svg"
-                    alt="Mapa do Brasil"
+                    alt="Mapa do Brasil representando a rede SERF"
                     class="mapa-brasil"
                 >
 
+                <!-- Canvas controlado por landing_particle.js -->
                 <canvas id="brasil-particles"></canvas>
 
             </div>
 
-
-            <!-- MENSAGEM DE APOIO -->
-
+            <!-- Mensagem institucional -->
             <div class="rede-brasil-mensagem">
-
-                <span>
-                    Empresas conectadas.
-                </span>
-
-                <strong>
-                    O Brasil produz mais.
-                </strong>
-
+                <span>Empresas conectadas.</span>
+                <strong>O Brasil produz mais.</strong>
             </div>
-
 
         </div>
 
-        <!-- FIM DO MAPA -->
-
-
     </section>
-
-    <!-- FIM DA REDE BRASIL -->
-
 
 
     <!-- =========================================================
          TELA 3 - COMPRAR OU VENDER
-
-         Apresenta os dois principais modos de utilização
-         da plataforma:
-         comprador e fornecedor.
-    ========================================================= -->
-
-    <section
-        class="comprar-vender"
-        id="para-empresas"
-    >
-
+         Apresenta os dois caminhos principais da plataforma.
+    ========================================================== -->
+    <section class="comprar-vender" id="para-empresas">
 
         <div class="comprar-vender-container">
 
-
-            <!-- =================================================
-                 CABEÇALHO
-
-                 A classe "reveal" indica que o landing.js
-                 deve animar este bloco ao entrar na tela.
-            ================================================== -->
-
             <div class="comprar-vender-header reveal">
-
 
                 <span class="section-eyebrow">
                     UMA REDE. DOIS CAMINHOS.
                 </span>
 
-
                 <h2>
-
-                    Comprar ou vender.<br>
-
-                    <span>
-                        O SERF conecta os dois lados.
-                    </span>
-
+                    Comprar ou vender.
+                    <span>O SERF conecta os dois lados.</span>
                 </h2>
-
-
-                <p>
-                    Um único cadastro para encontrar empresas,
-                    divulgar oportunidades e criar novas conexões comerciais.
-                </p>
-
 
             </div>
 
 
-
-            <!-- =================================================
+            <!-- ==================================================
                  CARDS PRINCIPAIS
-            ================================================== -->
-
+                 Agora utilizam vidro escuro em vez de caixas brancas.
+            =================================================== -->
             <div class="comprar-vender-cards">
 
-
-
-                <!-- =============================================
-                     CARD 01 - COMPRADOR
-                ============================================== -->
-
+                <!-- CARD COMPRADOR -->
                 <article class="perfil-card comprador-card reveal">
 
-
-                    <!-- TOPO DO CARD -->
-
                     <div class="perfil-card-topo">
-
-                        <span class="perfil-numero">
-                            01
-                        </span>
+                        <span class="perfil-numero">01</span>
 
                         <span class="perfil-tipo">
                             PARA QUEM COMPRA
                         </span>
-
                     </div>
 
-
-                    <!-- ÍCONE DO COMPRADOR -->
-
-                    <div class="perfil-icone">
-
-                        <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-
+                    <div class="perfil-icone" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
                             <path
                                 d="M3 4h2l2.2 9.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7"
                                 fill="none"
@@ -567,42 +252,19 @@
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                             />
-
-                            <circle
-                                cx="10"
-                                cy="19"
-                                r="1.4"
-                                fill="currentColor"
-                            />
-
-                            <circle
-                                cx="18"
-                                cy="19"
-                                r="1.4"
-                                fill="currentColor"
-                            />
-
+                            <circle cx="10" cy="19" r="1.4" fill="currentColor" />
+                            <circle cx="18" cy="19" r="1.4" fill="currentColor" />
                         </svg>
-
                     </div>
-
-
-                    <!-- TÍTULO -->
 
                     <h3>
                         Encontre o que sua empresa precisa.
                     </h3>
 
-
-                    <!-- DESCRIÇÃO -->
-
                     <p>
-                        Publique sua necessidade e encontre empresas
-                        preparadas para atender sua demanda.
+                        Publique sua necessidade e conecte-se
+                        com empresas que podem atender sua demanda.
                     </p>
-
-
-                    <!-- BENEFÍCIOS -->
 
                     <div class="perfil-beneficios">
 
@@ -618,60 +280,32 @@
 
                         <div class="beneficio-item">
                             <span class="beneficio-marcador"></span>
-                            <span>Amplie sua rede de negócios</span>
+                            <span>Crie novas conexões comerciais</span>
                         </div>
 
                     </div>
 
-
-                    <!-- LINK -->
-
-                    <a
-                        href="cadastro.html"
-                        class="perfil-link comprador-link"
-                    >
+                    <a href="cadastro.html" class="perfil-link comprador-link">
                         Quero comprar
                         <span aria-hidden="true">→</span>
                     </a>
 
-
                 </article>
 
-                <!-- FIM DO CARD COMPRADOR -->
 
-
-
-                <!-- =============================================
-                     CARD 02 - FORNECEDOR
-                ============================================== -->
-
+                <!-- CARD FORNECEDOR -->
                 <article class="perfil-card fornecedor-card reveal">
 
-
-                    <!-- TOPO DO CARD -->
-
                     <div class="perfil-card-topo">
-
-                        <span class="perfil-numero">
-                            02
-                        </span>
+                        <span class="perfil-numero">02</span>
 
                         <span class="perfil-tipo">
                             PARA QUEM VENDE
                         </span>
-
                     </div>
 
-
-                    <!-- ÍCONE DO FORNECEDOR -->
-
-                    <div class="perfil-icone">
-
-                        <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-
+                    <div class="perfil-icone" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
                             <path
                                 d="M4 9.5 12 4l8 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"
                                 fill="none"
@@ -679,7 +313,6 @@
                                 stroke-width="1.8"
                                 stroke-linejoin="round"
                             />
-
                             <path
                                 d="M8 20v-6h8v6"
                                 fill="none"
@@ -687,28 +320,17 @@
                                 stroke-width="1.8"
                                 stroke-linejoin="round"
                             />
-
                         </svg>
-
                     </div>
 
-
-                    <!-- TÍTULO -->
-
                     <h3>
-                        Encontre empresas que precisam do que você oferece.
+                        Transforme sua oferta em oportunidade.
                     </h3>
 
-
-                    <!-- DESCRIÇÃO -->
-
                     <p>
-                        Divulgue seus produtos e conecte-se com empresas
-                        que procuram soluções como as suas.
+                        Apresente o que sua empresa fornece e encontre
+                        negócios procurando pelos seus produtos e serviços.
                     </p>
-
-
-                    <!-- BENEFÍCIOS -->
 
                     <div class="perfil-beneficios">
 
@@ -724,212 +346,111 @@
 
                         <div class="beneficio-item">
                             <span class="beneficio-marcador"></span>
-                            <span>Amplie sua rede de negócios</span>
+                            <span>Amplie sua rede comercial</span>
                         </div>
 
                     </div>
 
-
-                    <!-- LINK -->
-
-                    <a
-                        href="cadastro.html"
-                        class="perfil-link fornecedor-link"
-                    >
+                    <a href="cadastro.html" class="perfil-link fornecedor-link">
                         Quero vender
                         <span aria-hidden="true">→</span>
                     </a>
 
-
                 </article>
-
-                <!-- FIM DO CARD FORNECEDOR -->
-
 
             </div>
 
-            <!-- FIM DOS CARDS -->
 
-
-
-            <!-- =================================================
+            <!-- ==================================================
                  COMO FUNCIONA
-
-                 Explica de maneira simplificada a jornada
-                 básica dentro da plataforma.
-            ================================================== -->
-
-            <div
-                class="como-funciona reveal"
-                id="como-funciona"
-            >
-
-
-                <!-- CABEÇALHO -->
+                 Jornada simplificada em três etapas.
+            =================================================== -->
+            <div class="como-funciona reveal" id="como-funciona">
 
                 <div class="como-funciona-header">
-
                     <span class="section-eyebrow">
                         COMO FUNCIONA
                     </span>
 
-                    <h3>
-                        Da necessidade à conexão.
-                    </h3>
-
+                    <h3>Da necessidade à conexão.</h3>
                 </div>
-
-
-
-                <!-- =================================================
-                     ETAPAS DO PROCESSO
-                ================================================== -->
 
                 <div class="como-funciona-etapas">
 
-
-
-                    <!-- ETAPA 01 -->
-
+                    <!-- ETAPA 1 -->
                     <div class="funciona-etapa">
-
-                        <div class="etapa-numero">
-                            01
-                        </div>
+                        <div class="etapa-numero">01</div>
 
                         <div class="etapa-conteudo">
-
-                            <h4>
-                                Cadastre sua empresa
-                            </h4>
+                            <h4>Cadastre sua empresa</h4>
 
                             <p>
-                                Crie seu acesso e defina como deseja
-                                utilizar a plataforma.
+                                Crie seu acesso e escolha como
+                                deseja utilizar a plataforma.
                             </p>
-
                         </div>
-
                     </div>
 
 
-
-                    <!-- CONECTOR VISUAL -->
-
-                    <div
-                        class="etapa-conector"
-                        aria-hidden="true"
-                    >
+                    <!-- CONECTOR -->
+                    <div class="etapa-conector" aria-hidden="true">
                         <span></span>
                     </div>
 
 
-
-                    <!-- ETAPA 02 -->
-
+                    <!-- ETAPA 2 -->
                     <div class="funciona-etapa">
-
-                        <div class="etapa-numero">
-                            02
-                        </div>
+                        <div class="etapa-numero">02</div>
 
                         <div class="etapa-conteudo">
-
-                            <h4>
-                                Encontre ou publique
-                            </h4>
+                            <h4>Encontre ou publique</h4>
 
                             <p>
                                 Busque oportunidades ou publique
-                                uma nova necessidade.
+                                uma necessidade de negócio.
                             </p>
-
                         </div>
-
                     </div>
 
 
-
-                    <!-- CONECTOR VISUAL -->
-
-                    <div
-                        class="etapa-conector"
-                        aria-hidden="true"
-                    >
+                    <!-- CONECTOR -->
+                    <div class="etapa-conector" aria-hidden="true">
                         <span></span>
                     </div>
 
 
-
-                    <!-- ETAPA 03 -->
-
+                    <!-- ETAPA 3 -->
                     <div class="funciona-etapa">
-
-                        <div class="etapa-numero">
-                            03
-                        </div>
+                        <div class="etapa-numero">03</div>
 
                         <div class="etapa-conteudo">
-
-                            <h4>
-                                Conecte-se e negocie
-                            </h4>
+                            <h4>Conecte-se e negocie</h4>
 
                             <p>
-                                Encontre empresas compatíveis e avance
-                                para novos negócios.
+                                Encontre empresas compatíveis
+                                e avance para uma nova oportunidade.
                             </p>
-
                         </div>
-
                     </div>
-
 
                 </div>
 
-                <!-- FIM DAS ETAPAS -->
-
-
             </div>
-
-            <!-- FIM DO COMO FUNCIONA -->
-
 
         </div>
 
-
     </section>
-
-    <!-- FIM DA TELA 3 -->
-
 
 
     <!-- =========================================================
-         TELA 4 - FALE CONOSCO
-
-         Última seção da Landing.
-
-         O objetivo não é repetir o cadastro, mas oferecer
-         um canal institucional para dúvidas e contato.
-    ========================================================= -->
-
-    <section
-        class="contato-final"
-        id="contato"
-    >
-
+         TELA 4 - FALE CONOSCO + RODAPÉ
+    ========================================================== -->
+    <section class="contato-final" id="contato">
 
         <div class="contato-final-container">
 
-
-            <!-- =================================================
-                 CAIXA DE CONTATO
-            ================================================== -->
-
+            <!-- PAINEL DE CONTATO -->
             <div class="contato-box reveal">
-
-
-                <!-- TEXTO -->
 
                 <div class="contato-conteudo">
 
@@ -942,18 +463,14 @@
                     </h2>
 
                     <p>
-                        Entre em contato para tirar dúvidas,
-                        conhecer melhor a plataforma ou conversar
-                        com nossa equipe.
+                        Entre em contato com nossa equipe para conhecer
+                        melhor a plataforma, tirar dúvidas ou conversar
+                        sobre novas oportunidades.
                     </p>
 
                 </div>
 
-
-                <!-- BOTÃO -->
-
                 <div class="contato-acao">
-
                     <a
                         href="mailto:contato@serf.com.br"
                         class="btn-contato"
@@ -961,158 +478,59 @@
                         Entrar em contato
                         <span aria-hidden="true">→</span>
                     </a>
-
                 </div>
-
 
             </div>
 
-            <!-- FIM DA CAIXA DE CONTATO -->
 
-
-
-            <!-- =================================================
-                 RODAPÉ
-            ================================================== -->
-
+            <!-- RODAPÉ -->
             <footer class="footer-serf">
 
-
-                <!-- MARCA -->
-
                 <div class="footer-marca">
-
-                    <strong>
-                        SERF
-                    </strong>
-
-                    <span>
-                        Onde empresas encontram empresas.
-                    </span>
-
+                    <strong>SERF</strong>
+                    <span>Onde empresas encontram empresas.</span>
                 </div>
 
-
-                <!-- LINKS -->
-
-                <nav class="footer-links">
-
-                    <a href="#como-funciona">
-                        Como funciona
-                    </a>
-
-                    <a href="#para-empresas">
-                        Para empresas
-                    </a>
-
-                    <a href="#sobre-serf">
-                        Sobre o SERF
-                    </a>
-
-                    <a href="#contato">
-                        Fale conosco
-                    </a>
-
+                <nav class="footer-links" aria-label="Navegação do rodapé">
+                    <a href="#como-funciona">Como funciona</a>
+                    <a href="#para-empresas">Para empresas</a>
+                    <a href="#sobre-serf">Sobre o SERF</a>
+                    <a href="#contato">Fale conosco</a>
                 </nav>
 
-
-                <!-- ASSINATURA -->
-
                 <div class="footer-assinatura">
-
-                    <span>
-                        Conecta Empresas.
-                    </span>
-
-                    <strong>
-                        Gera Oportunidades.
-                    </strong>
-
+                    <span>Conecta Empresas.</span>
+                    <strong>Gera Oportunidades.</strong>
                 </div>
-
 
             </footer>
 
-
-
-            <!-- =================================================
-                 LINHA FINAL DO PROJETO
-            ================================================== -->
-
             <div class="footer-final">
-
-                <span>
-                    © 2026 SERF
-                </span>
-
-                <span>
-                    Projeto Aplicado II / ACEx
-                </span>
-
+                <span>© 2026 SERF</span>
+                <span>Projeto Aplicado II / ACEx</span>
             </div>
-
 
         </div>
 
-
     </section>
-
-    <!-- FIM DA TELA 4 -->
-
 
 
     <!-- =========================================================
-         JAVASCRIPT DA LANDING PAGE
+         JAVASCRIPT DA LANDING
+         Cada arquivo mantém uma responsabilidade específica.
+    ========================================================== -->
 
-         Cada arquivo possui uma responsabilidade diferente.
-    ========================================================= -->
-
-
-    <!-- =====================================================
-         LANDING_BACKGROUND.JS
-
-         Responsável pela rede animada de fundo
-         presente em toda a Landing Page.
-    ====================================================== -->
-
+    <!-- Rede animada global -->
     <script src="../../js/landing_background.js"></script>
 
-
-    <!-- =====================================================
-         PARTICLES-CONFIG.JS
-
-         Responsável pela animação de partículas
-         específica da Tela 1 / Hero.
-    ====================================================== -->
-
+    <!-- Partículas específicas do Hero -->
     <script src="../../js/particles-config.js"></script>
 
-
-    <!-- =====================================================
-         LANDING.JS
-
-         Responsável pelas interações gerais.
-
-         Procura elementos com:
-         class="reveal"
-
-         Quando entram na tela adiciona:
-         class="reveal-ativo"
-    ====================================================== -->
-
+    <!-- Reveal e interações gerais -->
     <script src="../../js/landing.js"></script>
 
-
-    <!-- =====================================================
-         LANDING_PARTICLE.JS
-
-         Responsável pela expansão animada da rede
-         sobre o mapa do Brasil na Tela 2.
-    ====================================================== -->
-
+    <!-- Animação da rede sobre o mapa -->
     <script src="../../js/landing_particle.js"></script>
 
-
 </body>
-
 </html>
