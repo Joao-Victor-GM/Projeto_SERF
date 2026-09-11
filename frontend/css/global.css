@@ -1,0 +1,39 @@
+/* ==========================================================
+   SERF - GLOBAL.CSS
+   Padrões visuais compartilhados por todo o sistema.
+   Centraliza cores, tipografia e estilos globais para manter
+   a identidade visual consistente entre todas as páginas.
+   ========================================================== */
+
+:root {
+    --serf-azul-principal: #082B4C;
+    --serf-azul-interacao: #1268B3;
+    --serf-laranja: #F47A20;
+
+    --serf-fundo: #F7F9FC;
+    --serf-branco: #FFFFFF;
+    --serf-borda: #E8EEF4;
+
+    --serf-texto-principal: #172536;
+    --serf-texto-secundario: #66788A;
+}
+/* ==========================================================
+   RESET GLOBAL
+   Remove espaçamentos padrão do navegador e padroniza a base.
+   ========================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--serf-fundo);
+    color: var(--serf-texto-principal);
+}
+
+a {
+    color: inherit;
+}
