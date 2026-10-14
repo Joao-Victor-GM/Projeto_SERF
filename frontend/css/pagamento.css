@@ -1,0 +1,45 @@
+/* ==========================================================
+   SERF - PAGAMENTO.CSS
+   ========================================================== */
+.checkout-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+    align-items: start;
+}
+.metodos-pagamento {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.metodo-card {
+    border: 2px solid var(--serf-borda);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.metodo-card:hover {
+    border-color: var(--serf-azul-interacao);
+    background: #F9FBFE;
+}
+.metodo-card.ativo {
+    border-color: var(--serf-laranja);
+    background: #FFFaf0;
+}
+.resumo-pedido {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--serf-borda);
+    box-shadow: var(--home-sombra);
+}
+.linha-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--serf-borda);
+}

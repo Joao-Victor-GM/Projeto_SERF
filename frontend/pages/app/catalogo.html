@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F. | Catálogo</title>
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/catalogo.css">
+</head>
+<body class="serf-home">
+    <!-- COLE SUA SIDEBAR AQUI -->
+    <div class="app-layout">
+        <!-- COLE SUA TOPBAR AQUI -->
+        <main class="main-content">
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">MÓDULO DE NEGÓCIOS</span>
+                    <h1>Catálogo de Produtos</h1>
+                    <p>Explore as ofertas ou gerencie o estoque da sua empresa.</p>
+                </div>
+                <button type="button" class="btn-primary" id="btnNovoProduto" style="display: none;">+ Cadastrar Produto</button>
+            </div>
+            <section class="filters-bar">
+                <div class="global-search" style="max-width: 100%;">
+                    <input type="search" id="buscaProduto" placeholder="Buscar por nome, categoria ou marca...">
+                </div>
+            </section>
+            <div class="catalogo-grid" id="listaProdutos">
+                <p class="empty-state">Carregando catálogo do Supabase...</p>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../js/catalogo.js"></script>
+</body>
+</html>

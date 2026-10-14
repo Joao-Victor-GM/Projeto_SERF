@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F. | Faturamento</title>
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/pagamento.css">
+</head>
+<body class="serf-home">
+    <!-- COLE SUA SIDEBAR AQUI -->
+    <div class="app-layout">
+        <!-- COLE SUA TOPBAR AQUI -->
+        <main class="main-content">
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">FINANCEIRO</span>
+                    <h1>Faturamento do Pedido</h1>
+                </div>
+            </div>
+            <div class="checkout-container">
+                <div class="metodos-pagamento">
+                    <h3>Condições de Pagamento</h3>
+                    <div class="metodo-card ativo" onclick="selecionarMetodo(this, 'Boleto 30/60/90')">
+                        <strong>Boleto Faturado (30/60/90 dias)</strong>
+                    </div>
+                    <div class="metodo-card" onclick="selecionarMetodo(this, 'PIX')">
+                        <strong>PIX (Transferência Imediata)</strong>
+                    </div>
+                </div>
+                <div class="resumo-pedido">
+                    <h3>Resumo do Pedido</h3>
+                    <div id="itensCheckout" style="margin-top: 15px; font-size: 12px; color: var(--serf-texto-secundario);"></div>
+                    <div class="linha-total">
+                        <span>Total:</span>
+                        <span id="valorTotal">R$ 0,00</span>
+                    </div>
+                    <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="processarPagamento()">Confirmar Faturamento</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../js/pagamento.js"></script>
+</body>
+</html>

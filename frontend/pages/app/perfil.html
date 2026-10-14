@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F. | Perfil</title>
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/perfil.css">
+</head>
+<body class="serf-home">
+    <!-- COLE SUA SIDEBAR AQUI -->
+    <div class="app-layout">
+        <!-- COLE SUA TOPBAR AQUI -->
+        <main class="main-content">
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">CONFIGURAÇÕES</span>
+                    <h1>Perfil da Empresa</h1>
+                </div>
+            </div>
+            <div class="form-perfil">
+                <form id="formAtualizarPerfil">
+                    <div class="form-group">
+                        <label>CNPJ (Bloqueado)</label>
+                        <input type="text" id="perfilCnpj" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Razão Social / Nome da Empresa</label>
+                        <input type="text" id="perfilNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail Corporativo</label>
+                        <input type="email" id="perfilEmail" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone de Contato</label>
+                        <input type="text" id="perfilTelefone" placeholder="(00) 00000-0000">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 10px;">Salvar Alterações</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../js/perfil.js"></script>
+</body>
+</html>
