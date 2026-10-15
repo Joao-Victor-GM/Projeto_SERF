@@ -1,0 +1,475 @@
+/* ==========================================================
+   S.E.R.F. — PERFIL.CSS
+   Estilos dedicados para o perfil corporativo B2B estilo Mercado Livre
+   ========================================================== */
+
+/* Cartão do Topo (Hero do Perfil) */
+.profile-hero-card {
+    background: #FFFFFF;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--home-sombra);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.profile-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-hero-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--serf-azul-principal), #1268b3);
+    color: #FFFFFF;
+    font-size: 28px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(244, 122, 32, 0.4);
+    box-shadow: 0 4px 12px rgba(8, 43, 76, 0.15);
+    flex-shrink: 0;
+}
+
+.profile-hero-info h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--serf-azul-principal);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge-verificado {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16A34A;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--serf-texto-secundario);
+    margin-top: 6px;
+}
+
+.profile-hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-hero-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* ==========================================================
+   TERMÔMETRO DE REPUTAÇÃO B2B (ESTILO MERCADO LIVRE)
+   ========================================================== */
+
+.reputation-strip {
+    background: #FFFFFF;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--home-sombra);
+}
+
+.reputation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.reputation-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--serf-azul-principal);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reputation-level {
+    font-size: 12px;
+    font-weight: 700;
+    color: #15803D;
+    background: #DCFCE7;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+/* Barra de 5 cores */
+.thermometer-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 9px;
+    gap: 5px;
+    margin-bottom: 16px;
+}
+
+.thermometer-step {
+    border-radius: 3px;
+    opacity: 0.35;
+    transition: all 0.3s ease;
+}
+
+.thermometer-step.step-1 { background-color: #EF4444; }
+.thermometer-step.step-2 { background-color: #F97316; }
+.thermometer-step.step-3 { background-color: #FBBF24; }
+.thermometer-step.step-4 { background-color: #84CC16; }
+.thermometer-step.step-5 { background-color: #15803D; opacity: 1; transform: scaleY(1.35); box-shadow: 0 0 8px rgba(21, 128, 61, 0.4); }
+
+.reputation-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--serf-borda);
+}
+
+.rep-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.rep-stat-item strong {
+    font-size: 14px;
+    color: var(--serf-azul-principal);
+    font-weight: 700;
+}
+
+.rep-stat-item small {
+    font-size: 11px;
+    color: var(--serf-texto-secundario);
+}
+
+/* ==========================================================
+   NAVEGAÇÃO POR ABAS (TABS)
+   ========================================================== */
+
+.profile-tabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--serf-borda);
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 0;
+}
+
+.profile-tab-btn {
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--serf-texto-secundario);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+}
+
+.profile-tab-btn:hover {
+    color: var(--serf-azul-principal);
+}
+
+.profile-tab-btn.active {
+    color: var(--serf-azul-principal);
+    font-weight: 700;
+}
+
+.profile-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--serf-laranja);
+    border-radius: 3px 3px 0 0;
+}
+
+.tab-badge-count {
+    background: #E2E8F0;
+    color: var(--serf-texto-principal);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.profile-tab-btn.active .tab-badge-count {
+    background: rgba(244, 122, 32, 0.18);
+    color: #C25E12;
+}
+
+/* Painéis de conteúdo das abas */
+.tab-content-panel {
+    display: none;
+    animation: fadeInTab 0.2s ease-in-out forwards;
+}
+
+.tab-content-panel.active {
+    display: block;
+}
+
+@keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   CARDS DE HISTÓRICO DE COMPRAS / VENDAS (MERCADO LIVRE B2B)
+   ========================================================== */
+
+.purchases-filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    background: #FFFFFF;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--serf-borda);
+}
+
+.filter-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--serf-borda);
+    background: #FFFFFF;
+    color: var(--serf-texto-secundario);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-pill:hover,
+.filter-pill.active {
+    border-color: var(--serf-azul-interacao);
+    background: var(--serf-azul-interacao);
+    color: #FFFFFF;
+}
+
+.purchases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.order-card {
+    background: #FFFFFF;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    box-shadow: var(--home-sombra);
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 16px rgba(8, 43, 76, 0.08);
+}
+
+.order-card-header {
+    background: #F8FAFC;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--serf-borda);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 11px;
+}
+
+.order-header-left {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    color: var(--serf-texto-secundario);
+}
+
+.order-header-left strong {
+    color: var(--serf-azul-principal);
+}
+
+.order-status-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-concluido { background: #DCFCE7; color: #15803D; }
+.status-aberto { background: #E0F2FE; color: #0369A1; }
+.status-negociacao { background: #FEF3C7; color: #B45309; }
+.status-cancelado { background: #FEE2E2; color: #B91C1C; }
+
+.order-card-body {
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.order-product-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 260px;
+}
+
+.order-product-icon {
+    width: 52px;
+    height: 52px;
+    background: #F1F5F9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 1px solid #E2E8F0;
+    flex-shrink: 0;
+}
+
+.order-product-details h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--serf-azul-principal);
+    margin-bottom: 4px;
+}
+
+.order-product-details p {
+    font-size: 12px;
+    color: var(--serf-texto-secundario);
+}
+
+.order-pricing {
+    text-align: right;
+    min-width: 140px;
+}
+
+.order-pricing small {
+    display: block;
+    font-size: 10px;
+    color: var(--serf-texto-secundario);
+    text-transform: uppercase;
+}
+
+.order-pricing strong {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--serf-laranja);
+}
+
+.order-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================
+   FORMULÁRIOS DAS ABAS DE DADOS E SEGURANÇA
+   ========================================================== */
+
+.profile-form-grid {
+    background: #FFFFFF;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: var(--home-sombra);
+}
+
+.form-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--serf-azul-principal);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--serf-borda);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-three-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    .profile-hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .reputation-stats {
+        grid-template-columns: 1fr;
+    }
+    .form-two-cols, .form-three-cols {
+        grid-template-columns: 1fr;
+    }
+    .order-card-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .order-pricing {
+        text-align: left;
+    }
+}
+
