@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Catálogo B2B de Produtos</title>
+
+    <!-- Identidade visual e estilos compartilhados -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+</head>
+
+<body class="serf-home">
+
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL (SCRUM 13)
+         Navegação principal da área logada do SERF.
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Marca e identificação do sistema -->
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <!-- Links para os módulos internos do sistema -->
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="home.html#visao-geral" class="nav-item"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="home.html#empresas" class="nav-item"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="#produtos" class="nav-item active"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span id="menuProdutosLabel">Catálogo</span>
+            </a>
+
+            <a href="home.html#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="home.html#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+                <span class="nav-count" id="mensagensCount">0</span>
+            </a>
+
+            <a href="home.html#relatorios" class="nav-item"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="home.html#perfil" class="nav-item"
+               data-page="perfil">
+                <span class="nav-icon">◉</span>
+                <span>Perfil</span>
+            </a>
+
+        </nav>
+
+        <!-- Informações institucionais -->
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+         Agrupa o cabeçalho e o conteúdo do catálogo.
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <!-- =================================================
+             HEADER — BARRA SUPERIOR
+             Busca, empresa ativa, modo e perfil do usuário.
+        ================================================== -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <!-- Botão para recolher o menu em telas menores -->
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+
+                <!-- Campo de busca geral -->
+                <div class="global-search">
+                    <label for="buscaGlobal" class="sr-only">
+                        Busca geral
+                    </label>
+
+                    <input
+                        type="search"
+                        id="buscaGlobal"
+                        placeholder="Buscar pedidos, produtos, empresas..."
+                    >
+                </div>
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- Empresa autenticada -->
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <!-- Alternância de contexto para perfil Ambos -->
+                <div
+                    class="modo-switch"
+                    id="modoSwitch"
+                    aria-label="Modo de operação"
+                >
+                    <button
+                        type="button"
+                        class="modo-btn active"
+                        data-mode="comprar"
+                        aria-pressed="true"
+                    >
+                        Comprar
+                    </button>
+
+                    <button
+                        type="button"
+                        class="modo-btn"
+                        data-mode="vender"
+                        aria-pressed="false"
+                    >
+                        Vender
+                    </button>
+                </div>
+
+                <!-- Acesso às notificações -->
+                <button
+                    type="button"
+                    class="icon-button"
+                    id="btnNotificacoes"
+                    aria-label="Notificações"
+                >
+                    ♧
+                    <span class="notification-dot" hidden></span>
+                </button>
+
+                <!-- Acesso ao perfil do usuário / logout -->
+                <button
+                    type="button"
+                    class="profile-button"
+                    id="btnPerfil"
+                    aria-label="Meu perfil"
+                    title="Sair / Trocar de conta"
+                >
+                    <span class="profile-avatar">E</span>
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             CONTEÚDO DO CATÁLOGO DE PRODUTOS
+        ====================================================== -->
+
+        <main class="main-content" id="visao-catalogo">
+
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">MERCADO B2B REGIONAL</span>
+                    <h1 id="produtosTitulo">Catálogo de Produtos</h1>
+                    <p id="produtosSubtitulo">Consulte produtos disponíveis ou gerencie seu catálogo de fornecedor</p>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <!-- Botão exibido dinamicamente se o usuário for Fornecedor -->
+                    <button
+                        type="button"
+                        class="btn-primary"
+                        id="btnNovoProduto"
+                        style="display: none;"
+                    >
+                        + Novo Produto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Seção do Catálogo -->
+            <section class="panel" id="produtos">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Produtos Disponíveis</h2>
+                        <p>Itens cadastrados com fornecedores verificados em Santo André e região</p>
+                    </div>
+                </div>
+
+                <!-- Grade dinâmica de cards de produtos renderizados via catalogo.js -->
+                <div id="listaProdutos" class="produtos-grid">
+                    <p class="empty-state">Carregando catálogo de produtos...</p>
+                </div>
+            </section>
+
+            <!-- Modal de Cadastro de Produto para o Fornecedor -->
+            <div id="modalNovoProduto" class="modal-serf" style="display: none;">
+                <div class="modal-serf-conteudo">
+                    <div class="modal-serf-header">
+                        <h3>Cadastrar Novo Produto no Catálogo</h3>
+                        <button
+                            type="button"
+                            class="btn-fechar-modal"
+                            id="btnFecharModalProduto"
+                            aria-label="Fechar modal"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <form id="formNovoProduto">
+                        <div class="modal-serf-corpo">
+
+                            <div class="campo-form">
+                                <label for="prodNome">Nome do Produto *</label>
+                                <input
+                                    type="text"
+                                    id="prodNome"
+                                    required
+                                    placeholder="Ex: Chapa de Aço Carbono 1020 1/4"
+                                >
+                            </div>
+
+                            <div class="linha-dupla">
+                                <div class="campo-form">
+                                    <label for="prodCategoria">Categoria *</label>
+                                    <select id="prodCategoria" required>
+                                        <option value="">Selecione uma categoria...</option>
+                                        <option value="Metalurgia & Usinagem">Metalurgia & Usinagem</option>
+                                        <option value="Alimentos & Bebidas">Alimentos & Bebidas</option>
+                                        <option value="Construção Civil">Construção Civil</option>
+                                        <option value="Automotivo & Peças">Automotivo & Peças</option>
+                                        <option value="Embalagens & Logística">Embalagens & Logística</option>
+                                        <option value="Tecnologia & Insumos">Tecnologia & Insumos</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodMarca">Marca / Fabricante *</label>
+                                    <input
+                                        type="text"
+                                        id="prodMarca"
+                                        required
+                                        placeholder="Ex: Gerdau, Bosch, Própria..."
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="campo-form">
+                                <label for="prodDescricao">Descrição Técnica / Especificações</label>
+                                <textarea
+                                    id="prodDescricao"
+                                    rows="3"
+                                    placeholder="Descreva dimensões, tolerâncias, acabamento ou requisitos de entrega."
+                                ></textarea>
+                            </div>
+
+                            <div class="linha-tripla">
+                                <div class="campo-form">
+                                    <label for="prodPreco">Preço Atacado (R$) *</label>
+                                    <input
+                                        type="number"
+                                        id="prodPreco"
+                                        step="0.01"
+                                        min="0.01"
+                                        required
+                                        placeholder="0,00"
+                                    >
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodQtdMinima">Qtd. Mínima *</label>
+                                    <input
+                                        type="number"
+                                        id="prodQtdMinima"
+                                        min="1"
+                                        required
+                                        placeholder="Ex: 10"
+                                    >
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodEstoque">Estoque Inicial</label>
+                                    <input
+                                        type="number"
+                                        id="prodEstoque"
+                                        min="0"
+                                        required
+                                        placeholder="Ex: 500"
+                                    >
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-serf-footer">
+                            <button
+                                type="button"
+                                class="btn-secondary"
+                                id="btnCancelarModalProduto"
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn-primary"
+                                id="btnSalvarProduto"
+                            >
+                                Salvar Produto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Dependências Supabase e SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Scripts de interface e catálogo -->
+    <script src="../../js/catalogo.js" defer></script>
+
+    <!-- Script leve para menu responsivo e perfil na página de catálogo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                });
+            }
+
+            // Exibe nome da empresa do localStorage se disponível
+            const usuarioSalvo = localStorage.getItem('usuario_logado');
+            if (usuarioSalvo) {
+                try {
+                    const dados = JSON.parse(usuarioSalvo);
+                    if (dados.razaoSocial) {
+                        const el = document.getElementById('empresaAtiva');
+                        if (el) el.textContent = dados.razaoSocial;
+                        const av = document.querySelector('.profile-avatar');
+                        if (av) av.textContent = dados.razaoSocial.trim().charAt(0).toUpperCase();
+                    }
+                } catch(e){}
+            }
+
+            // Logout no perfil
+            const btnPerfil = document.getElementById('btnPerfil');
+            if (btnPerfil) {
+                btnPerfil.addEventListener('click', () => {
+                    if (confirm('Deseja sair da sua conta e voltar à tela de login?')) {
+                        localStorage.removeItem('usuario_logado');
+                        window.location.href = '../public/login-cadastro.html';
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
+

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F. - Triagem e Segmentação B2B</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #001f3f; /* Fundo escuro de alto contraste */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Camada das Partículas de fundo para herdar o visual do login */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .container-triagem {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 50px;
+            width: 850px;
+            max-width: 100%;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.3), 0 10px 10px rgba(0,0,0,0.25);
+            color: #1d2d5c;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .logo-triagem {
+            width: 110px;
+            margin-bottom: 15px;
+        }
+
+        /* Controle das etapas (Passos do Onboarding) */
+        .etapa {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .etapa.ativa {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 26px;
+            color: #1d2d5c;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        p.descricao {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ==================== GRID DE OPÇÕES - PASSO 1 (PERFIS) ==================== */
+        .perfis-grid {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .card-perf {
+            flex: 1;
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-perf:hover {
+            transform: translateY(-5px);
+            border-color: #f77f00; /* Laranja SERF */
+            box-shadow: 0 8px 15px rgba(247, 127, 0, 0.1);
+        }
+
+        .card-perf.selecionado {
+            background-color: #fffaf0;
+            border-color: #f77f00;
+            color: #f77f00;
+        }
+
+        .card-perf .icone-grande {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .card-perf h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #1d2d5c;
+        }
+
+        .card-perf.selecionado h3 {
+            color: #f77f00;
+        }
+
+        .card-perf p {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        /* ==================== GRID DE OPÇÕES - PASSO 2 (NICHOS) ==================== */
+        .nichos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+
+        .card-nicho {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-nicho:hover {
+            border-color: #f77f00;
+            background-color: #fffaf0;
+        }
+
+        .card-nicho.selecionado {
+            background-color: #fff3e0;
+            border-color: #f77f00;
+            color: #f77f00;
+            font-weight: 600;
+        }
+
+        .card-nicho .emoji {
+            font-size: 24px;
+        }
+
+        .card-nicho span.nome-nicho {
+            font-size: 13px;
+            color: #1d2d5c;
+        }
+
+        .card-nicho.selecionado span.nome-nicho {
+            color: #f77f00;
+        }
+
+        /* ==================== BOTÕES E BARRA DE PROGRESSO ==================== */
+        .progresso-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 35px;
+            overflow: hidden;
+        }
+
+        .barra-progresso {
+            width: 50%; /* Controlada via JS (50% no passo 1, 100% no passo 2) */
+            height: 100%;
+            background-color: #f77f00;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .botoes-triagem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-aux {
+            background-color: transparent;
+            color: #64748b;
+            border: 2px solid #cbd5e1;
+            padding: 10px 25px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+
+        .btn-aux:hover {
+            border-color: #64748b;
+            color: #1e293b;
+        }
+
+        .btn-acao-principal {
+            background-color: #f77f00;
+            color: #ffffff;
+            border: none;
+            padding: 12px 40px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.25s;
+        }
+
+        .btn-acao-principal:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-acao-principal:disabled {
+            background-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Esconder o botão Voltar na etapa 1 */
+        .invisivel {
+            visibility: hidden;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sistema de Partículas herdado do login original -->
+<div id="particles-js"></div>
+
+<div class="container-triagem">
+    <img src="/frontend/assets/images/serflogo.png" alt="Logo S.E.R.F." class="logo-triagem" />
+
+    <!-- BARRA DE PROGRESSO -->
+    <div class="progresso-container">
+        <div id="barraProgresso" class="barra-progresso"></div>
+    </div>
+
+    <!-- 🚪 ETAPA 1: ESCOLHA DE PERFIL (COMPRADOR VS FORNECEDOR) -->
+    <div class="etapa ativa" id="etapa1">
+        <h2>Como sua empresa deseja atuar?</h2>
+        <p class="descricao">Escolha o seu objetivo de negócio dentro da rede comercial regional de Santo André.</p>
+
+        <div class="perfis-grid">
+            <!-- Card Comprador -->
+            <div class="card-perf" id="cardComprador" onclick="selecionarPerfil('Comprador')">
+                <span class="icone-grande">🛒</span>
+                <h3>Quero Comprar</h3>
+                <p>Ideal para padarias, mercadinhos, lanchonetes e microempresas locais de Santo André que necessitam repor estoques e abrir chamados de urgência.</p>
+            </div>
+
+            <!-- Card Fornecedor -->
+            <div class="card-perf" id="cardFornecedor" onclick="selecionarPerfil('Fornecedor')">
+                <span class="icone-grande">🏭</span>
+                <h3>Quero Vender</h3>
+                <p>Ideal para distribuidores, atacadistas, indústrias e autônomos que desejam cadastrar catálogos e enviar propostas comerciais em tempo real.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🛠️ ETAPA 2: ESCOLHA DO NICHO DE ATUAÇÃO -->
+    <div class="etapa" id="etapa2">
+        <h2>Qual o principal nicho da sua empresa?</h2>
+        <p class="descricao">Selecione o setor de mercado para que possamos filtrar os melhores chamados e produtos de Santo André para você.</p>
+
+        <div class="nichos-grid">
+            <div class="card-nicho" onclick="selecionarNicho('Metalurgia & Usinagem')">
+                <span class="emoji">⚙️</span>
+                <span class="nome-nicho">Metalurgia & Usinagem</span>
+            </div>
+            <div class="card-nicho" onclick="selecionarNicho('Alimentos & Bebidas')">
+                <span class="emoji">🍞</span>
+                <span class="nome-nicho">Alimentos & Bebidas</span>
+            </div>
+            <div class="card-nicho" onclick="selecionarNicho('Construção Civil')">
+                <span class="emoji">🧱</span>
+                <span class="nome-nicho">Construção Civil</span>
+            </div>
+            <div class="card-nicho" onclick="selecionarNicho('Automotivo & Peças')">
+                <span class="emoji">🚗</span>
+                <span class="nome-nicho">Automotivo & Peças</span>
+            </div>
+            <div class="card-nicho" onclick="selecionarNicho('Embalagens & Logística')">
+                <span class="emoji">📦</span>
+                <span class="nome-nicho">Embalagens & Logística</span>
+            </div>
+            <div class="card-nicho" onclick="selecionarNicho('Tecnologia & Escritório')">
+                <span class="emoji">💻</span>
+                <span class="nome-nicho">Tecnologia & Insumos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÕES DE NAVEGAÇÃO -->
+    <div class="botoes-triagem">
+        <button id="btnVoltar" class="btn-aux invisivel" onclick="voltarPasso()">Voltar</button>
+        <button id="btnProximo" class="btn-acao-principal" disabled onclick="avancarPasso()">Avançar</button>
+    </div>
+</div>
+
+<!-- ========================================== SCRIPTS LÓGICOS ========================================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="/frontend/js/particles-config-1.js"></script> <!-- Configuração de partículas laranja do projeto -->
+
+<script>
+    // Configurações de Conexão (Mesmas do app-v2.js)
+    const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let etapaAtual = 1;
+    let perfilEscolhido = null;
+    let nichoEscolhido = null;
+
+    const swalConfig = {
+        background: '#ffffff',
+        color: '#1d2d5c',
+        confirmButtonColor: '#f77f00'
+    };
+
+    // Função para Seleção do Perfil (Passo 1)
+    function selecionarPerfil(perfil) {
+        perfilEscolhido = perfil;
+
+        document.getElementById('cardComprador').classList.remove('selecionado');
+        document.getElementById('cardFornecedor').classList.remove('selecionado');
+
+        if (perfil === 'Comprador') {
+            document.getElementById('cardComprador').classList.add('selecionado');
+        } else {
+            document.getElementById('cardFornecedor').classList.add('selecionado');
+        }
+
+        // Habilita o botão para avançar
+        document.getElementById('btnProximo').disabled = false;
+    }
+
+    // Função para Seleção do Nicho (Passo 2)
+    function selecionarNicho(nicho) {
+        nichoEscolhido = nicho;
+
+        // Remove a classe selecionado de todos os cards de nicho
+        const cards = document.querySelectorAll('.card-nicho');
+        cards.forEach(c => c.classList.remove('selecionado'));
+
+        // Adiciona ao selecionado
+        event.currentTarget.classList.add('selecionado');
+
+        document.getElementById('btnProximo').disabled = false;
+    }
+
+    // Navegação: Avançar Passo
+    function avancarPasso() {
+        if (etapaAtual === 1) {
+            etapaAtual = 2;
+            document.getElementById('etapa1').classList.remove('ativa');
+            document.getElementById('etapa2').classList.add('ativa');
+
+            document.getElementById('btnVoltar').classList.remove('invisivel');
+            document.getElementById('barraProgresso').style.width = '100%';
+
+            // Só libera o avançar (que virou Concluir) se já escolheu um nicho
+            document.getElementById('btnProximo').innerText = 'Concluir';
+            if (!nichoEscolhido) {
+                document.getElementById('btnProximo').disabled = true;
+            }
+        } else if (etapaAtual === 2) {
+            finalizarCadastroOnboarding();
+        }
+    }
+
+    // Navegação: Voltar Passo
+    function voltarPasso() {
+        if (etapaAtual === 2) {
+            etapaAtual = 1;
+            document.getElementById('etapa2').classList.remove('ativa');
+            document.getElementById('etapa1').classList.add('ativa');
+
+            document.getElementById('btnVoltar').classList.add('invisivel');
+            document.getElementById('barraProgresso').style.width = '50%';
+            document.getElementById('btnProximo').innerText = 'Avançar';
+            document.getElementById('btnProximo').disabled = false; // Perfil já está escolhido
+        }
+    }
+
+    // Conclusão e Persistência no Banco do Supabase
+    async function finalizarCadastroOnboarding() {
+        const dadosLocais = localStorage.getItem('cadastro_pendente');
+        if (!dadosLocais) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Sessão Expirada',
+                text: 'Por favor, tente realizar o login novamente para reconfigurar o perfil da empresa.',
+                icon: 'warning'
+            }).then(() => {
+                window.location.href = 'login-cadastro.html';
+            });
+            return;
+        }
+
+        const cadastro = JSON.parse(dadosLocais);
+        const btn = document.getElementById('btnProximo');
+
+        // Ativa tela de carregamento do SweetAlert2
+        Swal.fire({
+            title: 'Salvando suas Preferências...',
+            text: 'Configurando o painel B2B para a sua empresa.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        btn.innerText = 'Salvando...';
+        btn.disabled = true;
+
+        try {
+            if (perfilEscolhido === 'Fornecedor') {
+                // 1. Grava na tabela de fornecedores com o nicho escolhido
+                const { error: insError } = await supabaseClient
+                    .from('fornecedores')
+                    .insert([{
+                        auth_user_id: cadastro.uid,
+                        razao_social: cadastro.razaoSocial,
+                        cnpj: cadastro.cnpj,
+                        email: cadastro.email,
+                        nicho: nichoEscolhido
+                    }]);
+
+                if (insError) throw insError;
+
+                // 2. Apaga da tabela usuarios (onde foi salvo provisoriamente no cadastro)
+                await supabaseClient
+                    .from('usuarios')
+                    .delete()
+                    .eq('auth_user_id', cadastro.uid);
+
+            } else if (perfilEscolhido === 'Comprador') {
+                // Como ele já foi salvo lá no cadastro inicial, apenas atualizamos a coluna 'nicho' dele
+                const { error: updError } = await supabaseClient
+                    .from('usuarios')
+                    .update({ nicho: nichoEscolhido })
+                    .eq('auth_user_id', cadastro.uid);
+
+                if (updError) throw updError;
+            }
+
+            // 3. Atualiza o metadado no Supabase Auth para "true", concluindo definitivamente o onboarding
+            const { error: authMetaError } = await supabaseClient.auth.updateUser({
+                data: { segmentacao_concluida: true }
+            });
+
+            if (authMetaError) throw authMetaError;
+
+            // Fecha loader e exibe sucesso
+            Swal.close();
+
+            localStorage.removeItem('cadastro_pendente');
+
+            // Salva dados do usuário autenticado para uso na Home
+            const usuarioLogado = {
+                uid: cadastro.uid,
+                razaoSocial: cadastro.razaoSocial,
+                cnpj: cadastro.cnpj,
+                email: cadastro.email,
+                perfil: perfilEscolhido,
+                nicho: nichoEscolhido
+            };
+            localStorage.setItem('usuario_logado', JSON.stringify(usuarioLogado));
+
+            Swal.fire({
+                ...swalConfig,
+                title: 'Onboarding Concluído!',
+                text: `Bem-vindo ao S.E.R.F.! Sua empresa foi cadastrada como ${perfilEscolhido} no nicho de ${nichoEscolhido}.`,
+                icon: 'success',
+                confirmButtonText: 'Acessar Painel'
+            }).then(() => {
+                window.location.href = '../app/home.html';
+            });
+
+        } catch (error) {
+            Swal.close();
+            console.error('Falha técnica ao salvar preferências:', error);
+            Swal.fire({
+                ...swalConfig,
+                title: 'Erro Crítico',
+                text: 'Falha ao salvar as preferências no Supabase: ' + error.message,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+            btn.innerText = 'Concluir';
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>

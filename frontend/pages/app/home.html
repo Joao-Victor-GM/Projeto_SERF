@@ -1,0 +1,664 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Painel de Controle</title>
+
+    <!-- Identidade visual e estilos da Home -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+</head>
+
+<body class="serf-home">
+
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL (SCRUM 13)
+         Navegação principal da área logada do SERF.
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Marca e identificação do sistema -->
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <!-- Links para os módulos internos do sistema -->
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="#visao-geral" class="nav-item active"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="#empresas" class="nav-item"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="#produtos" class="nav-item"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span id="menuProdutosLabel">Produtos</span>
+            </a>
+
+            <a href="#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+                <span class="nav-count" id="mensagensCount">0</span>
+            </a>
+
+            <a href="#relatorios" class="nav-item"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="#perfil" class="nav-item"
+               data-page="perfil">
+                <span class="nav-icon">◉</span>
+                <span>Perfil</span>
+            </a>
+
+        </nav>
+
+        <!-- Informações institucionais -->
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+         Agrupa o cabeçalho e o conteúdo do dashboard.
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <!-- =================================================
+             HEADER — BARRA SUPERIOR
+             Busca, empresa ativa, modo e perfil do usuário.
+        ================================================== -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <!-- Botão para recolher o menu em telas menores -->
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+
+                <!-- Campo de busca geral -->
+                <div class="global-search">
+                    <label for="buscaGlobal" class="sr-only">
+                        Busca geral
+                    </label>
+
+                    <input
+                        type="search"
+                        id="buscaGlobal"
+                        placeholder="Buscar pedidos, produtos, empresas..."
+                    >
+                </div>
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- Empresa autenticada, carregada futuramente -->
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <!-- Alternância de contexto para perfil Ambos.
+                     O backend validará as permissões reais. -->
+                <div
+                    class="modo-switch"
+                    id="modoSwitch"
+                    aria-label="Modo de operação"
+                >
+                    <button
+                        type="button"
+                        class="modo-btn active"
+                        data-mode="comprar"
+                        aria-pressed="true"
+                    >
+                        Comprar
+                    </button>
+
+                    <button
+                        type="button"
+                        class="modo-btn"
+                        data-mode="vender"
+                        aria-pressed="false"
+                    >
+                        Vender
+                    </button>
+                </div>
+
+                <!-- Acesso às notificações -->
+                <button
+                    type="button"
+                    class="icon-button"
+                    id="btnNotificacoes"
+                    aria-label="Notificações"
+                >
+                    ♧
+                    <span class="notification-dot" hidden></span>
+                </button>
+
+                <!-- Acesso ao perfil do usuário -->
+                <button
+                    type="button"
+                    class="profile-button"
+                    id="btnPerfil"
+                    aria-label="Meu perfil"
+                >
+                    <span class="profile-avatar">E</span>
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             BLOCO 03 — HOME CRM (SCRUM 12)
+             Mesa de trabalho para operações B2B.
+        ====================================================== -->
+
+        <main class="main-content" id="visao-geral">
+
+            <!-- Cabeçalho e ação principal do modo ativo -->
+            <div class="page-heading">
+
+                <div>
+                    <span class="page-eyebrow">
+                        PAINEL DE CONTROLE
+                    </span>
+
+                    <h1>Visão geral</h1>
+
+                    <p>
+                        Acompanhe as operações e oportunidades
+                        da sua empresa.
+                    </p>
+                </div>
+
+                <!-- Comprar: Novo pedido.
+                     Vender: Cadastrar produto. -->
+                <button
+                    type="button"
+                    class="btn-primary"
+                    id="btnAcaoPrincipal"
+                >
+                    + Novo pedido
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 BLOCO 04 — FILTROS
+                 Controlam o período e os registros exibidos.
+            ================================================== -->
+
+            <section
+                class="filters-bar"
+                aria-label="Filtros do painel"
+            >
+
+                <!-- Período aplicado aos indicadores e pedidos -->
+                <label>
+                    Período
+                    <select id="filtroPeriodo">
+                        <option value="30">Últimos 30 dias</option>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                    </select>
+                </label>
+
+                <!-- Filtragem pelo status do pedido -->
+                <label>
+                    Status
+                    <select id="filtroStatus">
+                        <option value="todos">Todos</option>
+                        <option value="aberto">Aberto</option>
+                        <option value="negociacao">Em negociação</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                </label>
+
+                <!-- Empresas relacionadas aos pedidos -->
+                <label>
+                    Empresa
+                    <select id="filtroEmpresa">
+                        <option value="todas">Todas as empresas</option>
+                    </select>
+                </label>
+
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    id="btnLimparFiltros"
+                >
+                    Limpar filtros
+                </button>
+
+            </section>
+
+
+            <!-- =================================================
+                 BLOCO 05 — INDICADORES COMPACTOS
+                 Resumo operacional com filtros por indicador.
+            ================================================== -->
+
+            <section
+                class="metrics-strip"
+                aria-label="Indicadores operacionais"
+            >
+
+                <!-- Quantidade de pedidos ainda abertos -->
+                <button
+                    type="button"
+                    class="metric-item"
+                    data-metric="abertos"
+                >
+                    <span>Pedidos abertos</span>
+                    <strong id="kpiAbertos">—</strong>
+                </button>
+
+                <!-- Pedidos ou conversas aguardando resposta -->
+                <button
+                    type="button"
+                    class="metric-item"
+                    data-metric="respostas"
+                >
+                    <span>Aguardando resposta</span>
+                    <strong id="kpiRespostas">—</strong>
+                </button>
+
+                <!-- Mensagens recebidas ainda não visualizadas -->
+                <button
+                    type="button"
+                    class="metric-item"
+                    data-metric="mensagens"
+                >
+                    <span>Mensagens não lidas</span>
+                    <strong id="kpiMensagens">—</strong>
+                </button>
+
+                <!-- Pedidos concluídos no período selecionado -->
+                <button
+                    type="button"
+                    class="metric-item"
+                    data-metric="concluidos"
+                >
+                    <span>Pedidos concluídos</span>
+                    <strong id="kpiConcluidos">—</strong>
+                </button>
+
+            </section>
+
+
+            <!-- =================================================
+                 BLOCO — CATÁLOGO B2B / MEUS PRODUTOS (SCRUM 15)
+                 Apresenta o catálogo de produtos e gestão do vendedor.
+            ================================================== -->
+
+            <section class="panel" id="produtos">
+
+                <div class="panel-heading">
+                    <div>
+                        <h2 id="produtosTitulo">Catálogo de Produtos B2B</h2>
+                        <p id="produtosSubtitulo">Explore insumos industriais e mercadorias com preço de atacado</p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <!-- Botão de cadastro visível apenas se o usuário for Fornecedor -->
+                        <button
+                            type="button"
+                            class="btn-primary"
+                            id="btnNovoProduto"
+                            style="display: none;"
+                        >
+                            + Novo Produto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grade dinâmica de cards de produtos -->
+                <div id="listaProdutos" class="produtos-grid">
+                    <p class="empty-state">
+                        Carregando produtos do catálogo...
+                    </p>
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 BLOCO 06 — ACOMPANHAMENTO DE PEDIDOS
+                 Tabela central para consulta e ações por linha.
+            ================================================== -->
+
+            <section class="panel" id="pedidos">
+
+                <div class="panel-heading">
+                    <div>
+                        <h2>Acompanhamento de pedidos</h2>
+                        <p>Operações e últimas movimentações</p>
+                    </div>
+
+                    <span
+                        class="panel-counter"
+                        id="totalPedidos"
+                    >
+                        0 pedidos
+                    </span>
+                </div>
+
+                <!-- Rolagem horizontal em telas menores -->
+                <div class="table-scroll">
+
+                    <table class="orders-table">
+
+                        <thead>
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Empresa</th>
+                                <th>Produto</th>
+                                <th>Status</th>
+                                <th>Atualização</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+
+                        <!-- Preenchimento futuro pelo home.js.
+                             Não exibir dados fictícios em produção. -->
+                        <tbody id="pedidosTableBody">
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    Nenhum pedido carregado.
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 BLOCO 07 — PRODUÇÃO E RADAR
+                 Indicadores históricos e fila de atenção.
+            ================================================== -->
+
+            <div class="dashboard-grid">
+
+                <!-- Gráfico de pedidos criados e concluídos -->
+                <section class="panel" id="producao">
+
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Indicadores de produção</h2>
+
+                            <p id="graficoPeriodo">
+                                Pedidos criados e concluídos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- TODO: implementar gráfico por período.
+                         Conclusões exigem histórico de status. -->
+                    <div
+                        class="chart-container"
+                        id="graficoProducao"
+                    >
+                        <p class="empty-state">
+                            Aguardando dados de produção.
+                        </p>
+                    </div>
+
+                </section>
+
+                <!-- Fila de pedidos que exigem atenção -->
+                <section class="panel" id="radar">
+
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Radar de pedidos</h2>
+                            <p>Pendências que exigem atenção</p>
+                        </div>
+                    </div>
+
+                    <!-- TODO: aplicar regras de prioridade,
+                         prazo e ausência de movimentação. -->
+                    <div id="radarLista" class="radar-list">
+                        <p class="empty-state">
+                            Nenhum alerta identificado.
+                        </p>
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <!-- =================================================
+                 BLOCO 08 — CONVERSAS RECENTES (SCRUM 20)
+                 Acesso à comunicação entre empresas.
+            ================================================== -->
+
+            <section class="panel" id="mensagens">
+
+                <div class="panel-heading">
+                    <div>
+                        <h2>Conversas recentes</h2>
+                        <p>Comunicação entre empresas</p>
+                    </div>
+
+                    <!-- Futuro acesso ao módulo de chat -->
+                    <button
+                        type="button"
+                        class="btn-text"
+                        id="btnTodasMensagens"
+                    >
+                        Ver mensagens →
+                    </button>
+                </div>
+
+                <!-- TODO: carregar conversas autorizadas
+                     da empresa autenticada no Supabase. -->
+                <div id="conversasRecentes">
+                    <p class="empty-state">
+                        Nenhuma conversa disponível.
+                    </p>
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MODAL — CADASTRO DE PRODUTO (FORNECEDOR)
+                 Permite inserção direta na tabela 'produtos' do Supabase.
+            ================================================== -->
+
+            <div id="modalNovoProduto" class="modal-serf" style="display: none;">
+                <div class="modal-serf-conteudo">
+                    <div class="modal-serf-header">
+                        <h3>Cadastrar Novo Produto no Catálogo</h3>
+                        <button
+                            type="button"
+                            class="btn-fechar-modal"
+                            id="btnFecharModalProduto"
+                            aria-label="Fechar modal"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <form id="formNovoProduto">
+                        <div class="modal-serf-corpo">
+
+                            <div class="campo-form">
+                                <label for="prodNome">Nome do Produto *</label>
+                                <input
+                                    type="text"
+                                    id="prodNome"
+                                    required
+                                    placeholder="Ex: Chapa de Aço Carbono 1020 1/4"
+                                >
+                            </div>
+
+                            <div class="linha-dupla">
+                                <div class="campo-form">
+                                    <label for="prodCategoria">Categoria *</label>
+                                    <select id="prodCategoria" required>
+                                        <option value="">Selecione uma categoria...</option>
+                                        <option value="Metalurgia & Usinagem">Metalurgia & Usinagem</option>
+                                        <option value="Alimentos & Bebidas">Alimentos & Bebidas</option>
+                                        <option value="Construção Civil">Construção Civil</option>
+                                        <option value="Automotivo & Peças">Automotivo & Peças</option>
+                                        <option value="Embalagens & Logística">Embalagens & Logística</option>
+                                        <option value="Tecnologia & Insumos">Tecnologia & Insumos</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodMarca">Marca / Fabricante *</label>
+                                    <input
+                                        type="text"
+                                        id="prodMarca"
+                                        required
+                                        placeholder="Ex: Gerdau, Bosch, Própria..."
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="campo-form">
+                                <label for="prodDescricao">Descrição Técnica / Especificações</label>
+                                <textarea
+                                    id="prodDescricao"
+                                    rows="3"
+                                    placeholder="Descreva dimensões, tolerâncias, acabamento ou requisitos de entrega."
+                                ></textarea>
+                            </div>
+
+                            <div class="linha-tripla">
+                                <div class="campo-form">
+                                    <label for="prodPreco">Preço Atacado (R$) *</label>
+                                    <input
+                                        type="number"
+                                        id="prodPreco"
+                                        step="0.01"
+                                        min="0.01"
+                                        required
+                                        placeholder="0,00"
+                                    >
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodQtdMinima">Qtd. Mínima *</label>
+                                    <input
+                                        type="number"
+                                        id="prodQtdMinima"
+                                        min="1"
+                                        required
+                                        placeholder="Ex: 10"
+                                    >
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="prodEstoque">Estoque Inicial</label>
+                                    <input
+                                        type="number"
+                                        id="prodEstoque"
+                                        min="0"
+                                        required
+                                        placeholder="Ex: 500"
+                                    >
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-serf-footer">
+                            <button
+                                type="button"
+                                class="btn-secondary"
+                                id="btnCancelarModalProduto"
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn-primary"
+                                id="btnSalvarProduto"
+                            >
+                                Salvar Produto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- =====================================================
+         BLOCO 09 — JAVASCRIPT
+         Controlará navegação, filtros, modos e dados.
+    ====================================================== -->
+
+    <!-- Dependências Supabase e SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Scripts de controle da interface e catálogo -->
+    <script src="../../js/home.js" defer></script>
+    <script src="../../js/catalogo.js" defer></script>
+
+</body>
+</html>
