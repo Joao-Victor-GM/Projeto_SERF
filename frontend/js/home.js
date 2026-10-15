@@ -349,6 +349,16 @@ function alterarModo(novoModo) {
     });
 
     atualizarDashboard();
+
+    // Sincroniza o catálogo de produtos com o novo modo (Comprar vs Vender)
+    if (window.CatalogoModule) {
+        if (typeof window.CatalogoModule.atualizarVisibilidadeBotaoCadastro === "function") {
+            window.CatalogoModule.atualizarVisibilidadeBotaoCadastro();
+        }
+        if (typeof window.CatalogoModule.buscarProdutos === "function") {
+            window.CatalogoModule.buscarProdutos();
+        }
+    }
 }
 
 

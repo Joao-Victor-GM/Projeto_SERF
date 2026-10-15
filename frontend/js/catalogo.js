@@ -126,12 +126,22 @@
         }
     }
 
-    // Controla a exibição do botão #btnNovoProduto conforme o perfil do usuário
-    function atualizarVisibilidadeBotaoCadastro(isFornecedor) {
+    // Verifica se o modo ativo atual na interface é 'vender'
+    function isModoVenderAtivo() {
+        const botaoModoVender = document.querySelector('.modo-btn[data-mode="vender"].active');
+        return Boolean(botaoModoVender);
+    }
+
+    // Controla a exibição do botão #btnNovoProduto conforme o perfil e o modo ativo
+    // REGRA DE NEGÓCIO: No modo 'comprar' NUNCA é permitido adicionar produtos (botão oculto)
+    function atualizarVisibilidadeBotaoCadastro() {
         const btnNovo = document.getElementById('btnNovoProduto');
         if (!btnNovo) return;
 
-        if (isFornecedor) {
+        const isVender = isModoVenderAtivo();
+
+        // O botão de novo produto SÓ é exibido se for Fornecedor E estiver no modo 'vender'
+        if (fornecedorAtual && isVender) {
             btnNovo.style.display = 'inline-flex';
         } else {
             btnNovo.style.display = 'none';
@@ -159,9 +169,11 @@
         }
 
         try {
+            // Sincroniza a visibilidade do botão de cadastro com o modo atual
+            atualizarVisibilidadeBotaoCadastro();
+
             // Detecta se a tela está no modo 'vender' (Painel Meus Produtos)
-            const botaoModoVender = document.querySelector('.modo-btn[data-mode="vender"].active');
-            const isModoVender = Boolean(botaoModoVender);
+            const isModoVender = isModoVenderAtivo();
 
             // Monta query no Supabase com join relacional da chave estrangeira fk_produtos_fornecedores
             let query = client
@@ -391,6 +403,17 @@
         const form = document.getElementById('formNovoProduto');
 
         function abrirModal() {
+            // Regra estrita: No modo 'comprar' NÃO é permitido adicionar produtos
+            if (!isModoVenderAtivo()) {
+                Swal.fire({
+                    ...swalConfig,
+                    title: 'Modo Comprar Ativo',
+                    text: 'No modo "Comprar" não é permitido adicionar produtos. Alterne para o modo "Vender" no topo da página para gerenciar o catálogo.',
+                    icon: 'warning'
+                });
+                return;
+            }
+
             if (!fornecedorAtual || !fornecedorAtual.id_fornecedor) {
                 Swal.fire({
                     ...swalConfig,
@@ -466,6 +489,17 @@
     async function submeterCadastroProduto(fecharModalCallback) {
         const client = obterSupabase();
         if (!client) return;
+
+        // Validação de segurança: Impede gravação se estiver no modo Comprar
+        if (!isModoVenderAtivo()) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Operação Bloqueada',
+                text: 'Não é permitido cadastrar produtos enquanto estiver no modo Comprar.',
+                icon: 'error'
+            });
+            return;
+        }
 
         if (!fornecedorAtual || !fornecedorAtual.id_fornecedor) {
             Swal.fire({
@@ -587,11 +621,23 @@
        ========================================================================= */
     function configurarObservadorDeModo() {
         document.querySelectorAll('.modo-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Pequeno atraso para aguardar a atualização do estado visual pelo home.js
+            btn.addEventListener('click', (e) => {
+                // Em páginas como catalogo.html onde home.js não gerencia o switch,
+                // atualiza visualmente os botões
+                document.querySelectorAll('.modo-btn').forEach(b => {
+                    const ativo = b === e.currentTarget;
+                    b.classList.toggle('active', ativo);
+                    b.setAttribute('aria-pressed', String(ativo));
+                });
+
+                // Atualiza a visibilidade do botão de cadastro imediatamente
+                atualizarVisibilidadeBotaoCadastro();
+
+                // Pequeno atraso para sincronização e recarregamento dos dados
                 setTimeout(() => {
+                    atualizarVisibilidadeBotaoCadastro();
                     buscarProdutos();
-                }, 100);
+                }, 50);
             });
         });
     }
@@ -604,6 +650,7 @@
         await verificarFornecedorAutenticado();
         configurarModalNovoProduto();
         configurarObservadorDeModo();
+        atualizarVisibilidadeBotaoCadastro();
         await buscarProdutos();
     }
 
@@ -612,6 +659,8 @@
         buscarProdutos,
         renderizarProdutos,
         verificarFornecedorAutenticado,
+        atualizarVisibilidadeBotaoCadastro,
+        isModoVenderAtivo,
         iniciarNegociacao,
         getFornecedorAtual: () => fornecedorAtual
     };
