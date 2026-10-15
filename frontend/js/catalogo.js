@@ -307,7 +307,16 @@
                         </div>
                     </div>
 
-                    <div class="produto-card-footer">
+                    <div class="produto-card-footer" style="display: flex; gap: 8px;">
+                        <button
+                            type="button"
+                            class="btn-secondary btn-ver-detalhes"
+                            data-id="${prod.id_produto}"
+                            title="Visualizar todos os detalhes deste produto"
+                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
+                        >
+                            Ver mais
+                        </button>
                         <button
                             type="button"
                             class="btn-iniciar-negociacao"
@@ -315,13 +324,25 @@
                             data-preco="${prod.preco_atacado}"
                             data-nome="${escaparHTML(prod.nome_produto)}"
                             data-fornecedor="${escaparHTML(nomeFornecedor)}"
+                            style="flex: 1;"
                         >
-                            <span>🤝 Iniciar Negociação</span>
+                            <span>🤝 Negociar</span>
                         </button>
                     </div>
                 </article>
             `;
         }).join('');
+
+        // Vincula o evento de 'Ver mais' (detalhes do produto)
+        container.querySelectorAll('.btn-ver-detalhes').forEach(botao => {
+            botao.addEventListener('click', (evento) => {
+                const id = Number(evento.currentTarget.dataset.id);
+                const prod = listaProdutosCache.find(p => p.id_produto === id);
+                if (prod) {
+                    abrirModalDetalhesProduto(prod);
+                }
+            });
+        });
 
         // Vincula o evento de Iniciar Negociação em todos os botões gerados
         container.querySelectorAll('.btn-iniciar-negociacao').forEach(botao => {
@@ -334,6 +355,60 @@
 
                 iniciarNegociacao(idProduto, preco, nome, fornecedor);
             });
+        });
+    }
+
+    // Modal com exibição aprofundada de detalhes do produto
+    function abrirModalDetalhesProduto(prod) {
+        const fornecedor = Array.isArray(prod.fornecedores) ? prod.fornecedores[0] : prod.fornecedores;
+        const nomeFornecedor = fornecedor?.razao_social || fornecedor?.nome_fantasia || 'Fornecedor Parceiro';
+        const localFornecedor = [fornecedor?.cidade, fornecedor?.estado].filter(Boolean).join(' - ');
+
+        Swal.fire({
+            ...swalConfig,
+            title: prod.nome_produto,
+            html: `
+                <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #172536; padding: 6px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                        <span><strong>Marca:</strong> ${escaparHTML(prod.marca || '-')}</span>
+                        <span><strong>Categoria:</strong> ${escaparHTML(prod.categoria || '-')}</span>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <strong>Fornecedor:</strong> ${escaparHTML(nomeFornecedor)} ${localFornecedor ? `(${escaparHTML(localFornecedor)})` : ''}
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <strong>Descrição Técnica:</strong><br>
+                        <p style="color: #64748b; margin-top: 4px; white-space: pre-wrap;">${escaparHTML(prod.descricao || 'Sem descrição adicional cadastrada.')}</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #edf2f7;">
+                        <div>
+                            <span style="font-size: 10px; color: #64748b; font-weight: 700;">QUANTIDADE MÍNIMA</span><br>
+                            <strong>${prod.quantidade_minima || 1} unidades</strong>
+                        </div>
+                        <div>
+                            <span style="font-size: 10px; color: #64748b; font-weight: 700;">ESTOQUE DISPONÍVEL</span><br>
+                            <strong style="color: ${prod.quantidade_estoque > 0 ? '#16A34A' : '#DC2626'};">${prod.quantidade_estoque || 0} unidades</strong>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 15px;">
+                        <span style="font-size: 10px; color: #64748b; display: block; font-weight: 700;">PREÇO DE ATACADO</span>
+                        <strong style="font-size: 22px; color: #f77f00;">${formatarMoedaBRL(prod.preco_atacado)}</strong>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            cancelButtonText: 'Fechar',
+            confirmButtonText: '🤝 Iniciar Negociação',
+            confirmButtonColor: '#f77f00',
+            cancelButtonColor: '#94a3b8'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                iniciarNegociacao(prod.id_produto, prod.preco_atacado, prod.nome_produto, nomeFornecedor);
+            }
         });
     }
 

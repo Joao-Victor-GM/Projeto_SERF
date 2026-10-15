@@ -351,7 +351,18 @@
                         <p id="produtosSubtitulo">Explore insumos industriais e mercadorias com preço de atacado</p>
                     </div>
 
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <!-- Botão pequeno para visualizar tela exclusiva do Catálogo -->
+                        <a
+                            href="catalogo.html"
+                            class="btn-text"
+                            id="btnVerMaisCatalogo"
+                            style="font-size: 11px; font-weight: 700; color: var(--serf-azul-interacao); text-decoration: none;"
+                            title="Abrir tela cheia dedicada ao catálogo"
+                        >
+                            Ver mais →
+                        </a>
+
                         <!-- Botão de cadastro visível apenas se o usuário for Fornecedor -->
                         <button
                             type="button"
@@ -369,6 +380,17 @@
                     <p class="empty-state">
                         Carregando produtos do catálogo...
                     </p>
+                </div>
+
+                <!-- Rodapé da seção com link para visualizar catálogo completo -->
+                <div style="padding: 12px 20px; border-top: 1px solid var(--serf-borda); background: #FAFBFD; display: flex; justify-content: center; align-items: center;">
+                    <a
+                        href="catalogo.html"
+                        class="btn-secondary"
+                        style="font-size: 11px; padding: 7px 20px; text-decoration: none;"
+                    >
+                        Visualizar catálogo completo →
+                    </a>
                 </div>
 
             </section>
