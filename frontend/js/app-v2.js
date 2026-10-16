@@ -27,6 +27,30 @@ const swalConfig = {
     confirmButtonColor: '#f77f00' // Laranja do SERF
 };
 
+// Busca o e-mail de login a partir do CNPJ pela função RPC do banco.
+// A função (SECURITY DEFINER) devolve apenas o e-mail, sem expor as tabelas.
+async function obterEmailPorCnpj(cnpj) {
+    const { data, error } = await supabaseClient.rpc('obter_email_por_cnpj', { p_cnpj: cnpj });
+    if (error) throw error;
+    return data || null;
+}
+
+// Após o login (sessão ativa), lê apenas o cadastro da própria empresa.
+async function obterEmpresaDaSessao(authUserId) {
+    const [comprador, fornecedor] = await Promise.all([
+        supabaseClient.from('usuarios').select('nome_empresa').eq('auth_user_id', authUserId).maybeSingle(),
+        supabaseClient.from('fornecedores').select('razao_social').eq('auth_user_id', authUserId).maybeSingle()
+    ]);
+
+    const ehComprador = Boolean(comprador.data);
+    const ehFornecedor = Boolean(fornecedor.data);
+
+    return {
+        nome: comprador.data?.nome_empresa || fornecedor.data?.razao_social || null,
+        perfil: ehComprador && ehFornecedor ? 'Ambos' : (ehFornecedor ? 'Fornecedor' : 'Comprador')
+    };
+}
+
 // Função utilitária para fazer o container do login tremer fisicamente em caso de erro
 function tremerTela() {
     if (containerTela) {
@@ -225,7 +249,6 @@ if (formCadastro) {
 
             // Guarda no cache local para a triagem de segmentação
             const dadosProvisorios = {
-                uid: uuidUsuario,
                 cnpj: cnpj,
                 razaoSocial: razaoSocial,
                 email: email
@@ -292,41 +315,14 @@ if (formLogin) {
                 }
             });
 
-            let emailAssociadoAoCnpj = null;
-            let nomeEmpresaEncontrada = null;
-            let perfilEncontrado = 'Comprador';
-
-            // ETAPA A: Procuramos o e-mail correspondente na tabela de Compradores
-            const { data: usuario } = await supabaseClient
-                .from('usuarios')
-                .select('email, nome_empresa')
-                .eq('cnpj', cnpj)
-                .maybeSingle();
-
-            if (usuario) {
-                emailAssociadoAoCnpj = usuario.email;
-                nomeEmpresaEncontrada = usuario.nome_empresa;
-                perfilEncontrado = 'Comprador';
-            } else {
-                // ETAPA B: Se não encontrou, procuramos na tabela de Fornecedores
-                const { data: fornecedor } = await supabaseClient
-                    .from('fornecedores')
-                    .select('email, razao_social')
-                    .eq('cnpj', cnpj)
-                    .maybeSingle();
-
-                if (fornecedor) {
-                    emailAssociadoAoCnpj = fornecedor.email;
-                    nomeEmpresaEncontrada = fornecedor.razao_social;
-                    perfilEncontrado = 'Fornecedor';
-                }
-            }
+            // ETAPA A: Obtém apenas o e-mail do CNPJ pela função segura do banco
+            const emailAssociadoAoCnpj = await obterEmailPorCnpj(cnpj);
 
             if (!emailAssociadoAoCnpj) {
-                throw new Error('Nenhuma empresa cadastrada com este CNPJ.');
+                throw new Error('CNPJ ou senha inválidos.');
             }
 
-            // ETAPA C: Autentica com E-mail + Senha no Supabase Auth
+            // ETAPA B: Autentica com E-mail + Senha no Supabase Auth
             const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
                 email: emailAssociadoAoCnpj,
                 password: senha
@@ -335,6 +331,11 @@ if (formLogin) {
             if (loginError) throw loginError;
 
             const user = sessionData.user;
+
+            // ETAPA C: Com a sessão ativa, lê o cadastro da própria empresa
+            const empresa = await obterEmpresaDaSessao(user.id);
+            const nomeEmpresaEncontrada = empresa.nome;
+            const perfilEncontrado = empresa.perfil;
 
             // VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
             const segmentado = user?.user_metadata?.segmentacao_concluida;
@@ -349,7 +350,6 @@ if (formLogin) {
                     icon: 'info'
                 }).then(() => {
                     const dadosProvisorios = {
-                        uid: user.id,
                         cnpj: cnpj,
                         razaoSocial: nomeEmpresaEncontrada || user.user_metadata?.razao_social || 'Empresa Local',
                         email: user.email
@@ -362,7 +362,6 @@ if (formLogin) {
 
             // Salva os dados para exibição contextual na Home
             const dadosUsuario = {
-                uid: user.id,
                 cnpj: cnpj,
                 razaoSocial: nomeEmpresaEncontrada || user.user_metadata?.razao_social || 'Empresa Autenticada',
                 email: user.email,
@@ -461,29 +460,8 @@ if (formRecuperar) {
                 }
             });
 
-            let emailAssociado = null;
-
-            // 1. Procurar e-mail na tabela de Compradores (usuarios)
-            const { data: comprador } = await supabaseClient
-                .from('usuarios')
-                .select('email')
-                .eq('cnpj', cnpj)
-                .maybeSingle();
-
-            if (comprador) {
-                emailAssociado = comprador.email;
-            } else {
-                // 2. Se não achou, procurar na tabela de Fornecedores
-                const { data: fornecedor } = await supabaseClient
-                    .from('fornecedores')
-                    .select('email')
-                    .eq('cnpj', cnpj)
-                    .maybeSingle();
-
-                if (fornecedor) {
-                    emailAssociado = fornecedor.email;
-                }
-            }
+            // 1 e 2. Obtém o e-mail do CNPJ pela função segura do banco
+            const emailAssociado = await obterEmailPorCnpj(cnpj);
 
             if (!emailAssociado) {
                 throw new Error('Nenhuma empresa localizada com este CNPJ no banco de dados do S.E.R.F.');

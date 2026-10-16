@@ -17,33 +17,7 @@ body {
     flex-direction: column;
     position: relative;
     overflow: hidden; /* Evita barras de rolagem durante a animação */
-    background-color: #f4f7f6; /* Cor de fundo caso a imagem demore a carregar */
-}
-
-/* Criamos uma camada atrás de tudo para animar a imagem com alta performance */
-body::before {
-    content: "";
-    position: absolute;
-    /* Margem negativa para a imagem se mover sem mostrar bordas em branco */
-    top: -5%;
-    left: -5%;
-    right: -5%;
-    bottom: -5%;
-    background-image: url('backgroundserfv2.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: -1; /* Mantém o fundo atrás do container do formulário */
-    /* Animação de 25 segundos, vai e volta suavemente */
-    animation: moveBlocks 25s ease-in-out infinite alternate;
-}
-
-/* Movimento suave de escala (zoom) e translação (deslocamento) */
-@keyframes moveBlocks {
-    0% { transform: scale(1) translate(0, 0); }
-    33% { transform: scale(1.03) translate(1.5%, 1.5%); }
-    66% { transform: scale(1.01) translate(-1%, 0.5%); }
-    100% { transform: scale(1.05) translate(0.5%, -1.5%); }
+    background-color: #001f3f; /* Mesmo tom do fundo de partículas (#particles-js) */
 }
 
 /* ========================================================= ANIMAÇÃO DE TREMER (SHAKE ERROR) ========================================================= */

@@ -65,7 +65,7 @@
 
         let authUserId = null;
 
-        // A) Tenta ler usuário na sessão ativa do Supabase Auth
+        // Identidade vem só da sessão do Supabase Auth (validada pelo auth-check.js)
         try {
             const { data: { session } } = await client.auth.getSession();
             if (session?.user?.id) {
@@ -73,19 +73,6 @@
             }
         } catch (err) {
             console.warn('[SERF:Catalogo] Verificação de sessão Supabase:', err);
-        }
-
-        // B) Fallback: se não recuperado pela sessão, busca no cache local de login
-        if (!authUserId) {
-            try {
-                const salvo = localStorage.getItem('usuario_logado');
-                if (salvo) {
-                    const parsed = JSON.parse(salvo);
-                    if (parsed.uid) authUserId = parsed.uid;
-                }
-            } catch (e) {
-                console.warn('[SERF:Catalogo] Falha ao ler localStorage usuario_logado:', e);
-            }
         }
 
         if (!authUserId) {
@@ -347,13 +334,11 @@
         // Vincula o evento de Iniciar Negociação em todos os botões gerados
         container.querySelectorAll('.btn-iniciar-negociacao').forEach(botao => {
             botao.addEventListener('click', (evento) => {
-                const btn = evento.currentTarget;
-                const idProduto = btn.dataset.id;
-                const preco = Number(btn.dataset.preco) || 0;
-                const nome = btn.dataset.nome || 'Produto';
-                const fornecedor = btn.dataset.fornecedor || 'Fornecedor';
-
-                iniciarNegociacao(idProduto, preco, nome, fornecedor);
+                const id = Number(evento.currentTarget.dataset.id);
+                const prod = listaProdutosCache.find(p => p.id_produto === id);
+                if (prod) {
+                    abrirModalNegociacao(prod);
+                }
             });
         });
     }
@@ -407,62 +392,297 @@
             cancelButtonColor: '#94a3b8'
         }).then((result) => {
             if (result.isConfirmed) {
-                iniciarNegociacao(prod.id_produto, prod.preco_atacado, prod.nome_produto, nomeFornecedor);
+                abrirModalNegociacao(prod);
             }
         });
     }
 
     /* =========================================================================
-       5. BOTÃO "INICIAR NEGOCIAÇÃO"
-       Salva ID e Preço no localStorage (produto_selecionado) e redireciona
-       para a tela de pagamento / pedidos.
+       5. NEGOCIAÇÃO → CRIAÇÃO DO PEDIDO
+       O botão 'Negociar' abre um modal com Quantidade e Observação.
+       Ao confirmar, insere o pedido na tabela 'pedidos' com status PENDENTE.
+       O modal é criado por este script porque o catálogo aparece tanto na
+       home.html quanto na catalogo.html.
        ========================================================================= */
-    function iniciarNegociacao(idProduto, preco, nome, fornecedor) {
-        // Grava no localStorage sob a chave 'produto_selecionado'
-        const payloadSelecao = {
-            id: Number(idProduto),
-            id_produto: Number(idProduto),
-            preco: preco,
-            preco_atacado: preco,
-            nome_produto: nome,
-            fornecedor: fornecedor,
-            selecionado_em: new Date().toISOString()
-        };
+    let compradorAtual = null;     // Registro da empresa em 'usuarios'
+    let produtoNegociacao = null;  // Produto com o modal aberto
 
-        localStorage.setItem('produto_selecionado', JSON.stringify(payloadSelecao));
-        console.info('[SERF:Catalogo] Produto selecionado para negociação:', payloadSelecao);
+    // Localiza a empresa compradora (tabela 'usuarios') da sessão ativa.
+    // O pedido exige sessão real, pois o RLS valida auth.uid().
+    async function obterCompradorAutenticado() {
+        if (compradorAtual) return compradorAtual;
 
-        // Feedback profissional com SweetAlert2
-        Swal.fire({
-            ...swalConfig,
-            title: 'Negociação Iniciada!',
-            html: `
-                Você selecionou: <strong>${escaparHTML(nome)}</strong><br>
-                Fornecedor: <strong>${escaparHTML(fornecedor)}</strong><br>
-                Preço Atacado: <strong style="color: #f77f00;">${formatarMoedaBRL(preco)}</strong><br><br>
-                Redirecionando para a área de pedidos e pagamento...
-            `,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        }).then(() => {
-            // Redireciona para o painel de pedidos / pagamento
+        const client = obterSupabase();
+        if (!client) return null;
+
+        try {
+            const { data: { session } } = await client.auth.getSession();
+            const authUserId = session?.user?.id;
+            if (!authUserId) return null;
+
+            const { data, error } = await client
+                .from('usuarios')
+                .select('id_usuario, nome_empresa')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            compradorAtual = data;
+            return data;
+        } catch (err) {
+            console.error('[SERF:Catalogo] Falha ao identificar empresa compradora:', err);
+            return null;
+        }
+    }
+
+    function garantirModalNegociacao() {
+        if (document.getElementById('modalNegociacao')) return;
+
+        const modal = document.createElement('div');
+        modal.id = 'modalNegociacao';
+        modal.className = 'modal-serf';
+        modal.style.display = 'none';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'negociacaoTitulo');
+
+        modal.innerHTML = `
+            <div class="modal-serf-conteudo">
+                <div class="modal-serf-header">
+                    <h3 id="negociacaoTitulo">Fazer Pedido</h3>
+                    <button type="button" class="btn-fechar-modal" data-fechar-negociacao aria-label="Fechar">
+                        &times;
+                    </button>
+                </div>
+
+                <form id="formNegociacao" novalidate>
+                    <div class="modal-serf-corpo">
+
+                        <div class="negociacao-produto">
+                            <strong id="negociacaoProdutoNome"></strong>
+                            <span id="negociacaoFornecedor"></span>
+                            <span id="negociacaoPreco" class="negociacao-preco"></span>
+                        </div>
+
+                        <div class="linha-dupla">
+                            <div class="campo-form">
+                                <label for="negociacaoQuantidade">Quantidade *</label>
+                                <input type="number" id="negociacaoQuantidade" step="1" required>
+                                <small id="negociacaoLimites" class="campo-ajuda"></small>
+                            </div>
+
+                            <div class="campo-form">
+                                <label>Valor total estimado</label>
+                                <strong id="negociacaoTotal" class="negociacao-total">R$ 0,00</strong>
+                            </div>
+                        </div>
+
+                        <div class="campo-form">
+                            <label for="negociacaoObservacao">Observação</label>
+                            <textarea
+                                id="negociacaoObservacao"
+                                rows="3"
+                                maxlength="500"
+                                placeholder="Prazo desejado, condições de entrega, frete, forma de pagamento..."
+                            ></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-serf-footer">
+                        <button type="button" class="btn-secondary" data-fechar-negociacao>Cancelar</button>
+                        <button type="submit" class="btn-primary" id="btnConfirmarNegociacao">Confirmar Pedido</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll('[data-fechar-negociacao]').forEach(btn => {
+            btn.addEventListener('click', fecharModalNegociacao);
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) fecharModalNegociacao();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                fecharModalNegociacao();
+            }
+        });
+
+        document.getElementById('negociacaoQuantidade').addEventListener('input', atualizarTotalNegociacao);
+        document.getElementById('formNegociacao').addEventListener('submit', confirmarNegociacao);
+    }
+
+    async function abrirModalNegociacao(prod) {
+        const comprador = await obterCompradorAutenticado();
+
+        if (!comprador) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Acesso de Comprador Necessário',
+                text: 'Faça login com uma empresa compradora para realizar pedidos.',
+                icon: 'warning'
+            });
+            return;
+        }
+
+        if (fornecedorAtual && prod.id_fornecedor === fornecedorAtual.id_fornecedor) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Produto Próprio',
+                text: 'Não é possível fazer pedido de um produto da sua própria empresa.',
+                icon: 'info'
+            });
+            return;
+        }
+
+        const estoque = Number(prod.quantidade_estoque) || 0;
+        const minimo = Math.max(1, Number(prod.quantidade_minima) || 1);
+
+        if (estoque < minimo) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Sem Estoque',
+                text: 'Este produto não possui estoque suficiente para a quantidade mínima de pedido.',
+                icon: 'warning'
+            });
+            return;
+        }
+
+        garantirModalNegociacao();
+        produtoNegociacao = prod;
+
+        const fornecedor = Array.isArray(prod.fornecedores) ? prod.fornecedores[0] : prod.fornecedores;
+        const nomeFornecedor = fornecedor?.razao_social || fornecedor?.nome_fantasia || 'Fornecedor Parceiro';
+
+        document.getElementById('negociacaoProdutoNome').textContent = prod.nome_produto;
+        document.getElementById('negociacaoFornecedor').textContent = `Fornecedor: ${nomeFornecedor}`;
+        document.getElementById('negociacaoPreco').textContent = `${formatarMoedaBRL(prod.preco_atacado)} / unidade`;
+
+        const inputQtd = document.getElementById('negociacaoQuantidade');
+        inputQtd.min = String(minimo);
+        inputQtd.max = String(estoque);
+        inputQtd.value = String(minimo);
+
+        document.getElementById('negociacaoLimites').textContent =
+            `Mínimo: ${minimo} un. • Disponível: ${estoque} un.`;
+        document.getElementById('negociacaoObservacao').value = '';
+
+        atualizarTotalNegociacao();
+
+        document.getElementById('modalNegociacao').style.display = 'flex';
+        inputQtd.focus();
+        inputQtd.select();
+    }
+
+    function fecharModalNegociacao() {
+        const modal = document.getElementById('modalNegociacao');
+        if (modal) modal.style.display = 'none';
+        produtoNegociacao = null;
+    }
+
+    function atualizarTotalNegociacao() {
+        if (!produtoNegociacao) return;
+
+        const quantidade = parseInt(document.getElementById('negociacaoQuantidade').value, 10) || 0;
+        const total = quantidade * (Number(produtoNegociacao.preco_atacado) || 0);
+
+        document.getElementById('negociacaoTotal').textContent = formatarMoedaBRL(total);
+    }
+
+    // Insert real na tabela 'pedidos'.
+    // O valor unitário é recalculado pelo trigger do banco a partir do produto,
+    // impedindo que o navegador altere o preço.
+    async function criarPedido(prod, quantidade, observacao) {
+        const client = obterSupabase();
+        if (!client) throw new Error('Conexão com o banco de dados não estabelecida.');
+
+        const { data, error } = await client
+            .from('pedidos')
+            .insert({
+                id_usuario: compradorAtual.id_usuario,
+                id_produto: prod.id_produto,
+                quantidade: quantidade,
+                valor_unitario: Number(prod.preco_atacado),
+                status_pedido: 'PENDENTE',
+                observacao: observacao || null
+            })
+            .select('id_pedido, quantidade, valor_total, status_pedido')
+            .single();
+
+        if (error) throw error;
+
+        return data;
+    }
+
+    async function confirmarNegociacao(evento) {
+        evento.preventDefault();
+
+        const prod = produtoNegociacao;
+        if (!prod) return;
+
+        const quantidade = parseInt(document.getElementById('negociacaoQuantidade').value, 10);
+        const observacao = document.getElementById('negociacaoObservacao').value.trim();
+        const minimo = Math.max(1, Number(prod.quantidade_minima) || 1);
+        const estoque = Number(prod.quantidade_estoque) || 0;
+
+        if (isNaN(quantidade) || quantidade < minimo) {
+            Swal.fire({ ...swalConfig, title: 'Quantidade Inválida', text: `A quantidade mínima para este produto é ${minimo} unidades.`, icon: 'warning' });
+            return;
+        }
+        if (quantidade > estoque) {
+            Swal.fire({ ...swalConfig, title: 'Estoque Insuficiente', text: `O fornecedor possui ${estoque} unidades disponíveis.`, icon: 'warning' });
+            return;
+        }
+
+        const btn = document.getElementById('btnConfirmarNegociacao');
+        btn.disabled = true;
+        btn.textContent = 'Enviando pedido...';
+
+        try {
+            const pedido = await criarPedido(prod, quantidade, observacao);
+
+            fecharModalNegociacao();
+
+            // Avisa a Home para recarregar a lista de pedidos e as métricas
+            window.dispatchEvent(new CustomEvent('serf:pedido-criado', { detail: pedido }));
+
+            await Swal.fire({
+                ...swalConfig,
+                title: `Pedido #${pedido.id_pedido} Enviado!`,
+                html: `
+                    <strong>${escaparHTML(prod.nome_produto)}</strong> (x${pedido.quantidade})<br>
+                    Total: <strong style="color: #f77f00;">${formatarMoedaBRL(pedido.valor_total)}</strong><br><br>
+                    O fornecedor foi notificado e o pedido aguarda confirmação.
+                `,
+                icon: 'success',
+                confirmButtonText: 'Ver meus pedidos'
+            });
+
             const painelPedidos = document.getElementById('pedidos');
             if (painelPedidos) {
-                window.location.hash = '#pedidos';
                 painelPedidos.scrollIntoView({ behavior: 'smooth' });
-
-                // Destaca o link de pedidos no menu lateral se houver
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.getAttribute('href') === '#pedidos') {
-                        item.classList.add('active');
-                    }
-                });
             } else {
                 window.location.href = 'home.html#pedidos';
             }
-        });
+        } catch (error) {
+            console.error('[SERF:Catalogo] Falha ao criar pedido:', error);
+            Swal.fire({
+                ...swalConfig,
+                title: 'Erro ao Criar Pedido',
+                text: error.message || 'Falha de comunicação com o Supabase.',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Confirmar Pedido';
+        }
     }
 
     /* =========================================================================
@@ -736,7 +956,7 @@
         verificarFornecedorAutenticado,
         atualizarVisibilidadeBotaoCadastro,
         isModoVenderAtivo,
-        iniciarNegociacao,
+        abrirModalNegociacao,
         getFornecedorAtual: () => fornecedorAtual
     };
 

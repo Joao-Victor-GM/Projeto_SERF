@@ -12,6 +12,9 @@
     <link rel="icon" href="../../assets/icons/fivecon.png">
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/auth-check.js"></script>
 </head>
 
 <body class="serf-home">
@@ -81,7 +84,7 @@
                 <span>Relatórios</span>
             </a>
 
-            <a href="#perfil" class="nav-item"
+            <a href="perfil.html" class="nav-item"
                data-page="perfil">
                 <span class="nav-icon">◉</span>
                 <span>Perfil</span>
@@ -263,6 +266,7 @@
                         <option value="aberto">Aberto</option>
                         <option value="negociacao">Em negociação</option>
                         <option value="concluido">Concluído</option>
+                        <option value="cancelado">Cancelado</option>
                     </select>
                 </label>
 
@@ -665,6 +669,69 @@
                 </div>
             </div>
 
+            <!-- Modal de Detalhes do Pedido + Chat B2B em tempo real
+                 Aberto pelo botão "Visualizar" da tabela de pedidos. -->
+            <div id="modalPedido" class="modal-serf" style="display: none;"
+                 role="dialog" aria-modal="true" aria-labelledby="modalPedidoTitulo">
+                <div class="modal-serf-conteudo modal-pedido-conteudo">
+                    <div class="modal-serf-header">
+                        <div>
+                            <h3 id="modalPedidoTitulo">Pedido</h3>
+                            <small id="modalPedidoSubtitulo" class="modal-pedido-subtitulo"></small>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn-fechar-modal"
+                            id="btnFecharModalPedido"
+                            aria-label="Fechar detalhes do pedido"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Resumo do pedido (preenchido pelo home.js) -->
+                    <dl class="pedido-resumo" id="pedidoResumo"></dl>
+
+                    <!-- Gestão de status: visível apenas para o fornecedor do produto -->
+                    <form class="pedido-gestao" id="formStatusPedido" hidden>
+                        <label for="selectNovoStatus">Atualizar status do pedido</label>
+                        <div class="pedido-gestao-controles">
+                            <select id="selectNovoStatus" required></select>
+                            <button type="submit" class="btn-primary" id="btnAtualizarStatus">
+                                Atualizar
+                            </button>
+                        </div>
+                        <small class="pedido-gestao-ajuda" id="statusPedidoAjuda"></small>
+                    </form>
+
+                    <!-- Chat com a outra empresa da negociação -->
+                    <section class="chat-container" aria-label="Chat do pedido">
+                        <div class="chat-cabecalho">
+                            <strong>Conversa com <span id="chatParceiroNome">a empresa</span></strong>
+                            <span class="chat-status" id="chatStatus">Conectando...</span>
+                        </div>
+
+                        <div class="chat-mensagens" id="chatMensagens" aria-live="polite">
+                            <p class="chat-vazio">Carregando mensagens...</p>
+                        </div>
+
+                        <form class="chat-barra" id="formChat" autocomplete="off">
+                            <label for="chatInput" class="sr-only">Digite sua mensagem</label>
+                            <input
+                                type="text"
+                                id="chatInput"
+                                placeholder="Digite sua mensagem..."
+                                maxlength="1000"
+                                required
+                            >
+                            <button type="submit" class="btn-primary" id="btnEnviarMensagem">
+                                Enviar
+                            </button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -675,7 +742,6 @@
     ====================================================== -->
 
     <!-- Dependências Supabase e SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Scripts de controle da interface e catálogo -->

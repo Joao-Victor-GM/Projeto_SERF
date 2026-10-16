@@ -1237,9 +1237,9 @@ min-height: 470px;
         z-index: 0;
         background: #164563;
         -webkit-mask-image:
-        url("../../assets/images/mapa-brasil.svg");
+        url("../assets/images/mapa-brasil.svg");
         mask-image:
-        url("../../assets/images/mapa-brasil.svg");
+        url("../assets/images/mapa-brasil.svg");
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
 

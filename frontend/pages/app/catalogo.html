@@ -11,6 +11,9 @@
     <link rel="icon" href="../../assets/icons/fivecon.png">
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/auth-check.js"></script>
 </head>
 
 <body class="serf-home">
@@ -80,7 +83,7 @@
                 <span>Relatórios</span>
             </a>
 
-            <a href="home.html#perfil" class="nav-item"
+            <a href="perfil.html" class="nav-item"
                data-page="perfil">
                 <span class="nav-icon">◉</span>
                 <span>Perfil</span>
@@ -374,7 +377,6 @@
     </div>
 
     <!-- Dependências Supabase e SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Scripts de interface e catálogo -->
@@ -405,14 +407,11 @@
                 } catch(e){}
             }
 
-            // Logout no perfil
+            // Acesso ao perfil corporativo
             const btnPerfil = document.getElementById('btnPerfil');
             if (btnPerfil) {
                 btnPerfil.addEventListener('click', () => {
-                    if (confirm('Deseja sair da sua conta e voltar à tela de login?')) {
-                        localStorage.removeItem('usuario_logado');
-                        window.location.href = '../public/login-cadastro.html';
-                    }
+                    window.location.href = 'perfil.html';
                 });
             }
         });

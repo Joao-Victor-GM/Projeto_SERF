@@ -1,49 +1,496 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil | SERF</title>
-    <!-- Tailwind CSS para estilização rápida -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- FontAwesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Estilo para esconder abas inativas */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: bold; }
-    </style>
+
+    <title>S.E.R.F. | Meu Perfil Corporativo</title>
+
+    <!-- Identidade visual e estilos compartilhados -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/perfil.css">
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/auth-check.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
 
-    <!-- Navbar simples -->
-    <nav class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-2xl font-bold"><i class="fas fa-handshake mr-2"></i>SERF</h1>
-        <a href="home.html" class="hover:text-gray-300"><i class="fas fa-arrow-left mr-1"></i> Voltar ao Dashboard</a>
-    </nav>
+<body class="serf-home">
 
-    <div class="container mx-auto p-6 max-w-6xl mt-6 flex flex-col md:flex-row gap-6">
-        
-        <!-- Sidebar: Dados do Perfil -->
-        <aside class="w-full md:w-1/3 bg-white p-6 rounded-lg shadow-md h-fit">
-            <div class="flex flex-col items-center text-center">
-                <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-4xl text-gray-500 mb-4 shadow-inner">
-                    <i class="fas fa-building"></i>
-                </div>
-                <h2 id="perfil-nome" class="text-xl font-bold text-gray-800">Carregando...</h2>
-                <p id="perfil-tipo" class="text-sm text-blue-600 font-semibold mt-1">...</p>
-                <p id="perfil-cnpj" class="text-sm text-gray-500 mt-2">CNPJ: ...</p>
-                <p id="perfil-email" class="text-sm text-gray-500">Email: ...</p>
-                <button id="btn-logout" class="mt-6 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Sair da Conta
-                </button>
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL
+         Navegação principal da área logada do SERF.
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Marca e identificação do sistema -->
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
             </div>
-        </aside>
+        </div>
 
-        <!-- Área Principal: Histórico (Estilo Mercado Livre) -->
-        <main class="w-full md:w-2/3 bg-white rounded-lg shadow-md overflow-hidden">
-            
-            <!-- Navegação das Abas -->
-            <div class="flex border-b border-gray-200">
-                <button onclick="mudarAba('compras')" id="tab-compras"
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <!-- Links para os módulos internos do sistema -->
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="home.html#visao-geral" class="nav-item"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="home.html#empresas" class="nav-item"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="catalogo.html" class="nav-item"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span>Catálogo</span>
+            </a>
+
+            <a href="home.html#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="home.html#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+            </a>
+
+            <a href="home.html#relatorios" class="nav-item"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="perfil.html" class="nav-item active"
+               data-page="perfil">
+                <span class="nav-icon">◉</span>
+                <span>Perfil</span>
+            </a>
+
+        </nav>
+
+        <!-- Informações institucionais -->
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+         Agrupa o cabeçalho e o conteúdo do perfil.
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <!-- =================================================
+             HEADER — BARRA SUPERIOR
+             Busca, empresa ativa e perfil do usuário.
+        ================================================== -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <!-- Botão para recolher o menu em telas menores -->
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+
+                <!-- Campo de busca geral -->
+                <div class="global-search">
+                    <label for="buscaGlobal" class="sr-only">
+                        Busca geral
+                    </label>
+
+                    <input
+                        type="search"
+                        id="buscaGlobal"
+                        placeholder="Buscar pedidos, produtos, empresas..."
+                    >
+                </div>
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- Empresa autenticada (preenchida pelo perfil.js) -->
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <!-- Acesso às notificações -->
+                <button
+                    type="button"
+                    class="icon-button"
+                    id="btnNotificacoes"
+                    aria-label="Notificações"
+                >
+                    ♧
+                    <span class="notification-dot" hidden></span>
+                </button>
+
+                <!-- Perfil do usuário (página atual) -->
+                <button
+                    type="button"
+                    class="profile-button"
+                    id="btnPerfil"
+                    aria-label="Meu perfil"
+                    title="Meu perfil"
+                >
+                    <span class="profile-avatar">E</span>
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             CONTEÚDO DO PERFIL CORPORATIVO
+        ====================================================== -->
+
+        <main class="main-content perfil-main" id="visao-perfil">
+
+            <!-- Cabeçalho da página, alinhado ao canto superior direito -->
+            <div class="perfil-header">
+                <div class="perfil-header-texto">
+                    <nav class="perfil-breadcrumb" aria-label="Você está em">
+                        <a href="home.html">Painel</a>
+                        <span>›</span>
+                        <strong>Meu Perfil</strong>
+                    </nav>
+                    <h1>Minha Conta</h1>
+                    <p>Reputação, histórico de negociações e dados da sua empresa</p>
+                </div>
+
+                <a href="home.html" class="btn-secondary perfil-btn-voltar">
+                    ← Voltar ao Painel
+                </a>
+            </div>
+
+            <!-- =================================================
+                 CAPA DO PERFIL (fundo de partículas S.E.R.F.)
+            ================================================== -->
+            <section class="profile-hero-card">
+
+                <div class="profile-cover">
+                    <div id="perfilParticles" class="profile-cover-particles"></div>
+                    <span class="profile-cover-tag">Membro S.E.R.F. desde 2026</span>
+                </div>
+
+                <div class="profile-hero-body">
+                    <div class="profile-hero-left">
+                        <div class="profile-hero-avatar" id="heroAvatar">E</div>
+
+                        <div class="profile-hero-info">
+                            <h2>
+                                <span id="heroRazaoSocial">Carregando...</span>
+                                <span class="badge-verificado">✓ Empresa verificada</span>
+                            </h2>
+
+                            <div class="profile-hero-meta">
+                                <span class="meta-chip" id="heroCnpj">CNPJ: ...</span>
+                                <span class="meta-chip" id="heroNicho">...</span>
+                                <span class="meta-chip meta-chip-destaque" id="heroPerfil">Perfil: ...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-hero-right">
+                        <button type="button" class="btn-secondary" id="btnEditarPerfil">
+                            Editar dados
+                        </button>
+                        <button type="button" class="btn-sair" id="btnLogoutPerfil">
+                            Sair da conta
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================
+                 GRADE: REPUTAÇÃO (lateral) + ABAS (principal)
+            ================================================== -->
+            <div class="perfil-grid">
+
+                <!-- Coluna lateral -->
+                <aside class="perfil-coluna-lateral">
+
+                    <!-- Termômetro de reputação (estilo Mercado Livre) -->
+                    <section class="reputation-strip">
+                        <div class="reputation-header">
+                            <span class="reputation-title">Reputação</span>
+                            <span class="reputation-level">★ Líder Platinum</span>
+                        </div>
+
+                        <p class="reputation-desc">
+                            Sua empresa é uma das mais bem avaliadas da rede S.E.R.F. no ABC Paulista.
+                        </p>
+
+                        <div class="thermometer-bar" aria-label="Nível de reputação: 5 de 5">
+                            <span class="thermometer-step step-1"></span>
+                            <span class="thermometer-step step-2"></span>
+                            <span class="thermometer-step step-3"></span>
+                            <span class="thermometer-step step-4"></span>
+                            <span class="thermometer-step step-5"></span>
+                        </div>
+
+                        <div class="reputation-stats">
+                            <div class="rep-stat-item">
+                                <strong>98%</strong>
+                                <small>Entregas no prazo</small>
+                            </div>
+                            <div class="rep-stat-item">
+                                <strong>4,9</strong>
+                                <small>Nota média</small>
+                            </div>
+                            <div class="rep-stat-item">
+                                <strong>0</strong>
+                                <small>Reclamações (90d)</small>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Selos e garantias -->
+                    <section class="perfil-card-selos">
+                        <h3>Garantias da conta</h3>
+                        <ul>
+                            <li><span class="selo-icone">✓</span> CNPJ validado na Receita</li>
+                            <li><span class="selo-icone">✓</span> Fornecedor homologado</li>
+                            <li><span class="selo-icone">✓</span> Pagamento protegido B2B</li>
+                        </ul>
+                    </section>
+
+                </aside>
+
+                <!-- Coluna principal: abas -->
+                <section class="perfil-coluna-principal">
+
+                    <nav class="profile-tabs-nav" aria-label="Seções do perfil">
+                        <button type="button" class="profile-tab-btn active" data-tab="compras">
+                            Compras
+                            <span class="tab-badge-count" id="badgeCountCompras">0</span>
+                        </button>
+
+                        <button type="button" class="profile-tab-btn" data-tab="vendas">
+                            Vendas
+                            <span class="tab-badge-count" id="badgeCountVendas">0</span>
+                        </button>
+
+                        <button type="button" class="profile-tab-btn" data-tab="dados">
+                            Dados da empresa
+                        </button>
+
+                        <button type="button" class="profile-tab-btn" data-tab="seguranca">
+                            Segurança
+                        </button>
+                    </nav>
+
+                    <!-- ABA: HISTÓRICO DE COMPRAS -->
+                    <div class="tab-content-panel active" id="tab-compras">
+                        <div class="purchases-filter-bar">
+                            <div class="filter-pills">
+                                <button type="button" class="filter-pill active" data-status="todos">Todas</button>
+                                <button type="button" class="filter-pill" data-status="aberto">Em aberto</button>
+                                <button type="button" class="filter-pill" data-status="negociacao">Em negociação</button>
+                                <button type="button" class="filter-pill" data-status="concluido">Concluídas</button>
+                                <button type="button" class="filter-pill" data-status="cancelado">Canceladas</button>
+                            </div>
+
+                            <div class="purchases-search">
+                                <label for="buscaComprasInput" class="sr-only">Buscar compras</label>
+                                <input
+                                    type="search"
+                                    id="buscaComprasInput"
+                                    placeholder="Buscar produto, nº do pedido ou fornecedor"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="purchases-list" id="listaHistoricoCompras">
+                            <p class="empty-state">Carregando histórico de compras...</p>
+                        </div>
+                    </div>
+
+                    <!-- ABA: HISTÓRICO DE VENDAS -->
+                    <div class="tab-content-panel" id="tab-vendas">
+                        <div class="purchases-filter-bar">
+                            <div class="filter-pills">
+                                <button type="button" class="filter-pill active" data-status="todos">Todas</button>
+                                <button type="button" class="filter-pill" data-status="aberto">Novos pedidos</button>
+                                <button type="button" class="filter-pill" data-status="negociacao">Cotações</button>
+                                <button type="button" class="filter-pill" data-status="concluido">Faturadas</button>
+                            </div>
+                        </div>
+
+                        <div class="purchases-list" id="listaHistoricoVendas">
+                            <p class="empty-state">Carregando histórico de vendas...</p>
+                        </div>
+                    </div>
+
+                    <!-- ABA: DADOS CADASTRAIS -->
+                    <div class="tab-content-panel" id="tab-dados">
+                        <form class="profile-form-grid" id="formDadosEmpresa">
+                            <h3 class="form-section-title">Dados cadastrais da empresa</h3>
+
+                            <div class="form-two-cols">
+                                <div class="campo-form">
+                                    <label for="cadRazaoSocial">Razão Social *</label>
+                                    <input type="text" id="cadRazaoSocial" required>
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="cadNomeFantasia">Nome Fantasia</label>
+                                    <input type="text" id="cadNomeFantasia">
+                                </div>
+                            </div>
+
+                            <div class="form-three-cols">
+                                <div class="campo-form">
+                                    <label for="cadCnpj">CNPJ</label>
+                                    <input type="text" id="cadCnpj" readonly title="O CNPJ não pode ser alterado">
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="cadEmail">E-mail corporativo *</label>
+                                    <input type="email" id="cadEmail" required>
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="cadTelefone">Telefone</label>
+                                    <input type="tel" id="cadTelefone">
+                                </div>
+                            </div>
+
+                            <div class="form-two-cols">
+                                <div class="campo-form">
+                                    <label for="cadNicho">Segmento / Nicho</label>
+                                    <input type="text" id="cadNicho">
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="cadEndereco">Endereço</label>
+                                    <input type="text" id="cadEndereco">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Salvar alterações</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- ABA: SEGURANÇA -->
+                    <div class="tab-content-panel" id="tab-seguranca">
+                        <form class="profile-form-grid" id="formAlterarSenha">
+                            <h3 class="form-section-title">Alterar senha de acesso</h3>
+
+                            <div class="form-two-cols">
+                                <div class="campo-form">
+                                    <label for="novaSenha">Nova senha *</label>
+                                    <input type="password" id="novaSenha" minlength="6" autocomplete="new-password" required>
+                                </div>
+
+                                <div class="campo-form">
+                                    <label for="confirmaNovaSenha">Confirmar nova senha *</label>
+                                    <input type="password" id="confirmaNovaSenha" minlength="6" autocomplete="new-password" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Atualizar senha</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Dependências Supabase, SweetAlert2 e Particles.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+    <!-- Lógica do perfil corporativo -->
+    <script src="../../js/perfil.js" defer></script>
+
+    <!-- Menu responsivo, atalho de edição e partículas da capa -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                });
+            }
+
+            // "Editar dados" abre a aba de dados cadastrais
+            const btnEditar = document.getElementById('btnEditarPerfil');
+            if (btnEditar) {
+                btnEditar.addEventListener('click', () => {
+                    const abaDados = document.querySelector('.profile-tab-btn[data-tab="dados"]');
+                    if (abaDados) {
+                        abaDados.click();
+                        abaDados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+
+            // Partículas laranjas na capa, mesma identidade do login
+            if (typeof particlesJS === 'function') {
+                particlesJS('perfilParticles', {
+                    particles: {
+                        number: { value: 45, density: { enable: true, value_area: 700 } },
+                        color: { value: '#F47A20' },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.6, random: true },
+                        size: { value: 2.2, random: true },
+                        line_linked: { enable: true, distance: 130, color: '#F47A20', opacity: 0.3, width: 1 },
+                        move: { enable: true, speed: 1.2, random: true, out_mode: 'out' }
+                    },
+                    interactivity: {
+                        detect_on: 'canvas',
+                        events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: false }, resize: true },
+                        modes: { grab: { distance: 120, line_linked: { opacity: 0.6 } } }
+                    },
+                    retina_detect: true
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

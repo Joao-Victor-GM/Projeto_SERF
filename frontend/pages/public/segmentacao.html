@@ -267,7 +267,7 @@
 <div id="particles-js"></div>
 
 <div class="container-triagem">
-    <img src="/frontend/assets/images/serflogo.png" alt="Logo S.E.R.F." class="logo-triagem" />
+    <img src="../../assets/images/serflogo.png" alt="Logo S.E.R.F." class="logo-triagem" />
 
     <!-- BARRA DE PROGRESSO -->
     <div class="progresso-container">
@@ -340,7 +340,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-<script src="/frontend/js/particles-config-1.js"></script> <!-- Configuração de partículas laranja do projeto -->
+<script src="../../js/particles-config-1.js"></script> <!-- Configuração de partículas laranja do projeto -->
 
 <script>
     // Configurações de Conexão (Mesmas do app-v2.js)
@@ -441,6 +441,22 @@
         const cadastro = JSON.parse(dadosLocais);
         const btn = document.getElementById('btnProximo');
 
+        // O ID da empresa vem da sessão do Supabase Auth, nunca do localStorage.
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const authUserId = session?.user?.id;
+
+        if (!authUserId) {
+            Swal.fire({
+                ...swalConfig,
+                title: 'Sessão Expirada',
+                text: 'Faça login novamente para concluir a configuração da empresa.',
+                icon: 'warning'
+            }).then(() => {
+                window.location.replace('login-cadastro.html');
+            });
+            return;
+        }
+
         // Ativa tela de carregamento do SweetAlert2
         Swal.fire({
             title: 'Salvando suas Preferências...',
@@ -460,7 +476,7 @@
                 const { error: insError } = await supabaseClient
                     .from('fornecedores')
                     .insert([{
-                        auth_user_id: cadastro.uid,
+                        auth_user_id: authUserId,
                         razao_social: cadastro.razaoSocial,
                         cnpj: cadastro.cnpj,
                         email: cadastro.email,
@@ -473,14 +489,14 @@
                 await supabaseClient
                     .from('usuarios')
                     .delete()
-                    .eq('auth_user_id', cadastro.uid);
+                    .eq('auth_user_id', authUserId);
 
             } else if (perfilEscolhido === 'Comprador') {
                 // Como ele já foi salvo lá no cadastro inicial, apenas atualizamos a coluna 'nicho' dele
                 const { error: updError } = await supabaseClient
                     .from('usuarios')
                     .update({ nicho: nichoEscolhido })
-                    .eq('auth_user_id', cadastro.uid);
+                    .eq('auth_user_id', authUserId);
 
                 if (updError) throw updError;
             }
@@ -499,7 +515,6 @@
 
             // Salva dados do usuário autenticado para uso na Home
             const usuarioLogado = {
-                uid: cadastro.uid,
                 razaoSocial: cadastro.razaoSocial,
                 cnpj: cadastro.cnpj,
                 email: cadastro.email,
