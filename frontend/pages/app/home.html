@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/pagamentos.css">
+    <link rel="stylesheet" href="../../css/oportunidades.css">
     <link rel="stylesheet" href="../../css/tema-escuro.css">
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
@@ -96,6 +97,12 @@
                 <span class="nav-icon">⚑</span>
                 <span>Alertas</span>
                 <span class="nav-count" data-alertas-contagem hidden></span>
+            </a>
+
+            <a href="#radar-oportunidades" class="nav-item"
+               data-page="oportunidades">
+                <span class="nav-icon">◎</span>
+                <span>Oportunidades</span>
             </a>
 
         </nav>
@@ -256,6 +263,48 @@
                 </button>
 
             </div>
+
+            <!-- =================================================
+                 RADAR DE OPORTUNIDADES (radar-oportunidades.js)
+                 Oportunidades reais da view "oportunidades"
+                 (migration 016), anunciadas uma a uma.
+            ================================================== -->
+
+            <section class="radar-oportunidades" id="radar-oportunidades" aria-labelledby="ropTitulo">
+
+                <div class="rop-visual">
+                    <div class="rop-radar" aria-hidden="true">
+                        <div class="rop-varredura"></div>
+                        <svg class="rop-conexoes" id="ropConexoes" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                        <div class="rop-pontos" id="ropPontos"></div>
+                        <div class="rop-centro">VOCÊ</div>
+                    </div>
+                    <!-- Notificações flutuantes (também listadas ao lado, acessíveis) -->
+                    <div class="rop-cartoes" id="ropCartoes"></div>
+                </div>
+
+                <div class="rop-painel">
+                    <header class="rop-cabecalho">
+                        <div>
+                            <span class="rop-ao-vivo">AO VIVO</span>
+                            <h2 id="ropTitulo">Radar de Oportunidades</h2>
+                            <p>Produtos, preços e compradores detectados na rede S.E.R.F. para a sua empresa.</p>
+                        </div>
+                        <button type="button" class="rop-pausar" id="ropPausar" aria-pressed="false"
+                                aria-controls="radar-oportunidades">❚❚ Pausar</button>
+                    </header>
+
+                    <div class="rop-numeros">
+                        <strong id="ropTotal">0</strong>
+                        <p class="rop-status" id="ropStatus" role="status">Escaneando a rede...</p>
+                    </div>
+
+                    <ul class="rop-chips" id="ropChips" aria-label="Oportunidades por tipo"></ul>
+
+                    <ol class="rop-feed" id="ropFeed" aria-label="Últimas oportunidades detectadas"></ol>
+                </div>
+
+            </section>
 
 
             <!-- =================================================
@@ -796,6 +845,7 @@
     <script src="../../js/home/tempo-real.js" defer></script>
     <script src="../../js/home/inicializacao.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
+    <script src="../../js/radar-oportunidades.js" defer></script>
 
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>

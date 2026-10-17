@@ -1,0 +1,455 @@
+/* ==========================================================
+   SERF - OPORTUNIDADES.CSS
+   Radar de Oportunidades (Home). Painel sempre escuro (como a
+   barra lateral), então funciona igual nos dois temas.
+   ========================================================== */
+
+.radar-oportunidades {
+    --rop-fundo: #061E36;
+    --rop-fundo-2: #0B2D52;
+    --rop-linha: rgba(90, 166, 240, 0.22);
+    --rop-texto: #E6EEF7;
+    --rop-texto-2: #9DB2C8;
+    --rop-laranja: #F47A20;
+
+    --cor-nova_demanda: #F47A20;
+    --cor-recompra: #22C55E;
+    --cor-novo_produto: #5AA6F0;
+    --cor-menor_preco: #FACC15;
+    --cor-fornecedor_nicho: #A78BFA;
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+    gap: 32px;
+    align-items: center;
+
+    margin-bottom: 24px;
+    padding: 28px;
+    overflow: hidden;
+
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 18% 50%, rgba(18, 104, 179, 0.35), transparent 55%),
+        linear-gradient(135deg, var(--rop-fundo), var(--rop-fundo-2));
+    box-shadow: 0 12px 32px rgba(8, 43, 76, 0.18);
+    color: var(--rop-texto);
+}
+
+/* Malha de conexões ao fundo */
+.radar-oportunidades::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+    pointer-events: none;
+}
+
+/* Cores por tipo (pontos, linhas, cartões) */
+.tipo-nova_demanda { --cor: var(--cor-nova_demanda); }
+.tipo-recompra { --cor: var(--cor-recompra); }
+.tipo-novo_produto { --cor: var(--cor-novo_produto); }
+.tipo-menor_preco { --cor: var(--cor-menor_preco); }
+.tipo-fornecedor_nicho { --cor: var(--cor-fornecedor_nicho); }
+
+
+/* ---------------- RADAR ---------------- */
+
+.rop-visual {
+    position: relative;
+}
+
+.rop-radar {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle, transparent 0 calc(16.66% - 1px), var(--rop-linha) calc(16.66% - 1px) 16.66%),
+        radial-gradient(circle, rgba(90, 166, 240, 0.10), transparent 70%);
+    box-shadow: inset 0 0 0 1px var(--rop-linha), 0 0 40px rgba(18, 104, 179, 0.25);
+}
+
+/* Cruz de mira */
+.rop-radar::before,
+.rop-radar::after {
+    content: "";
+    position: absolute;
+    background: var(--rop-linha);
+}
+
+.rop-radar::before { left: 50%; top: 4%; bottom: 4%; width: 1px; }
+.rop-radar::after { top: 50%; left: 4%; right: 4%; height: 1px; }
+
+/* Feixe de varredura */
+.rop-varredura {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(244, 122, 32, 0.42), rgba(244, 122, 32, 0.08) 40deg, transparent 75deg);
+    animation: rop-girar 4.5s linear infinite;
+}
+
+.rop-conexoes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.rop-linha {
+    stroke: var(--cor);
+    stroke-width: 0.45;
+    stroke-linecap: round;
+    stroke-dasharray: 2 1.2;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 1.5px var(--cor));
+    animation: rop-linha-fluxo 1s linear infinite, rop-sumir 6.5s ease forwards;
+}
+
+.rop-ponto {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: var(--cor);
+    box-shadow: 0 0 10px var(--cor);
+    opacity: 0.45;
+    animation: rop-cintilar 3s ease-in-out infinite;
+}
+
+.rop-ponto.detectado {
+    opacity: 1;
+    animation: none;
+    transform: scale(1.5);
+    transition: transform 0.3s ease;
+}
+
+.rop-ponto.detectado::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--cor);
+    border-radius: 50%;
+    animation: rop-onda 1.4s ease-out 2;
+}
+
+.rop-centro {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    border: 2px solid rgba(244, 122, 32, 0.75);
+    border-radius: 50%;
+    background: #082B4C;
+    box-shadow: 0 0 0 6px rgba(244, 122, 32, 0.12), 0 0 24px rgba(244, 122, 32, 0.45);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+/* Notificações flutuantes sobre o radar */
+.rop-cartoes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.rop-cartao {
+    position: absolute;
+    width: min(250px, 62%);
+    pointer-events: auto;
+    animation: rop-entrar 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* left/top em px calculados no JS (posicionarCartao): sempre dentro do radar */
+.rop-cartao.saindo { opacity: 0; transition: opacity 0.4s ease; }
+
+
+/* ---------------- SINAL (cartão e item da lista) ---------------- */
+
+.rop-cartao,
+.rop-sinal {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 4px 10px;
+    align-items: start;
+
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 3px solid var(--cor);
+    border-radius: 8px;
+
+    background: rgba(9, 32, 58, 0.82);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), 0 0 14px color-mix(in srgb, var(--cor) 25%, transparent);
+    color: var(--rop-texto);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rop-sinal {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.rop-cartao:hover,
+.rop-sinal:hover {
+    border-color: color-mix(in srgb, var(--cor) 60%, transparent);
+    background: rgba(18, 52, 90, 0.92);
+}
+
+.rop-cartao:focus-visible,
+.rop-sinal:focus-visible,
+.rop-pausar:focus-visible {
+    outline: 2px solid #FFFFFF;
+    outline-offset: 2px;
+}
+
+.rop-icone {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--cor) 18%, transparent);
+    color: var(--cor);
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.rop-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.rop-rotulo {
+    color: var(--cor);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.rop-texto strong {
+    overflow: hidden;
+    color: #FFFFFF;
+    font-size: 13px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+}
+
+.rop-meta {
+    color: var(--rop-texto-2);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.rop-acao {
+    grid-column: 2;
+    color: var(--rop-laranja);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* ---------------- PAINEL LATERAL ---------------- */
+
+.rop-painel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.rop-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.rop-ao-vivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--rop-laranja);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.rop-ao-vivo::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--rop-laranja);
+    box-shadow: 0 0 0 0 rgba(244, 122, 32, 0.7);
+    animation: rop-pulso 1.6s ease-out infinite;
+}
+
+.radar-oportunidades.pausado .rop-ao-vivo::before {
+    animation: none;
+    background: var(--rop-texto-2);
+}
+
+.rop-painel h2 {
+    margin: 6px 0 4px;
+    color: #FFFFFF;
+    font-size: 24px;
+}
+
+.rop-painel > header p,
+.rop-status {
+    margin: 0;
+    color: var(--rop-texto-2);
+    font-size: 13px;
+}
+
+.rop-pausar {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--rop-texto);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rop-pausar:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.rop-numeros {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.rop-numeros strong {
+    color: #FFFFFF;
+    font-size: 34px;
+    line-height: 1;
+}
+
+.rop-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rop-chip {
+    padding: 3px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    color: var(--rop-texto-2);
+    font-size: 11px;
+}
+
+.rop-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rop-feed-item {
+    animation: rop-entrar-lista 0.4s ease both;
+}
+
+.radar-oportunidades.vazio .rop-feed {
+    display: none;
+}
+
+
+/* ---------------- ANIMAÇÕES ---------------- */
+
+@keyframes rop-girar { to { transform: rotate(360deg); } }
+@keyframes rop-linha-fluxo { to { stroke-dashoffset: -3.2; } }
+@keyframes rop-sumir { 0%, 75% { opacity: 0.85; } 100% { opacity: 0; } }
+@keyframes rop-cintilar { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.65; } }
+@keyframes rop-onda { from { transform: scale(1); opacity: 0.9; } to { transform: scale(3.2); opacity: 0; } }
+@keyframes rop-pulso { to { box-shadow: 0 0 0 9px rgba(244, 122, 32, 0); } }
+
+@keyframes rop-entrar {
+    from { opacity: 0; margin-top: 10px; }
+    to { opacity: 1; margin-top: 0; }
+}
+
+@keyframes rop-entrar-lista {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Pausado: o feixe para junto com os sinais */
+.radar-oportunidades.pausado .rop-varredura,
+.radar-oportunidades.pausado .rop-ponto {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rop-varredura,
+    .rop-ponto,
+    .rop-linha,
+    .rop-ponto.detectado::after,
+    .rop-cartao,
+    .rop-feed-item,
+    .rop-ao-vivo::before {
+        animation: none !important;
+    }
+}
+
+
+/* ---------------- RESPONSIVO ---------------- */
+
+@media (max-width: 980px) {
+    .radar-oportunidades {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .rop-visual {
+        width: min(340px, 100%);
+        margin: 0 auto;
+    }
+}
+
+/* No celular as notificações ficam só na lista (não cobrem o radar) */
+@media (max-width: 720px) {
+    .rop-cartoes {
+        display: none;
+    }
+
+    .rop-painel h2 {
+        font-size: 20px;
+    }
+
+    .rop-cabecalho {
+        flex-direction: column;
+    }
+}

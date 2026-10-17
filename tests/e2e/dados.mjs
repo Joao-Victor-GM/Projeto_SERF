@@ -147,6 +147,30 @@ export const ALERTAS = [
       referencia: atras(1), vencimento: null, detalhe: "1" }
 ];
 
+// Linhas da view "oportunidades" (migration 016). O produto 20 aparece como
+// RECOMPRA e MENOR_PRECO: o radar deve mostrar só a mais relevante.
+const oportunidadeProduto = (tipo, relevancia, prod, extras = {}) => ({
+    tipo, relevancia, id_pedido: null, id_produto: prod.id_produto, id_fornecedor: prod.id_fornecedor,
+    produto_nome: prod.nome_produto, categoria: prod.categoria, preco: prod.preco_atacado,
+    quantidade_minima: prod.quantidade_minima, quantidade_estoque: prod.quantidade_estoque,
+    fornecedor_nome: prod.fornecedores.nome_fantasia, cidade: "Curitiba", estado: "PR",
+    parceiro_nome: null, valor: null, quantidade: null, referencia: atras(3), detalhe: null, ...extras
+});
+
+export const OPORTUNIDADES = [
+    { tipo: "NOVA_DEMANDA", relevancia: 4, id_pedido: 201, id_produto: 10, id_fornecedor: 1,
+      produto_nome: "Arroz Tipo 1 5kg", categoria: "Grãos", preco: 25.5, quantidade_minima: null,
+      quantidade_estoque: null, fornecedor_nome: null, cidade: null, estado: null,
+      parceiro_nome: "Mercado Bom Preço", valor: 510, quantidade: 20, referencia: atras(2), detalhe: null },
+    oportunidadeProduto("NOVO_PRODUTO", 3, PRODUTOS[3], { detalhe: "seu nicho", referencia: atras(1) }),
+    oportunidadeProduto("RECOMPRA", 3, PRODUTOS[2], { referencia: atras(20), detalhe: "2" }),
+    oportunidadeProduto("MENOR_PRECO", 2, PRODUTOS[2], { detalhe: "3" }),
+    { tipo: "FORNECEDOR_NICHO", relevancia: 1, id_pedido: null, id_produto: null, id_fornecedor: 3,
+      produto_nome: null, categoria: null, preco: 8.9, quantidade_minima: null, quantidade_estoque: null,
+      fornecedor_nome: "Laticínios Serra", cidade: "Ponta Grossa", estado: "PR",
+      parceiro_nome: null, valor: null, quantidade: null, referencia: atras(30), detalhe: "4" }
+];
+
 // Tabelas novas a cada teste (o mock altera as linhas em POST/PATCH)
 export function criarTabelas() {
     const copia = valor => structuredClone(valor);
@@ -171,6 +195,7 @@ export function criarTabelas() {
         notas_fiscais: [],
         favoritos_fornecedores: [],
         alertas: copia(ALERTAS),
+        oportunidades: copia(OPORTUNIDADES),
         fornecedores_publicos: [FORN_MINHA, FORN_PARCEIRO],
         fornecedores_vitrine: [FORN_MINHA, FORN_PARCEIRO].map(f => ({
             ...f, homologado: false, data_cadastro: atras(90), produtos_ativos: 2,

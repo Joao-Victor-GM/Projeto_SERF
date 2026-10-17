@@ -94,6 +94,32 @@ como lido; quando a empresa resolve a pendência, o alerta some.
   fica só no canto superior direito). O contador (`alertas-contagem.js`) soma
   urgentes + atenção e fica vermelho se houver urgência.
 
+## Radar de Oportunidades (migration 016)
+
+Seção de destaque no topo da Home (`#radar-oportunidades`), também acessível
+pelo item **Oportunidades** do menu lateral. Um radar animado anuncia, uma a
+uma, oportunidades **reais** da view `oportunidades`: nenhum negócio é
+inventado; só a apresentação é cadenciada.
+
+| Tipo | Para | Quando | Relevância |
+|---|---|---|---|
+| `NOVA_DEMANDA` | fornecedor | pedido PENDENTE de um comprador | 4 |
+| `RECOMPRA` | comprador | produto recebido há mais de 15 dias, disponível | 3 |
+| `NOVO_PRODUTO` | comprador | cadastrado nos últimos 14 dias | 2 (3 se do seu nicho) |
+| `MENOR_PRECO` | comprador | oferta mais barata de categoria com 2+ ofertas | 2 |
+| `FORNECEDOR_NICHO` | comprador | fornecedor do seu nicho de quem ainda não comprou | 1 (2 se homologado) |
+
+- Produtos só entram ativos e com estoque para o pedido mínimo, nunca os da
+  própria empresa. Relevância alta = ponto mais perto do centro do radar.
+- Ações: produto abre a negociação do Catálogo na própria Home; demanda abre o
+  pedido (`abrirPedidoPorId`); fornecedor leva a Empresas.
+- Movimento: botão Pausar, pausa automática fora da tela / aba oculta / mouse
+  sobre os cartões; com "reduzir movimento" no sistema, começa parado. As
+  notificações flutuantes ficam sempre dentro do radar e nunca se sobrepõem;
+  no celular aparecem só na lista.
+- Código: `js/radar-oportunidades.js` + `css/oportunidades.css`; testes em
+  `tests/banco/oportunidades.test.mjs` e `tests/e2e/oportunidades.spec.mjs`.
+
 ## Triggers em `pedidos` — a ORDEM IMPORTA
 
 O PostgreSQL executa triggers do mesmo momento em **ordem alfabética do nome**.
@@ -132,6 +158,7 @@ Renomear um trigger muda o comportamento.
 | `js/home/*.js` | Home dividida em 7 scripts (ver abaixo) |
 | `js/alertas.js` | Página de alertas: textos por tipo, filtros, agrupamento |
 | `js/alertas-contagem.js` | Contador de alertas no menu lateral (todas as páginas internas) |
+| `js/radar-oportunidades.js` | Radar de Oportunidades no topo da Home |
 | `js/catalogo.js` | Catálogo, cadastro de produto, negociação (carregado em home/catálogo/empresas) |
 | `js/pagamentos.js`, `js/notas.js` | Fluxos de pagamento e NF-e (usados pela home) |
 | `js/relatorios.js`, `js/empresas.js`, `js/perfil.js` | Páginas homônimas |
@@ -207,6 +234,7 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 
 Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
 depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
-(view `pedidos_painel`) e 015 (view `alertas`). Publicar as páginas antes delas
+(view `pedidos_painel`), 015 (view `alertas`) e 016 (view `oportunidades`). Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
-mostra erro e o contador do menu fica oculto (o resto funciona).
+mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
+"Radar indisponível" (o resto funciona).
