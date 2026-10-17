@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Empresas</title>
+
+    <!-- Identidade visual e estilos compartilhados -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/relatorios.css">
+    <link rel="stylesheet" href="../../css/empresas.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <!-- Tema claro/escuro aplicado antes da pintura -->
+    <script src="../../js/tema.js"></script>
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-check.js"></script>
+</head>
+
+<body class="serf-home">
+
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="home.html#visao-geral" class="nav-item"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="empresas.html" class="nav-item active"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="catalogo.html" class="nav-item"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span>Catálogo</span>
+            </a>
+
+            <a href="home.html#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="home.html#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+            </a>
+
+            <a href="relatorios.html" class="nav-item"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="perfil.html" class="nav-item"
+               data-page="perfil">
+                <span class="nav-icon">◉</span>
+                <span>Perfil</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <!-- Alternar modo claro/escuro (tratado pelo tema.js) -->
+                <button
+                    type="button"
+                    class="icon-button btn-tema"
+                    data-alternar-tema
+                    aria-pressed="false"
+                    aria-label="Ativar modo escuro"
+                    title="Modo escuro"
+                >
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
+                </button>
+
+                <a
+                    href="perfil.html"
+                    class="profile-button"
+                    aria-label="Meu perfil"
+                    title="Meu perfil"
+                >
+                    <span class="profile-avatar">E</span>
+                </a>
+
+                <!-- Logout padronizado (tratado pelo auth-check.js) -->
+                <button
+                    type="button"
+                    class="btn-logout"
+                    data-logout
+                    title="Sair da conta"
+                >
+                    Sair
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             EMPRESAS (preenchido pelo empresas.js)
+        ====================================================== -->
+
+        <main class="main-content empresas-main" id="visao-empresas">
+
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">RELACIONAMENTO B2B</span>
+                    <h1>Empresas</h1>
+                    <p>Encontre fornecedores da rede e acompanhe as empresas com quem você negocia</p>
+                </div>
+            </div>
+
+            <!-- Abas -->
+            <div class="rel-segmentado emp-abas" role="tablist" aria-label="Seções da página Empresas">
+                <button type="button" class="rel-segmento active" role="tab" aria-selected="true" data-aba="diretorio">
+                    Encontrar fornecedores
+                </button>
+                <button type="button" class="rel-segmento" role="tab" aria-selected="false" data-aba="parceiros">
+                    Meus parceiros
+                </button>
+            </div>
+
+            <!-- =================================================
+                 ABA 1: DIRETÓRIO DE FORNECEDORES
+            ================================================== -->
+            <section class="emp-aba" id="abaDiretorio" role="tabpanel" aria-label="Encontrar fornecedores">
+
+                <div class="rel-filtros emp-filtros" role="group" aria-label="Filtros do diretório">
+                    <label class="emp-filtro emp-filtro-busca">
+                        <span class="rel-filtro-rotulo">Buscar</span>
+                        <input type="search" id="filtroBuscaEmp" placeholder="Nome, categoria ou cidade">
+                    </label>
+
+                    <label class="emp-filtro">
+                        <span class="rel-filtro-rotulo">Nicho</span>
+                        <select id="filtroNicho"><option value="">Todos</option></select>
+                    </label>
+
+                    <label class="emp-filtro">
+                        <span class="rel-filtro-rotulo">Localização</span>
+                        <select id="filtroLocal"><option value="">Todas</option></select>
+                    </label>
+
+                    <label class="emp-filtro">
+                        <span class="rel-filtro-rotulo">Ordenar por</span>
+                        <select id="filtroOrdem">
+                            <option value="reputacao">Melhor reputação</option>
+                            <option value="resposta">Resposta mais rápida</option>
+                            <option value="produtos">Mais produtos</option>
+                            <option value="recentes">Mais recentes na rede</option>
+                            <option value="nome">Nome (A–Z)</option>
+                        </select>
+                    </label>
+
+                    <label class="emp-check">
+                        <input type="checkbox" id="filtroFavoritos">
+                        <span>★ Só favoritos</span>
+                    </label>
+                </div>
+
+                <p class="emp-contagem" id="contagemDiretorio" aria-live="polite"></p>
+
+                <div class="emp-grade" id="gradeFornecedores">
+                    <p class="rel-vazio">Carregando fornecedores...</p>
+                </div>
+            </section>
+
+            <!-- =================================================
+                 ABA 2: MEUS PARCEIROS
+            ================================================== -->
+            <section class="emp-aba" id="abaParceiros" role="tabpanel" aria-label="Meus parceiros" hidden>
+
+                <div class="rel-filtros" id="parceirosFiltros">
+                    <div class="rel-filtro" id="perspectivaParceirosGrupo">
+                        <span class="rel-filtro-rotulo">Mostrar</span>
+                        <div class="rel-segmentado" id="perspectivaParceiros">
+                            <button type="button" class="rel-segmento active" data-perspectiva="fornecedores" aria-pressed="true">
+                                Meus fornecedores
+                            </button>
+                            <button type="button" class="rel-segmento" data-perspectiva="clientes" aria-pressed="false">
+                                Meus clientes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rel-insight" id="insightParceirosEmp"></div>
+
+                <div class="emp-parceiros" id="listaParceiros">
+                    <p class="rel-vazio">Carregando parceiros...</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Vitrine de um fornecedor (preenchida pelo empresas.js) -->
+    <div id="modalVitrine" class="modal-serf" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="vitrineTitulo">
+        <div class="modal-serf-conteudo emp-vitrine">
+            <div class="modal-serf-header">
+                <div>
+                    <h3 id="vitrineTitulo">Fornecedor</h3>
+                    <small class="emp-subtitulo" id="vitrineSubtitulo"></small>
+                </div>
+                <button type="button" class="btn-fechar-modal" data-fechar-vitrine aria-label="Fechar">&times;</button>
+            </div>
+            <div class="emp-vitrine-corpo" id="vitrineCorpo"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Reaproveita o modal "Negociar" do catálogo para fazer pedidos pela vitrine -->
+    <script src="../../js/catalogo.js" defer></script>
+    <script src="../../js/empresas.js" defer></script>
+
+</body>
+</html>

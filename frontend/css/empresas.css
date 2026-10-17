@@ -1,0 +1,459 @@
+/* ==========================================================
+   S.E.R.F. — EMPRESAS.CSS
+   Diretório de fornecedores, vitrine e "Meus parceiros".
+   Usa as variáveis de tema do global.css (claro e escuro) e
+   os componentes de filtro/tabela do relatorios.css.
+   ========================================================== */
+
+.profile-button {
+    text-decoration: none;
+}
+
+.emp-abas {
+    margin-bottom: 20px;
+}
+
+.emp-aba[hidden] {
+    display: none;
+}
+
+.emp-subtitulo {
+    display: block;
+    margin-top: 3px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+
+/* ----------------------------------------------------------
+   Filtros
+   ---------------------------------------------------------- */
+
+.emp-filtros {
+    align-items: flex-end;
+}
+
+.emp-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.emp-filtro input,
+.emp-filtro select {
+    height: 36px;
+    min-width: 160px;
+    padding: 0 12px;
+    border: 1px solid var(--serf-borda-forte);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+}
+
+.emp-filtro-busca input {
+    min-width: 240px;
+}
+
+.emp-filtro input:focus,
+.emp-filtro select:focus {
+    outline: none;
+    border-color: var(--serf-azul-interacao);
+    box-shadow: 0 0 0 3px rgba(18, 104, 179, 0.15);
+}
+
+.emp-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.emp-contagem {
+    margin-bottom: 12px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+}
+
+
+/* ----------------------------------------------------------
+   Grade de fornecedores
+   ---------------------------------------------------------- */
+
+.emp-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+}
+
+.emp-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 10px;
+    background: var(--serf-superficie);
+    box-shadow: var(--serf-sombra-cartao);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.emp-card:hover {
+    border-color: var(--serf-borda-forte);
+    transform: translateY(-2px);
+}
+
+.emp-card-topo {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-right: 34px; /* espaço da estrela */
+}
+
+.emp-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #082B4C, #1268B3);
+    color: #FFFFFF;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.emp-nome {
+    color: var(--serf-azul-principal);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.emp-local {
+    margin-top: 3px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.emp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.emp-chip {
+    padding: 3px 9px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 20px;
+    background: var(--serf-superficie-2);
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.emp-chip.homologado {
+    border-color: transparent;
+    background: var(--serf-tint-verde);
+    color: #15803D;
+}
+
+/* Estrela de favorito */
+.emp-favorito {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 50%;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-mudo);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.emp-favorito:hover {
+    border-color: var(--serf-laranja);
+    color: var(--serf-laranja);
+}
+
+.emp-favorito[aria-pressed="true"] {
+    border-color: var(--serf-laranja);
+    background: var(--serf-tint-laranja);
+    color: var(--serf-laranja);
+}
+
+.emp-favorito:active {
+    transform: scale(0.92);
+}
+
+/* Reputação (nível em texto + barra de 5 passos: nunca só cor) */
+.emp-reputacao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.emp-nivel {
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.emp-nivel small {
+    display: block;
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.emp-termometro {
+    display: grid;
+    grid-template-columns: repeat(5, 14px);
+    gap: 3px;
+}
+
+.emp-termometro span {
+    height: 6px;
+    border-radius: 2px;
+    background: var(--serf-superficie-4);
+}
+
+.emp-termometro.n1 span:nth-child(-n+1) { background: #EF4444; }
+.emp-termometro.n2 span:nth-child(-n+2) { background: #F97316; }
+.emp-termometro.n3 span:nth-child(-n+3) { background: #FBBF24; }
+.emp-termometro.n4 span:nth-child(-n+4) { background: #84CC16; }
+.emp-termometro.n5 span:nth-child(-n+5) { background: #15803D; }
+
+.emp-metricas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--serf-borda);
+    border-bottom: 1px solid var(--serf-borda);
+}
+
+.emp-metrica {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+}
+
+.emp-metrica strong {
+    color: var(--serf-texto-principal);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.emp-metrica small {
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    line-height: 1.3;
+}
+
+.emp-card-acoes {
+    display: flex;
+    gap: 8px;
+    margin-top: auto; /* botões alinhados na base, mesmo com cartões de alturas diferentes */
+}
+
+.emp-card-acoes > * {
+    flex: 1;
+}
+
+
+/* ----------------------------------------------------------
+   Meus parceiros
+   ---------------------------------------------------------- */
+
+.emp-parceiros {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.emp-parceiro {
+    display: grid;
+    grid-template-columns: minmax(200px, 1.6fr) repeat(4, minmax(90px, 1fr)) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 10px;
+    background: var(--serf-superficie);
+    box-shadow: var(--serf-sombra-cartao);
+}
+
+.emp-parceiro-id {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.emp-parceiro-id .emp-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+}
+
+.emp-parceiro-id div {
+    min-width: 0;
+}
+
+.emp-parceiro-id strong {
+    display: block;
+    overflow: hidden;
+    color: var(--serf-azul-principal);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.emp-dado small {
+    display: block;
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.emp-dado strong {
+    color: var(--serf-texto-principal);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.emp-dado .alerta {
+    color: #B45309;
+}
+
+.emp-parceiro-acoes {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+
+/* ----------------------------------------------------------
+   Vitrine (modal com os produtos do fornecedor)
+   ---------------------------------------------------------- */
+
+.emp-vitrine {
+    max-width: 760px;
+    max-height: calc(100vh - 40px);
+}
+
+.emp-vitrine-corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 24px 24px;
+    overflow-y: auto;
+}
+
+.emp-vitrine-produtos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.emp-produto {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: var(--serf-superficie-2);
+}
+
+.emp-produto h4 {
+    color: var(--serf-azul-principal);
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.emp-produto p {
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.emp-produto-preco {
+    color: var(--serf-laranja);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.emp-produto .btn-primary {
+    margin-top: auto;
+}
+
+
+/* ----------------------------------------------------------
+   Responsividade
+   ---------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+    .emp-parceiro {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .emp-parceiro-id,
+    .emp-parceiro-acoes {
+        grid-column: 1 / -1;
+    }
+
+    .emp-parceiro-acoes {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .emp-filtro,
+    .emp-filtro input,
+    .emp-filtro select,
+    .emp-filtro-busca input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .emp-filtros > * {
+        flex: 1 1 100%;
+    }
+
+    .emp-vitrine-corpo {
+        padding: 16px 18px 20px;
+    }
+}
+
+
+/* ----------------------------------------------------------
+   Modo escuro
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .emp-chip.homologado { color: #7DDCA4; }
+:root[data-theme="dark"] .emp-dado .alerta { color: #F7B57A; }
+:root[data-theme="dark"] .emp-avatar { background: linear-gradient(135deg, #1F5C99, #3987e5); }
+
+/* O atributo hidden precisa vencer o display dos componentes */
+.rel-filtros[hidden],
+.emp-check[hidden] {
+    display: none;
+}

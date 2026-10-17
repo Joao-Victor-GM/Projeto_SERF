@@ -2112,6 +2112,31 @@ function assinarPedidosTempoReal() {
         .subscribe();
 }
 
+// home.html?pedido=ID (ex.: "Último pedido" da página Empresas)
+function abrirPedidoDaUrl() {
+    const parametros = new URLSearchParams(window.location.search);
+    const idPedido = Number(parametros.get("pedido"));
+
+    if (!idPedido) return;
+
+    // Limpa o parâmetro para um F5 não reabrir o modal
+    history.replaceState(null, "", window.location.pathname + window.location.hash);
+
+    const pedido = pedidosCache.find(item => item.id === idPedido);
+
+    if (!pedido) {
+        console.warn(`[SERF:Home] Pedido #${idPedido} não encontrado para esta empresa.`);
+        return;
+    }
+
+    // Empresa "Ambos": muda para o modo em que ela participa do pedido
+    if (!pedido.modos.includes(estado.modo)) {
+        alterarModo(pedido.modos[0]);
+    }
+
+    abrirDetalhesPedido(pedido);
+}
+
 async function recarregarPedidos() {
     try {
         await buscarPedidosSupabase();
@@ -2172,6 +2197,9 @@ async function iniciarHome() {
     }
 
     ajustarModosDisponiveis();
+
+    // Links de outras páginas: home.html?pedido=ID abre o pedido (com o chat)
+    abrirPedidoDaUrl();
 
     // Pedido criado pelo catálogo (catalogo.js) entra na lista na hora.
     window.addEventListener("serf:pedido-criado", recarregarPedidos);
