@@ -1,0 +1,188 @@
+/* ==========================================================
+   S.E.R.F. — TEMA-ESCURO.CSS
+   Ajustes do modo escuro que não se resolvem só com as
+   variáveis do global.css: cores com significado (status,
+   chat, gráficos) que precisam de tons próprios no escuro.
+
+   Carregar DEPOIS dos demais CSS da página.
+   Tudo aqui vale apenas com <html data-theme="dark">.
+   ========================================================== */
+
+
+/* ----------------------------------------------------------
+   Transição suave ao alternar (sem animar a carga inicial)
+   ---------------------------------------------------------- */
+
+:root.tema-transicao,
+:root.tema-transicao * {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease !important;
+}
+
+
+/* ----------------------------------------------------------
+   Botão de alternância (barra superior)
+   ---------------------------------------------------------- */
+
+.btn-tema {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.btn-tema .tema-icone-escuro { display: inline; }
+.btn-tema .tema-icone-claro { display: none; }
+
+:root[data-theme="dark"] .btn-tema .tema-icone-escuro { display: none; }
+:root[data-theme="dark"] .btn-tema .tema-icone-claro { display: inline; }
+
+
+/* ----------------------------------------------------------
+   Botões ativos de seletores (Comprar/Vender, filtros):
+   o marinho se confunde com o fundo escuro
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .modo-btn.active,
+:root[data-theme="dark"] .rel-segmento.active,
+:root[data-theme="dark"] .filter-pill.active {
+    background: #1F5C99;
+    border-color: #1F5C99;
+    color: #FFFFFF;
+}
+
+
+/* ----------------------------------------------------------
+   Selos de status de pedido (tabela da Home)
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .order-status.aberto { color: #8CC2F5; }
+:root[data-theme="dark"] .order-status.negociacao { color: #F7B57A; }
+:root[data-theme="dark"] .order-status.concluido { color: #7DDCA4; }
+:root[data-theme="dark"] .order-status.cancelado { color: #F49494; }
+
+
+/* ----------------------------------------------------------
+   Perfil: selos dos cards de pedido e chips
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .status-concluido { background: var(--serf-tint-verde); color: #7DDCA4; }
+:root[data-theme="dark"] .status-aberto { background: var(--serf-tint-azul); color: #8CC2F5; }
+:root[data-theme="dark"] .status-negociacao { background: rgba(250, 178, 25, 0.16); color: #F7C66B; }
+:root[data-theme="dark"] .status-cancelado { background: var(--serf-tint-vermelho); color: #F49494; }
+
+:root[data-theme="dark"] .meta-chip-destaque { color: #FFB677; }
+:root[data-theme="dark"] .badge-verificado,
+:root[data-theme="dark"] .selo-icone { color: #7DDCA4; }
+
+
+/* ----------------------------------------------------------
+   Chat: balões e indicador de conexão
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .chat-balao.enviada {
+    background: #14532D;
+    color: #DCFCE7;
+}
+
+:root[data-theme="dark"] .chat-balao.enviada .chat-autor { color: #86EFAC; }
+:root[data-theme="dark"] .chat-balao.recebida .chat-autor { color: #8CC2F5; }
+:root[data-theme="dark"] .chat-status.online { color: #4ADE80; }
+:root[data-theme="dark"] .chat-status.offline { color: #F49494; }
+
+
+/* ----------------------------------------------------------
+   Campos de formulário e botões neutros
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+    color: var(--serf-texto-principal);
+}
+
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+    color: var(--serf-texto-mudo);
+}
+
+:root[data-theme="dark"] .campo-form input[readonly] {
+    background: var(--serf-superficie-2);
+}
+
+:root[data-theme="dark"] .btn-logout,
+:root[data-theme="dark"] .btn-sair {
+    border-color: rgba(244, 148, 148, 0.45);
+    color: #F49494;
+}
+
+:root[data-theme="dark"] .btn-logout:hover,
+:root[data-theme="dark"] .btn-sair:hover {
+    background: #DC2626;
+    color: #FFFFFF;
+}
+
+
+/* ----------------------------------------------------------
+   Relatórios: cores dos gráficos no escuro
+   Validadas contra a superfície #121D2B (skill de dataviz):
+   - série única #3987e5 (contraste >= 3:1)
+   - funil ordinal invertido: etapa inicial no tom mais
+     próximo do fundo, "Entregues" no mais visível
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .relatorios-main {
+    --viz-serie: #3987e5;
+    --viz-serie-hover: #5598e7;
+    --viz-funil-1: #184f95;
+    --viz-funil-2: #256abf;
+    --viz-funil-3: #3987e5;
+    --viz-funil-4: #86b6ef;
+    --viz-cinza: #5E6B7A;
+    --viz-grade: #1E2D40;
+    --viz-base: #34465E;
+    --viz-texto-mudo: #7D8FA5;
+    --status-delta-bom: #0ca30c;
+}
+
+:root[data-theme="dark"] .rel-abc.a {
+    background: rgba(57, 135, 229, 0.18);
+    border-color: #256abf;
+    color: #CFE3FA;
+}
+
+:root[data-theme="dark"] .rel-tooltip {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="dark"] .rel-insight {
+    background: var(--serf-tint-laranja);
+}
+
+
+/* ----------------------------------------------------------
+   SweetAlert2: o popup recebe cor inline pelo swalConfig,
+   por isso o !important.
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .swal2-popup {
+    background: var(--serf-superficie) !important;
+    color: var(--serf-texto-principal) !important;
+}
+
+:root[data-theme="dark"] .swal2-title,
+:root[data-theme="dark"] .swal2-html-container {
+    color: var(--serf-texto-principal) !important;
+}
+
+/* Blocos com fundo claro inline dentro dos popups de detalhes */
+:root[data-theme="dark"] .swal2-html-container [style*="background: #F8FAFC"],
+:root[data-theme="dark"] .swal2-html-container [style*="background: #f8fafc"],
+:root[data-theme="dark"] .swal2-html-container [style*="background: #F0FDF4"],
+:root[data-theme="dark"] .swal2-html-container [style*="background: #FFF8F1"] {
+    background: var(--serf-superficie-2) !important;
+    border-color: var(--serf-borda) !important;
+}
+
+:root[data-theme="dark"] .swal2-html-container [style*="color: #082B4C"],
+:root[data-theme="dark"] .swal2-html-container [style*="color: #172536"] {
+    color: var(--serf-texto-principal) !important;
+}

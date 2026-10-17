@@ -12,6 +12,10 @@
     <link rel="icon" href="../../assets/icons/fivecon.png">
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/pagamentos.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <!-- Tema claro/escuro aplicado antes da pintura -->
+    <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
@@ -179,15 +183,17 @@
                     </button>
                 </div>
 
-                <!-- Acesso às notificações -->
+                <!-- Alternar modo claro/escuro (tratado pelo tema.js) -->
                 <button
                     type="button"
-                    class="icon-button"
-                    id="btnNotificacoes"
-                    aria-label="Notificações"
+                    class="icon-button btn-tema"
+                    data-alternar-tema
+                    aria-pressed="false"
+                    aria-label="Ativar modo escuro"
+                    title="Modo escuro"
                 >
-                    ♧
-                    <span class="notification-dot" hidden></span>
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
                 </button>
 
                 <!-- Acesso ao perfil do usuário -->
@@ -715,6 +721,12 @@
                         </div>
                         <small class="pedido-gestao-ajuda" id="statusPedidoAjuda"></small>
                     </form>
+                    <!-- Pagamento do pedido (preenchido pelo pagamentos.js) -->
+                    <section class="pedido-pagamento" id="pedidoPagamento" aria-label="Pagamento do pedido" hidden></section>
+
+                    <!-- Nota fiscal do pedido (preenchida pelo notas.js) -->
+                    <section class="pedido-pagamento" id="pedidoNota" aria-label="Nota fiscal do pedido" hidden></section>
+
 
                     <!-- Chat com a outra empresa da negociação -->
                     <section class="chat-container" aria-label="Chat do pedido">
@@ -757,6 +769,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Scripts de controle da interface e catálogo -->
+    <!-- QR Code do Pix (pagamento simulado) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="../../js/pagamentos.js" defer></script>
+    <script src="../../js/notas.js" defer></script>
     <script src="../../js/home.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
 

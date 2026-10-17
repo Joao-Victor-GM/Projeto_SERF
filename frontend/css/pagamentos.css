@@ -1,0 +1,382 @@
+/* ==========================================================
+   S.E.R.F. — PAGAMENTOS.CSS
+   Seção de pagamento no modal do pedido + checkout simulado.
+   Usa as variáveis de tema do global.css (claro e escuro).
+   ========================================================== */
+
+
+/* ----------------------------------------------------------
+   Seção "Pagamento" dentro do modal do pedido
+   ---------------------------------------------------------- */
+
+.pedido-pagamento {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--serf-borda);
+    background: var(--serf-superficie-2);
+}
+
+.pedido-pagamento[hidden] {
+    display: none;
+}
+
+.pag-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--serf-azul-principal);
+    font-size: 12px;
+}
+
+.pag-texto {
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.pag-texto strong {
+    color: var(--serf-texto-principal);
+}
+
+.pag-acoes {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Selo de situação: texto + forma (nunca só cor) */
+.pag-selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pag-selo::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.pag-selo.pago { background: var(--serf-tint-verde); color: #15803D; }
+.pag-selo.pendente { background: var(--serf-tint-azul); color: #1D5FA0; }
+.pag-selo.analise,
+.pag-selo.faturado { background: var(--serf-tint-laranja); color: #B45309; }
+.pag-selo.vencido { background: var(--serf-tint-vermelho); color: #B91C1C; }
+.pag-selo.neutro { background: var(--serf-superficie-4); color: var(--serf-texto-secundario); }
+
+
+/* ----------------------------------------------------------
+   Checkout
+   ---------------------------------------------------------- */
+
+.pag-modal {
+    max-width: 560px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.pag-subtitulo {
+    display: block;
+    margin-top: 3px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.pag-aviso-teste {
+    margin: 14px 24px 0;
+    padding: 8px 12px;
+    border: 1px dashed var(--serf-borda-forte);
+    border-radius: 6px;
+    background: var(--serf-tint-laranja);
+    color: var(--serf-texto-principal);
+    font-size: 11px;
+}
+
+.pag-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 24px 4px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+}
+
+.pag-total strong {
+    color: var(--serf-azul-principal);
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.pag-metodos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 12px 24px;
+}
+
+.pag-metodo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 6px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.pag-metodo span {
+    font-size: 18px;
+}
+
+.pag-metodo:hover {
+    border-color: var(--serf-azul-interacao);
+}
+
+.pag-metodo.active {
+    border-color: var(--serf-laranja);
+    background: var(--serf-tint-laranja);
+    color: var(--serf-texto-principal);
+    box-shadow: 0 0 0 1px var(--serf-laranja);
+}
+
+.pag-painel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 24px 22px;
+}
+
+.pag-explicacao {
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.pag-explicacao code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--serf-superficie-3);
+    color: var(--serf-texto-principal);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.pag-botao-largo {
+    width: 100%;
+    min-height: 42px;
+    font-size: 13px;
+}
+
+.pag-rotulo {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--serf-azul-principal);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pag-rotulo small {
+    color: var(--serf-texto-secundario);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.pag-rotulo small.expirado {
+    color: #DC2626;
+}
+
+.pag-codigo {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--serf-borda-forte);
+    border-radius: 6px;
+    background: var(--serf-superficie-2);
+    color: var(--serf-texto-principal);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    word-break: break-all;
+    resize: none;
+}
+
+/* Pix */
+.pag-pix {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.pag-pix-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* O QR Code fica sempre em fundo branco, para ser lido também no tema escuro */
+.pag-qrcode {
+    padding: 8px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: #FFFFFF;
+}
+
+.pag-qrcode svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Boleto */
+.pag-boleto {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pag-linha {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+}
+
+/* Cartão */
+.pag-form-cartao {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* A prazo */
+.pag-prazos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.pag-prazo {
+    position: relative;
+    cursor: pointer;
+}
+
+.pag-prazo input {
+    position: absolute;
+    opacity: 0;
+}
+
+.pag-prazo span {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font-size: 13px;
+    text-align: center;
+}
+
+.pag-prazo small {
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+}
+
+.pag-prazo input:checked + span {
+    border-color: var(--serf-laranja);
+    background: var(--serf-tint-laranja);
+    box-shadow: 0 0 0 1px var(--serf-laranja);
+}
+
+.pag-prazo input:focus-visible + span {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
+
+/* Comprovante (dentro do SweetAlert) */
+.pag-comprovante {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    font-size: 13px;
+}
+
+.pag-comprovante div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--serf-borda);
+}
+
+.pag-comprovante span {
+    color: var(--serf-texto-secundario);
+}
+
+.pag-comprovante strong {
+    text-align: right;
+    word-break: break-all;
+}
+
+.pag-comprovante p {
+    margin-top: 6px;
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .pag-metodos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pag-pix {
+        grid-template-columns: 1fr;
+    }
+
+    .pag-qrcode {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .pedido-pagamento,
+    .pag-metodos,
+    .pag-painel,
+    .pag-total {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}
+
+
+/* ----------------------------------------------------------
+   Modo escuro: textos dos selos mais claros
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .pag-selo.pago { color: #7DDCA4; }
+:root[data-theme="dark"] .pag-selo.pendente { color: #8CC2F5; }
+:root[data-theme="dark"] .pag-selo.analise,
+:root[data-theme="dark"] .pag-selo.faturado { color: #F7B57A; }
+:root[data-theme="dark"] .pag-selo.vencido { color: #F49494; }

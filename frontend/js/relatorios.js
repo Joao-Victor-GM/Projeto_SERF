@@ -10,8 +10,9 @@
    Todos os gráficos são HTML puro (sem bibliotecas), com tooltip por marca,
    tabela equivalente e exportação CSV.
 
-   Observação: o banco registra apenas data_pedido; valores são atribuídos à
-   data em que o pedido foi feito.
+   Datas por etapa (resposta, envio, entrega) vêm do banco (migration 008):
+   faturamento usa a data de entrega; tempos de resposta e entrega são medidos
+   a partir da data do pedido.
    ========================================================================= */
 
 "use strict";
@@ -30,6 +31,7 @@
 
     const estado = {
         perspectiva: "vendas",
+        serieEvolucao: "pedidos",   // "pedidos" (data do pedido) | "entregas" (data de entrega)
         dias: 30
     };
 
@@ -93,6 +95,8 @@
             id: registro.id_pedido,
             data: new Date(registro.data_pedido),
             dataISO: dataLocalISO(registro.data_pedido),
+            dataResposta: registro.data_resposta ? new Date(registro.data_resposta) : null,
+            dataEntrega: registro.data_entrega ? new Date(registro.data_entrega) : null,
             statusBanco: registro.status_pedido,
             quantidade: Number(registro.quantidade) || 0,
             valor: Number(registro.valor_total) || 0,
@@ -130,6 +134,8 @@
                 valor_total,
                 status_pedido,
                 data_pedido,
+                data_resposta,
+                data_entrega,
                 produtos (
                     nome_produto,
                     categoria,
@@ -470,10 +476,55 @@
         `;
     }
 
-    function renderizarResumo(atual, anterior) {
+    // Pedidos ENTREGUES cuja data de entrega cai no intervalo (faturamento real).
+    function entreguesNoIntervalo(lista, inicio, fim) {
+        return lista.filter(p =>
+            p.statusBanco === "ENTREGUE" &&
+            p.dataEntrega &&
+            p.dataEntrega >= inicio &&
+            p.dataEntrega <= fim
+        );
+    }
+
+    // Média, em ms, entre a data do pedido e outra data da etapa.
+    function mediaDuracao(lista, campo) {
+        const duracoes = lista
+            .filter(p => p[campo] && p[campo] >= p.data)
+            .map(p => p[campo] - p.data);
+
+        return duracoes.length
+            ? duracoes.reduce((t, d) => t + d, 0) / duracoes.length
+            : null;
+    }
+
+    function formatarDuracao(ms) {
+        if (ms === null || ms === undefined) return "—";
+
+        const minutos = ms / 60000;
+        if (minutos < 60) return `${Math.max(1, Math.round(minutos))} min`;
+
+        const horas = minutos / 60;
+        if (horas < 48) return `${horas.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h`;
+
+        return `${(horas / 24).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} dias`;
+    }
+
+    function renderizarResumo(atual, anterior, lista, periodo) {
         const vendas = estado.perspectiva === "vendas";
         const a = calcularMetricas(atual);
         const b = anterior ? calcularMetricas(anterior) : null;
+
+        // Faturamento pela DATA DE ENTREGA (não pela data do pedido)
+        const faturado = soma(entreguesNoIntervalo(lista, periodo.inicio, periodo.fim));
+        const faturadoAnterior = periodo.anterior
+            ? soma(entreguesNoIntervalo(lista, periodo.anterior.inicio, periodo.anterior.fim))
+            : null;
+
+        // Tempos das etapas (pedidos feitos no período)
+        const resposta = mediaDuracao(atual, "dataResposta");
+        const respostaAnterior = anterior ? mediaDuracao(anterior, "dataResposta") : null;
+        const entrega = mediaDuracao(atual, "dataEntrega");
+        const entregaAnterior = anterior ? mediaDuracao(anterior, "dataEntrega") : null;
 
         const variacaoHero = b ? delta(a.valorNegociado, b.valorNegociado, { bomSeSobe: vendas ? true : null }) : null;
 
@@ -487,7 +538,9 @@
         `;
 
         const tiles = vendas ? [
-            { rotulo: "Faturado (entregue)", valor: formatarMoeda(a.valorEntregue), variacao: b && delta(a.valorEntregue, b.valorEntregue) },
+            { rotulo: "Faturado (entregue)", valor: formatarMoeda(faturado), variacao: delta(faturado, faturadoAnterior), ajuda: "pela data de entrega" },
+            { rotulo: "Tempo médio de resposta", valor: formatarDuracao(resposta), variacao: delta(resposta, respostaAnterior, { bomSeSobe: false }), ajuda: "do pedido até aceitar ou recusar" },
+            { rotulo: "Prazo médio de entrega", valor: formatarDuracao(entrega), variacao: delta(entrega, entregaAnterior, { bomSeSobe: false }), ajuda: "do pedido até a entrega" },
             { rotulo: "Em carteira", valor: formatarMoeda(a.valorAndamento), ajuda: `${plural(a.andamento, "pedido", "pedidos")} em andamento` },
             { rotulo: "Pedidos recebidos", valor: inteiro(a.total), variacao: b && delta(a.total, b.total) },
             { rotulo: "Ticket médio", valor: a.ticket === null ? "—" : formatarMoeda(a.ticket), variacao: b && delta(a.ticket, b.ticket) },
@@ -496,7 +549,9 @@
             { rotulo: "Clientes ativos", valor: inteiro(a.parceiros), variacao: b && delta(a.parceiros, b.parceiros) },
             { rotulo: "Aguardando sua resposta", valor: inteiro(a.pendentes), ajuda: formatarMoeda(a.valorPendente) }
         ] : [
-            { rotulo: "Recebido (entregue)", valor: formatarMoeda(a.valorEntregue), variacao: b && delta(a.valorEntregue, b.valorEntregue, { bomSeSobe: null }) },
+            { rotulo: "Recebido (entregue)", valor: formatarMoeda(faturado), variacao: delta(faturado, faturadoAnterior, { bomSeSobe: null }), ajuda: "pela data de entrega" },
+            { rotulo: "Resposta dos fornecedores", valor: formatarDuracao(resposta), variacao: delta(resposta, respostaAnterior, { bomSeSobe: false }), ajuda: "do pedido até aceitar ou recusar" },
+            { rotulo: "Prazo médio de entrega", valor: formatarDuracao(entrega), variacao: delta(entrega, entregaAnterior, { bomSeSobe: false }), ajuda: "do pedido até receber" },
             { rotulo: "Em aberto", valor: formatarMoeda(a.valorAndamento + a.valorPendente), ajuda: `${plural(a.andamento + a.pendentes, "pedido", "pedidos")} a receber` },
             { rotulo: "Pedidos feitos", valor: inteiro(a.total), variacao: b && delta(a.total, b.total, { bomSeSobe: null }) },
             { rotulo: "Ticket médio", valor: a.ticket === null ? "—" : formatarMoeda(a.ticket), variacao: b && delta(a.ticket, b.ticket, { bomSeSobe: null }) },
@@ -559,18 +614,25 @@
         return { curto: `${dd}/${mm}`, longo: formatarData(dataLocalISO(data)) };
     }
 
-    function renderizarEvolucao(atual, { inicio, fim }) {
+    function renderizarEvolucao(atual, lista, { inicio, fim }) {
         const vendas = estado.perspectiva === "vendas";
         const tipo = granularidade();
-        const validos = atual.filter(p => p.statusBanco !== "CANCELADO");
+        const porEntrega = estado.serieEvolucao === "entregas";
+
+        // "Pedidos feitos": data do pedido, exceto cancelados.
+        // "Faturado/Recebido": pedidos entregues, pela data de entrega.
+        const registros = porEntrega
+            ? entreguesNoIntervalo(lista, inicio, fim)
+            : atual.filter(p => p.statusBanco !== "CANCELADO");
+        const dataDe = p => (porEntrega ? p.dataEntrega : p.data);
 
         const baldes = new Map();
         for (let d = inicioDoBalde(inicio, tipo); d <= fim; d = avancarBalde(d, tipo)) {
             baldes.set(d.getTime(), { data: new Date(d), valor: 0, pedidos: 0 });
         }
 
-        validos.forEach(p => {
-            const chave = inicioDoBalde(p.data, tipo).getTime();
+        registros.forEach(p => {
+            const chave = inicioDoBalde(dataDe(p), tipo).getTime();
             const balde = baldes.get(chave);
             if (balde) {
                 balde.valor += p.valor;
@@ -591,7 +653,10 @@
 
         const nomeTipo = { dia: "por dia", semana: "por semana", mes: "por mês" }[tipo];
         el("tituloEvolucao").textContent = vendas ? "Evolução das vendas" : "Evolução das compras";
-        el("descEvolucao").textContent = `Valor dos pedidos ${nomeTipo}, exceto cancelados`;
+        el("descEvolucao").textContent = porEntrega
+            ? `Valor ${vendas ? "faturado" : "recebido"} ${nomeTipo}, pela data de entrega`
+            : `Valor dos pedidos feitos ${nomeTipo}, exceto cancelados`;
+        el("serieEntregasRotulo").textContent = vendas ? "Faturado" : "Recebido";
 
         renderizarColunas(el("graficoEvolucao"), pontos, {
             formatar: formatarMoeda,
@@ -606,7 +671,7 @@
         ]);
 
         renderizarTabela(el("tabelaEvolucao"), colunas, linhas);
-        registrarRelatorio("evolucao", colunas, linhas, vendas ? "evolucao-vendas" : "evolucao-compras");
+        registrarRelatorio("evolucao", colunas, linhas, `${vendas ? "evolucao-vendas" : "evolucao-compras"}-${porEntrega ? "por-entrega" : "por-pedido"}`);
     }
 
 
@@ -1026,8 +1091,8 @@
             ? "Indicadores do período comparados ao período anterior de mesma duração"
             : "Indicadores de todo o histórico";
 
-        renderizarResumo(atual, anterior);
-        renderizarEvolucao(atual, periodo);
+        renderizarResumo(atual, anterior, lista, periodo);
+        renderizarEvolucao(atual, lista, periodo);
         renderizarFunil(atual);
         renderizarCategorias(atual);
         renderizarProdutos(atual);
@@ -1039,7 +1104,7 @@
         el("relRodape").textContent =
             `${plural(atual.length, "pedido", "pedidos")} no período · dados atualizados às ` +
             `${carregadoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} · ` +
-            "valores atribuídos à data do pedido (o banco não registra a data de entrega).";
+            "datas de resposta e entrega registradas pelo banco; pedidos anteriores a esse registro usam a data do pedido como aproximação.";
     }
 
     function selecionarSegmento(grupo, botaoAtivo) {
@@ -1066,6 +1131,16 @@
 
             estado.dias = Number(botao.dataset.dias);
             selecionarSegmento(el("filtroPeriodoRel"), botao);
+            renderizarTudo();
+        });
+
+        // Evolução: pedidos feitos (data do pedido) ↔ faturado/recebido (data de entrega)
+        el("serieEvolucao").addEventListener("click", evento => {
+            const botao = evento.target.closest("[data-serie]");
+            if (!botao || botao.dataset.serie === estado.serieEvolucao) return;
+
+            estado.serieEvolucao = botao.dataset.serie;
+            selecionarSegmento(el("serieEvolucao"), botao);
             renderizarTudo();
         });
 

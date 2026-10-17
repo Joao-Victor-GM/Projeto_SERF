@@ -129,7 +129,11 @@ const elementos = {
     formStatusPedido: document.getElementById("formStatusPedido"),
     selectNovoStatus: document.getElementById("selectNovoStatus"),
     btnAtualizarStatus: document.getElementById("btnAtualizarStatus"),
-    statusPedidoAjuda: document.getElementById("statusPedidoAjuda")
+    statusPedidoAjuda: document.getElementById("statusPedidoAjuda"),
+
+    // Pagamento e nota fiscal do pedido
+    pedidoPagamento: document.getElementById("pedidoPagamento"),
+    pedidoNota: document.getElementById("pedidoNota")
 };
 
 
@@ -253,7 +257,7 @@ function normalizarPedido(registro) {
         valorTotal: registro.valor_total,
         observacao: registro.observacao,
 
-        // O banco registra apenas a data do pedido.
+        // Datas por etapa preenchidas pelo banco (migration 008)
         criadoEm: data,
         atualizadoEm: data,
 
@@ -269,23 +273,33 @@ function normalizarPedido(registro) {
         }
     };
 
-    aplicarStatusPedido(pedido, registro.status_pedido);
+    aplicarStatusPedido(pedido, registro);
 
     return pedido;
 }
 
-// Atualiza os campos derivados do status (usado na carga e após o update).
-function aplicarStatusPedido(pedido, statusBanco) {
+// Atualiza status e datas a partir de uma linha de pedidos
+// (carga inicial, resposta do UPDATE ou evento do Realtime).
+function aplicarStatusPedido(pedido, registro) {
 
+    const statusBanco = registro.status_pedido;
     const status = STATUS_BANCO[statusBanco] || {
         categoria: "aberto",
         rotulo: statusBanco
     };
 
+    if (registro.data_atualizacao) {
+        pedido.atualizadoEm = dataLocalISO(registro.data_atualizacao);
+    }
+
     pedido.statusBanco = statusBanco;
     pedido.status = status.categoria;
     pedido.statusRotulo = status.rotulo;
-    pedido.concluidoEm = status.categoria === "concluido" ? pedido.atualizadoEm : null;
+
+    // Conclusão pela data real de entrega (sem a 008, cai na última atualização)
+    pedido.concluidoEm = status.categoria === "concluido"
+        ? dataLocalISO(registro.data_entrega || registro.data_atualizacao) || pedido.atualizadoEm
+        : null;
 
     // Pedido pendente ainda não foi respondido pelo fornecedor.
     pedido.aguardandoResposta = statusBanco === "PENDENTE";
@@ -312,7 +326,7 @@ async function atualizarStatusPedido(idPedido, novoStatus) {
         .from("pedidos")
         .update({ status_pedido: novoStatus })
         .eq("id_pedido", idPedido)
-        .select("id_pedido, status_pedido")
+        .select("id_pedido, status_pedido, data_atualizacao, data_entrega")
         .maybeSingle();
 
     if (error) {
@@ -349,6 +363,8 @@ async function buscarPedidosSupabase() {
             status_pedido,
             observacao,
             data_pedido,
+            data_atualizacao,
+            data_entrega,
             produtos (
                 id_produto,
                 nome_produto,
@@ -1625,16 +1641,147 @@ function renderizarGestaoStatus(pedido) {
         return;
     }
 
-    elementos.selectNovoStatus.innerHTML = proximos.map(codigo => `
-        <option value="${codigo}">
-            ${escaparHTML(STATUS_BANCO[codigo]?.rotulo || codigo)}
-        </option>
-    `).join("");
+    // "Enviado" exige pagamento (ou prazo aprovado) E NF-e autorizada — o banco
+    // também exige. undefined = ainda não carregado / tabela indisponível → não trava.
+    let motivoBloqueio = null;
 
-    elementos.selectNovoStatus.disabled = false;
-    elementos.btnAtualizarStatus.disabled = false;
-    elementos.statusPedidoAjuda.textContent =
-        `Status atual: ${pedido.statusRotulo}. O comprador é avisado pelo chat.`;
+    if (pedido.pagamento !== undefined && window.SERFPagamentos &&
+        !window.SERFPagamentos.liberaEnvio(pedido.pagamento)) {
+        motivoBloqueio = "aguardando pagamento";
+    } else if (pedido.nota !== undefined && window.SERFNotas &&
+        !window.SERFNotas.autorizada(pedido.nota)) {
+        motivoBloqueio = "emita a NF-e";
+    }
+
+    const envioBloqueado = motivoBloqueio !== null;
+
+    elementos.selectNovoStatus.innerHTML = proximos.map(codigo => {
+        const bloqueado = codigo === "ENVIADO" && envioBloqueado;
+        const rotulo = STATUS_BANCO[codigo]?.rotulo || codigo;
+
+        return `
+            <option value="${codigo}" ${bloqueado ? "disabled" : ""}>
+                ${escaparHTML(bloqueado ? `${rotulo} (${motivoBloqueio})` : rotulo)}
+            </option>
+        `;
+    }).join("");
+
+    // Seleciona a primeira opção disponível
+    const primeiraLivre = [...elementos.selectNovoStatus.options].find(opcao => !opcao.disabled);
+
+    elementos.selectNovoStatus.value = primeiraLivre ? primeiraLivre.value : "";
+    elementos.selectNovoStatus.disabled = !primeiraLivre;
+    elementos.btnAtualizarStatus.disabled = !primeiraLivre;
+    elementos.statusPedidoAjuda.textContent = envioBloqueado && proximos.includes("ENVIADO")
+        ? `Status atual: ${pedido.statusRotulo}. ${motivoBloqueio === "aguardando pagamento"
+            ? "O envio é liberado após o pagamento do comprador."
+            : "Emita a nota fiscal para liberar o envio."}`
+        : `Status atual: ${pedido.statusRotulo}. O comprador é avisado pelo chat.`;
+}
+
+/* ---------- Nota fiscal do pedido (notas.js) ---------- */
+
+async function carregarNota(pedido) {
+    if (!window.SERFNotas) return;
+
+    try {
+        pedido.nota = await window.SERFNotas.buscar(pedido.id);
+    } catch (erro) {
+        // Sem a migration 010 a tabela não existe: o modal segue sem a seção.
+        console.warn("[SERF:NF-e] Nota fiscal indisponível:", erro.message);
+        pedido.nota = undefined;
+        elementos.pedidoNota.hidden = true;
+        return;
+    }
+
+    if (chat.pedido?.id !== pedido.id) return;
+
+    renderizarNota(pedido);
+    renderizarGestaoStatus(pedido);
+}
+
+function renderizarNota(pedido) {
+    if (!window.SERFNotas || pedido.nota === undefined) return;
+
+    window.SERFNotas.renderizar(elementos.pedidoNota, {
+        pedidoId: pedido.id,
+        statusPedido: pedido.statusBanco,
+        papel: souFornecedorDoPedido(pedido) && estado.modo === "vender" ? "fornecedor" : "comprador",
+        nota: pedido.nota,
+        pagamentoLiberado: Boolean(window.SERFPagamentos?.liberaEnvio(pedido.pagamento)),
+
+        aoAtualizar: (nota, mensagemChat) => {
+            pedido.nota = nota;
+
+            if (chat.pedido?.id === pedido.id) {
+                renderizarNota(pedido);
+                renderizarGestaoStatus(pedido);
+            }
+
+            if (mensagemChat) {
+                enviarMensagemPedido(pedido.id, mensagemChat)
+                    .then(mensagem => {
+                        if (chat.pedido?.id === pedido.id) adicionarMensagens([mensagem]);
+                    })
+                    .catch(erro => console.warn("[SERF:Chat] Aviso de NF-e não enviado:", erro));
+            }
+        }
+    });
+}
+
+/* ---------- Pagamento do pedido (pagamentos.js) ---------- */
+
+async function carregarPagamento(pedido) {
+    if (!window.SERFPagamentos) return;
+
+    try {
+        pedido.pagamento = await window.SERFPagamentos.buscar(pedido.id);
+    } catch (erro) {
+        // Sem a migration 009 a tabela não existe: o modal segue funcionando sem a seção.
+        console.warn("[SERF:Pagamentos] Pagamento indisponível:", erro.message);
+        pedido.pagamento = undefined;
+        elementos.pedidoPagamento.hidden = true;
+        return;
+    }
+
+    if (chat.pedido?.id !== pedido.id) return;
+
+    renderizarPagamento(pedido);
+    renderizarGestaoStatus(pedido);
+    renderizarNota(pedido);
+}
+
+function renderizarPagamento(pedido) {
+    if (!window.SERFPagamentos || pedido.pagamento === undefined) return;
+
+    window.SERFPagamentos.renderizar(elementos.pedidoPagamento, {
+        pedidoId: pedido.id,
+        statusPedido: pedido.statusBanco,
+        valorTotal: pedido.valorTotal,
+        produto: pedido.produto,
+        parceiroNome: parceiroDoPedido(pedido).nome,
+        papel: souFornecedorDoPedido(pedido) && estado.modo === "vender" ? "fornecedor" : "comprador",
+        pagamento: pedido.pagamento,
+
+        // Chamado após gerar/pagar/aprovar: atualiza a tela e avisa no chat
+        aoAtualizar: (pagamento, mensagemChat) => {
+            pedido.pagamento = pagamento;
+
+            if (chat.pedido?.id === pedido.id) {
+                renderizarPagamento(pedido);
+                renderizarGestaoStatus(pedido);
+                renderizarNota(pedido);
+            }
+
+            if (mensagemChat) {
+                enviarMensagemPedido(pedido.id, mensagemChat)
+                    .then(mensagem => {
+                        if (chat.pedido?.id === pedido.id) adicionarMensagens([mensagem]);
+                    })
+                    .catch(erro => console.warn("[SERF:Chat] Aviso de pagamento não enviado:", erro));
+            }
+        }
+    });
 }
 
 async function enviarAtualizacaoStatus(evento) {
@@ -1661,10 +1808,12 @@ async function enviarAtualizacaoStatus(evento) {
     try {
         const atualizado = await atualizarStatusPedido(pedido.id, novoStatus);
 
-        aplicarStatusPedido(pedido, atualizado.status_pedido);
+        aplicarStatusPedido(pedido, atualizado);
 
         renderizarResumoPedido(pedido);
         renderizarGestaoStatus(pedido);
+        carregarPagamento(pedido);
+        carregarNota(pedido);
         atualizarDashboard();
 
         // Registra a mudança no chat: o comprador recebe em tempo real.
@@ -1702,6 +1851,12 @@ async function abrirDetalhesPedido(pedido) {
 
     renderizarResumoPedido(pedido);
     renderizarGestaoStatus(pedido);
+
+    // Pagamento: carrega em paralelo (a seção aparece quando chegar)
+    elementos.pedidoPagamento.hidden = true;
+    carregarPagamento(pedido);
+    elementos.pedidoNota.hidden = true;
+    carregarNota(pedido);
 
     elementos.modalPedido.style.display = "flex";
     elementos.chatInput.focus();
@@ -1849,6 +2004,75 @@ function ajustarModosDisponiveis() {
 let canalPedidos = null;
 let recargaPedidosAgendada = null;
 
+// Pagamentos em tempo real: o fornecedor vê o "Pago" sem recarregar
+// (e o comprador vê a aprovação do prazo). RLS: só os pedidos da empresa.
+let canalPagamentos = null;
+
+function assinarPagamentosTempoReal() {
+
+    const client = obterSupabase();
+
+    if (!client || canalPagamentos || !window.SERFPagamentos) return;
+
+    canalPagamentos = client
+        .channel("pagamentos-painel")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "pagamentos" },
+            payload => {
+                const registro = payload.new;
+                if (!registro?.id_pedido) return;
+
+                const pedido = pedidosCache.find(item => item.id === registro.id_pedido);
+                if (!pedido) return;
+
+                pedido.pagamento = registro;
+
+                if (chat.pedido?.id === pedido.id) {
+                    renderizarPagamento(pedido);
+                    renderizarGestaoStatus(pedido);
+                    renderizarNota(pedido);
+                }
+            }
+        )
+        .subscribe();
+}
+
+// NF-e em tempo real: o comprador vê a nota assim que é emitida.
+let canalNotas = null;
+
+function assinarNotasTempoReal() {
+
+    const client = obterSupabase();
+
+    if (!client || canalNotas || !window.SERFNotas) return;
+
+    canalNotas = client
+        .channel("notas-painel")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "notas_fiscais" },
+            payload => {
+                const registro = payload.new;
+                if (!registro?.id_pedido) return;
+
+                const pedido = pedidosCache.find(item => item.id === registro.id_pedido);
+                if (!pedido) return;
+
+                // Mantém a nota mais recente do pedido
+                if (!pedido.nota || new Date(registro.data_emissao) >= new Date(pedido.nota.data_emissao)) {
+                    pedido.nota = registro;
+                }
+
+                if (chat.pedido?.id === pedido.id) {
+                    renderizarNota(pedido);
+                    renderizarGestaoStatus(pedido);
+                }
+            }
+        )
+        .subscribe();
+}
+
 function assinarPedidosTempoReal() {
 
     const client = obterSupabase();
@@ -1867,12 +2091,14 @@ function assinarPedidosTempoReal() {
 
                 // Mudança de status de um pedido já carregado: atualiza no lugar.
                 if (payload.eventType === "UPDATE" && pedido) {
-                    aplicarStatusPedido(pedido, payload.new.status_pedido);
+                    aplicarStatusPedido(pedido, payload.new);
                     atualizarDashboard();
 
                     if (chat.pedido?.id === pedido.id) {
                         renderizarResumoPedido(pedido);
                         renderizarGestaoStatus(pedido);
+                        renderizarPagamento(pedido);
+                        renderizarNota(pedido);
                     }
                     return;
                 }
@@ -1958,6 +2184,12 @@ async function iniciarHome() {
 
     // Novas mensagens atualizam "Conversas recentes" e o contador.
     assinarMensagensTempoReal();
+
+    // Pagamentos (migration 009) atualizam a seção de pagamento ao vivo.
+    assinarPagamentosTempoReal();
+
+    // NF-e (migration 010) aparece ao vivo para o comprador.
+    assinarNotasTempoReal();
 
     // Plano B das conversas: recarrega ao voltar para a aba e a cada 30 s.
     const atualizarConversas = async () => {

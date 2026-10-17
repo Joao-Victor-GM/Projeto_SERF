@@ -66,9 +66,9 @@
     display: inline-flex;
     gap: 2px;
     padding: 3px;
-    border: 1px solid #E5EBF2;
+    border: 1px solid var(--serf-borda-media);
     border-radius: 6px;
-    background: #EDF2F7;
+    background: var(--serf-superficie-3);
 }
 
 .rel-segmento {
@@ -88,8 +88,18 @@
 }
 
 .rel-segmento.active {
-    background: var(--serf-azul-principal);
+    background: var(--serf-marinho);
     color: #FFFFFF;
+}
+
+.rel-segmentado-pequeno .rel-segmento {
+    height: 26px;
+    padding: 0 10px;
+    font-size: 10px;
+}
+
+.rel-acoes {
+    align-items: center;
 }
 
 .rel-periodo-texto {
@@ -102,7 +112,7 @@
     padding: 40px 20px;
     border: 1px solid var(--serf-borda);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--serf-texto-secundario);
     font-size: 13px;
     text-align: center;
@@ -201,7 +211,7 @@
     padding: 14px 16px;
     border: 1px solid var(--serf-borda);
     border-radius: 6px;
-    background: #FAFBFD;
+    background: var(--serf-superficie-2);
 }
 
 .rel-kpi-rotulo {
@@ -368,7 +378,7 @@
 
 .rel-barra-linha:hover,
 .rel-barra-linha:focus-visible {
-    background: #F5F8FB;
+    background: var(--serf-superficie-2);
 }
 
 .rel-barra-rotulo {
@@ -457,7 +467,7 @@
 
 .rel-tabela td {
     padding: 9px 10px;
-    border-bottom: 1px solid #F1F4F8;
+    border-bottom: 1px solid var(--serf-borda-suave);
     color: var(--serf-texto-principal);
 }
 
@@ -532,7 +542,7 @@
     padding: 7px 12px;
     border: 1px solid var(--serf-borda);
     border-radius: 20px;
-    background: #FAFBFD;
+    background: var(--serf-superficie-2);
     color: var(--serf-texto-principal);
     font-size: 12px;
 }
@@ -546,7 +556,7 @@
     padding: 12px 14px;
     border-left: 3px solid var(--serf-laranja);
     border-radius: 0 6px 6px 0;
-    background: #FFF8F1;
+    background: var(--serf-tint-laranja);
     color: var(--serf-texto-principal);
     font-size: 12px;
     line-height: 1.5;
@@ -574,7 +584,7 @@
     padding: 9px 12px;
     border: 1px solid rgba(11, 11, 11, 0.1);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     box-shadow: 0 8px 24px rgba(8, 43, 76, 0.16);
     pointer-events: none;
 }
@@ -671,7 +681,7 @@
     }
 
     body {
-        background: #FFFFFF;
+        background: var(--serf-superficie);
     }
 
     /* Mantém as cores das barras e selos ao imprimir/gerar PDF */

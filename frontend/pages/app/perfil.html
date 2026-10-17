@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/perfil.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <!-- Tema claro/escuro aplicado antes da pintura -->
+    <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
@@ -152,15 +155,17 @@
                     <strong id="empresaAtiva">Carregando...</strong>
                 </div>
 
-                <!-- Acesso às notificações -->
+                <!-- Alternar modo claro/escuro (tratado pelo tema.js) -->
                 <button
                     type="button"
-                    class="icon-button"
-                    id="btnNotificacoes"
-                    aria-label="Notificações"
+                    class="icon-button btn-tema"
+                    data-alternar-tema
+                    aria-pressed="false"
+                    aria-label="Ativar modo escuro"
+                    title="Modo escuro"
                 >
-                    ♧
-                    <span class="notification-dot" hidden></span>
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
                 </button>
 
                 <!-- Perfil do usuário (página atual) -->

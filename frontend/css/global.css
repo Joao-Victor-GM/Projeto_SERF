@@ -3,20 +3,80 @@
    Padrões visuais compartilhados por todo o sistema.
    Centraliza cores, tipografia e estilos globais para manter
    a identidade visual consistente entre todas as páginas.
+
+   TEMAS
+   O tema é aplicado pelo js/tema.js no atributo data-theme do
+   <html> ("light" | "dark"). Os componentes usam APENAS estas
+   variáveis; o modo escuro redefine os valores, não as regras.
    ========================================================== */
 
 :root {
-    --serf-azul-principal: #082B4C;
-    --serf-azul-interacao: #1268B3;
+    color-scheme: light;
+
+    /* Marca */
+    --serf-marinho: #082B4C;          /* fundo da barra lateral e botões ativos (fixo nos dois temas) */
+    --serf-azul-principal: #082B4C;   /* títulos e texto de destaque */
+    --serf-azul-interacao: #1268B3;   /* links e foco */
     --serf-laranja: #F47A20;
 
-    --serf-fundo: #F7F9FC;
-    --serf-branco: #FFFFFF;
-    --serf-borda: #E8EEF4;
+    /* Superfícies */
+    --serf-fundo: #F7F9FC;            /* plano da página */
+    --serf-branco: #FFFFFF;           /* (legado) = superfície dos cartões */
+    --serf-superficie: #FFFFFF;       /* cartões, painéis, barra superior */
+    --serf-superficie-2: #F8FAFC;     /* cabeçalhos internos, linhas em hover, chips */
+    --serf-superficie-3: #EEF2F6;     /* trilhos, seletores segmentados */
+    --serf-superficie-4: #E5EBF2;     /* contadores e preenchimentos neutros */
 
+    /* Bordas */
+    --serf-borda: #E8EEF4;
+    --serf-borda-suave: #EEF2F6;
+    --serf-borda-media: #DDE5ED;
+    --serf-borda-forte: #CBD5E1;
+
+    /* Texto */
     --serf-texto-principal: #172536;
     --serf-texto-secundario: #66788A;
+    --serf-texto-mudo: #8B9AA8;
+
+    /* Tons de status (fundos suaves de selos) */
+    --serf-tint-verde: #DCFCE7;
+    --serf-tint-vermelho: #FCECEC;
+    --serf-tint-laranja: #FFF8F1;
+    --serf-tint-azul: #EDF5FC;
+
+    --serf-sombra-cartao: 0 2px 12px rgba(8, 43, 76, 0.04);
 }
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --serf-azul-principal: #DCE8F6;
+    --serf-azul-interacao: #5AA6F0;
+
+    --serf-fundo: #0B1420;
+    --serf-branco: #121D2B;
+    --serf-superficie: #121D2B;
+    --serf-superficie-2: #162334;
+    --serf-superficie-3: #1B2A3D;
+    --serf-superficie-4: #243449;
+
+    --serf-borda: #22324A;
+    --serf-borda-suave: #1C2B3F;
+    --serf-borda-media: #2A3B52;
+    --serf-borda-forte: #3A4D66;
+
+    --serf-texto-principal: #E6EDF5;
+    --serf-texto-secundario: #A3B3C6;
+    --serf-texto-mudo: #7D8FA5;
+
+    --serf-tint-verde: rgba(12, 163, 12, 0.16);
+    --serf-tint-vermelho: rgba(220, 38, 38, 0.18);
+    --serf-tint-laranja: rgba(244, 122, 32, 0.14);
+    --serf-tint-azul: rgba(57, 135, 229, 0.16);
+
+    --serf-sombra-cartao: 0 2px 14px rgba(0, 0, 0, 0.35);
+}
+
 /* ==========================================================
    RESET GLOBAL
    Remove espaçamentos padrão do navegador e padroniza a base.

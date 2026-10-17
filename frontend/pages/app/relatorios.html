@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/relatorios.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <!-- Tema claro/escuro aplicado antes da pintura -->
+    <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
@@ -125,6 +128,19 @@
                     <small>Empresa ativa</small>
                     <strong id="empresaAtiva">Carregando...</strong>
                 </div>
+                <!-- Alternar modo claro/escuro (tratado pelo tema.js) -->
+                <button
+                    type="button"
+                    class="icon-button btn-tema"
+                    data-alternar-tema
+                    aria-pressed="false"
+                    aria-label="Ativar modo escuro"
+                    title="Modo escuro"
+                >
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
+                </button>
+
 
                 <a
                     href="perfil.html"
@@ -223,6 +239,11 @@
                             <p id="descEvolucao"></p>
                         </div>
                         <div class="rel-acoes rel-somente-tela">
+                            <!-- Visão do gráfico (não é filtro: só muda a data de referência) -->
+                            <div class="rel-segmentado rel-segmentado-pequeno" id="serieEvolucao" role="group" aria-label="Visão da evolução">
+                                <button type="button" class="rel-segmento active" data-serie="pedidos" aria-pressed="true">Pedidos feitos</button>
+                                <button type="button" class="rel-segmento" data-serie="entregas" aria-pressed="false" id="serieEntregasRotulo">Faturado</button>
+                            </div>
                             <button type="button" class="btn-text" data-alternar-tabela="evolucao">Ver tabela</button>
                             <button type="button" class="btn-text" data-exportar="evolucao">Exportar CSV</button>
                         </div>

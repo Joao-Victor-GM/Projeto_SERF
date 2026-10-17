@@ -263,7 +263,7 @@
        ========================================================================= */
     function estadoVazio(titulo, detalhe, cor = "#64748b") {
         return `
-            <div class="empty-state" style="padding: 40px; text-align: center; background: #fff; border: 1px solid var(--serf-borda); border-radius: 8px;">
+            <div class="empty-state" style="padding: 40px; text-align: center; background: var(--serf-superficie); border: 1px solid var(--serf-borda); border-radius: 8px;">
                 <p style="font-size: 14px; font-weight: 600; color: ${cor}; margin-bottom: 6px;">${escaparHTML(titulo)}</p>
                 <small style="color: #94a3b8;">${escaparHTML(detalhe)}</small>
             </div>

@@ -226,7 +226,7 @@
     padding: 0 15px;
     border: 1px solid #FECACA;
     border-radius: 5px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--status-cancelado);
     font-size: 11px;
     font-weight: 700;
@@ -330,7 +330,7 @@
 }
 
 .reputation-level.sem-historico {
-    background: #E2E8F0;
+    background: var(--serf-superficie-4);
     color: var(--serf-texto-secundario);
 }
 
@@ -462,7 +462,7 @@
 .tab-badge-count {
     padding: 2px 7px;
     border-radius: 10px;
-    background: #E2E8F0;
+    background: var(--serf-superficie-4);
     color: var(--serf-texto-principal);
     font-size: 10px;
     font-weight: 700;
@@ -534,7 +534,7 @@
     width: 280px;
     max-width: 100%;
     padding: 9px 14px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--serf-borda-forte);
     border-radius: 20px;
     background: var(--serf-branco);
     color: var(--serf-texto-principal);
@@ -587,7 +587,7 @@
     gap: 10px;
     padding: 11px 18px;
     border-bottom: 1px solid var(--serf-borda);
-    background: #FAFBFD;
+    background: var(--serf-superficie-2);
     font-size: 11px;
 }
 
@@ -646,7 +646,7 @@
     height: 60px;
     border: 1px solid var(--serf-borda);
     border-radius: 10px;
-    background: linear-gradient(135deg, #F1F5F9, #E8EEF4);
+    background: linear-gradient(135deg, var(--serf-superficie-3), var(--serf-superficie-4));
     font-size: 26px;
 }
 
@@ -737,7 +737,7 @@
 }
 
 .selo-icone.neutro {
-    background: #E2E8F0;
+    background: var(--serf-superficie-4);
     color: var(--serf-texto-secundario);
 }
 

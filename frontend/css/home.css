@@ -17,7 +17,7 @@
 :root {
     --home-sidebar-width: 242px;
     --home-topbar-height: 72px;
-    --home-sombra: 0 2px 12px rgba(8, 43, 76, 0.04);
+    --home-sombra: var(--serf-sombra-cartao);
 }
 
 html {
@@ -80,8 +80,8 @@ a {
     flex-direction: column;
 
     width: var(--home-sidebar-width);
-    background: var(--serf-azul-principal);
-    color: var(--serf-branco);
+    background: var(--serf-marinho);
+    color: #FFFFFF;
 
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     transition: transform 0.25s ease;
@@ -254,7 +254,7 @@ a {
     min-height: var(--home-topbar-height);
     padding: 12px 30px;
 
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     border-bottom: 1px solid var(--serf-borda);
 }
 
@@ -286,7 +286,7 @@ a {
 
     border: 1px solid var(--serf-borda);
     border-radius: 5px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--serf-azul-principal);
 
     font-size: 18px;
@@ -304,11 +304,11 @@ a {
     height: 37px;
     padding: 0 13px;
 
-    border: 1px solid #DDE5ED;
+    border: 1px solid var(--serf-borda-media);
     border-radius: 5px;
     outline: none;
 
-    background: #F9FBFD;
+    background: var(--serf-superficie-2);
     color: var(--serf-texto-principal);
     font-size: 12px;
 
@@ -316,7 +316,7 @@ a {
 }
 
 .global-search input::placeholder {
-    color: #91A0AF;
+    color: var(--serf-texto-mudo);
 }
 
 .global-search input:focus {
@@ -356,8 +356,8 @@ a {
     gap: 2px;
     padding: 3px;
 
-    background: #EDF2F7;
-    border: 1px solid #E5EBF2;
+    background: var(--serf-superficie-3);
+    border: 1px solid var(--serf-borda-media);
     border-radius: 5px;
 }
 
@@ -369,7 +369,7 @@ a {
     padding: 0 12px;
     border: 1px solid #FECACA;
     border-radius: 5px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: #DC2626;
     font-size: 11px;
     font-weight: 700;
@@ -402,7 +402,7 @@ a {
 }
 
 .modo-btn.active {
-    background: var(--serf-azul-principal);
+    background: var(--serf-marinho);
     color: #FFFFFF;
 }
 
@@ -451,7 +451,7 @@ a {
 
     border: 1px solid var(--serf-borda);
     border-radius: 5px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--serf-azul-principal);
 }
 
@@ -484,7 +484,7 @@ a {
     height: 27px;
 
     border-radius: 4px;
-    background: #E7EFF8;
+    background: var(--serf-superficie-4);
     color: var(--serf-azul-principal);
 
     font-size: 12px;
@@ -568,13 +568,13 @@ a {
 }
 
 .btn-secondary {
-    border: 1px solid #DDE5ED;
-    background: #FFFFFF;
+    border: 1px solid var(--serf-borda-media);
+    background: var(--serf-superficie);
     color: var(--serf-azul-principal);
 }
 
 .btn-secondary:hover {
-    background: #F2F6FA;
+    background: var(--serf-superficie-3);
 }
 
 .btn-text {
@@ -605,7 +605,7 @@ a {
 
     border: 1px solid var(--serf-borda);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
 }
 
 .filters-bar label {
@@ -625,11 +625,11 @@ a {
     min-width: 150px;
     padding: 0 11px;
 
-    border: 1px solid #DDE5ED;
+    border: 1px solid var(--serf-borda-media);
     border-radius: 4px;
     outline: none;
 
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--serf-texto-principal);
     font-size: 11px;
 }
@@ -652,7 +652,7 @@ a {
 
     border: 1px solid var(--serf-borda);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
 
     overflow: hidden;
 }
@@ -681,11 +681,11 @@ a {
 }
 
 .metric-item:hover {
-    background: #F9FBFE;
+    background: var(--serf-superficie-2);
 }
 
 .metric-item.active {
-    background: #F1F6FC;
+    background: var(--serf-superficie-3);
     border-bottom-color: var(--serf-laranja);
 }
 
@@ -714,7 +714,7 @@ a {
 
     border: 1px solid var(--serf-borda);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
 
     box-shadow: var(--home-sombra);
 }
@@ -775,7 +775,7 @@ a {
 }
 
 .orders-table thead {
-    background: #F6F8FB;
+    background: var(--serf-superficie-2);
 }
 
 .orders-table th {
@@ -783,7 +783,7 @@ a {
 
     border-bottom: 1px solid var(--serf-borda);
 
-    color: #64788C;
+    color: var(--serf-texto-mudo);
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
@@ -793,7 +793,7 @@ a {
 .orders-table td {
     padding: 14px 16px;
 
-    border-bottom: 1px solid #EDF1F5;
+    border-bottom: 1px solid var(--serf-borda-suave);
 
     color: var(--serf-texto-principal);
     font-size: 11px;
@@ -805,7 +805,7 @@ a {
 }
 
 .orders-table tbody tr:hover {
-    background: #FAFCFE;
+    background: var(--serf-superficie-2);
 }
 
 /* Etiquetas para o status de cada pedido */
@@ -822,22 +822,22 @@ a {
 }
 
 .order-status.aberto {
-    background: #EAF3FF;
+    background: var(--serf-tint-azul);
     color: #2469A5;
 }
 
 .order-status.negociacao {
-    background: #FFF3E6;
+    background: var(--serf-tint-laranja);
     color: #B96312;
 }
 
 .order-status.concluido {
-    background: #E8F7EF;
+    background: var(--serf-tint-verde);
     color: #24784B;
 }
 
 .order-status.cancelado {
-    background: #FCECEC;
+    background: var(--serf-tint-vermelho);
     color: #AD3D3D;
 }
 
@@ -846,9 +846,9 @@ a {
 .table-action {
     padding: 5px 8px;
 
-    border: 1px solid #DDE5ED;
+    border: 1px solid var(--serf-borda-media);
     border-radius: 4px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
 
     color: var(--serf-azul-interacao);
     font-size: 10px;
@@ -856,7 +856,7 @@ a {
 }
 
 .table-action:hover {
-    background: #EDF5FC;
+    background: var(--serf-tint-azul);
 }
 
 
@@ -900,7 +900,7 @@ a {
     gap: 7px;
 
     padding: 14px 19px;
-    border-bottom: 1px solid #EDF1F5;
+    border-bottom: 1px solid var(--serf-borda-suave);
 }
 
 .radar-alert:last-child {
@@ -919,7 +919,7 @@ a {
 }
 
 .radar-alert small {
-    color: #8B9AA8;
+    color: var(--serf-texto-mudo);
     font-size: 10px;
 }
 
@@ -948,7 +948,7 @@ a {
     gap: 15px;
 
     padding: 14px 20px;
-    border-bottom: 1px solid #EDF1F5;
+    border-bottom: 1px solid var(--serf-borda-suave);
 }
 
 .conversation-item:last-child {
@@ -956,7 +956,7 @@ a {
 }
 
 .conversation-item:hover {
-    background: #FAFCFE;
+    background: var(--serf-superficie-2);
 }
 
 /* Conversa clicável: abre o chat do pedido */
@@ -997,7 +997,7 @@ a {
 
 .conversation-time {
     flex-shrink: 0;
-    color: #91A0AF;
+    color: var(--serf-texto-mudo);
     font-size: 10px;
 }
 
@@ -1011,7 +1011,7 @@ a {
     width: 100%;
     padding: 30px 20px !important;
 
-    color: #91A0AF !important;
+    color: var(--serf-texto-mudo) !important;
     font-size: 11px;
     text-align: center;
 }
@@ -1198,7 +1198,7 @@ a {
 }
 
 .produto-card {
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     border: 1px solid var(--serf-borda);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(8, 43, 76, 0.04);
@@ -1212,7 +1212,7 @@ a {
 .produto-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 18px rgba(8, 43, 76, 0.08);
-    border-color: #CBD5E1;
+    border-color: var(--serf-borda-forte);
 }
 
 .produto-card-header {
@@ -1244,7 +1244,7 @@ a {
 }
 
 .produto-badge.marca {
-    background: #F1F5F9;
+    background: var(--serf-superficie-3);
     color: var(--serf-texto-secundario);
 }
 
@@ -1283,11 +1283,11 @@ a {
 .produto-detalhes {
     display: flex;
     justify-content: space-between;
-    background: #F8FAFC;
+    background: var(--serf-superficie-2);
     border-radius: 6px;
     padding: 10px 12px;
     margin-bottom: 14px;
-    border: 1px solid #EDF2F7;
+    border: 1px solid var(--serf-borda-media);
 }
 
 .detalhe-item {
@@ -1384,7 +1384,7 @@ a {
 }
 
 .modal-serf-conteudo {
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     border-radius: 10px;
     width: 100%;
     max-width: 620px;
@@ -1400,7 +1400,7 @@ a {
     align-items: center;
     padding: 18px 24px;
     border-bottom: 1px solid var(--serf-borda);
-    background: #F8FAFC;
+    background: var(--serf-superficie-2);
 }
 
 .modal-serf-header h3 {
@@ -1447,11 +1447,11 @@ a {
 .campo-form select,
 .campo-form textarea {
     padding: 9px 12px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--serf-borda-forte);
     border-radius: 6px;
     font-size: 12px;
     color: var(--serf-texto-principal);
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1487,7 +1487,7 @@ a {
     gap: 12px;
     padding: 16px 24px;
     border-top: 1px solid var(--serf-borda);
-    background: #F8FAFC;
+    background: var(--serf-superficie-2);
 }
 
 
@@ -1557,7 +1557,7 @@ a {
     gap: 6px;
     padding: 14px 24px;
     border-bottom: 1px solid var(--serf-borda);
-    background: #FFF8F1;
+    background: var(--serf-tint-laranja);
 }
 
 .pedido-gestao[hidden] {
@@ -1579,9 +1579,9 @@ a {
     flex: 1;
     min-width: 0;
     padding: 8px 12px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--serf-borda-forte);
     border-radius: 6px;
-    background: #FFFFFF;
+    background: var(--serf-superficie);
     color: var(--serf-texto-principal);
     font-size: 12px;
 }
@@ -1605,7 +1605,7 @@ a {
     padding: 12px 14px;
     border: 1px solid var(--serf-borda);
     border-radius: 8px;
-    background: #F8FAFC;
+    background: var(--serf-superficie-2);
     font-size: 12px;
     color: var(--serf-texto-secundario);
 }
@@ -1665,7 +1665,7 @@ a {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #CBD5E1;
+    background: var(--serf-superficie-4);
 }
 
 .chat-status.online { color: #15803D; }
@@ -1683,7 +1683,7 @@ a {
     min-height: 180px;
     padding: 16px 24px;
     overflow-y: auto;
-    background: #F7F9FC;
+    background: var(--serf-superficie-2);
 }
 
 .chat-vazio {
@@ -1733,7 +1733,7 @@ a {
 .chat-balao.enviada {
     align-self: flex-end;
     border-bottom-right-radius: 3px;
-    background: #DCFCE7;
+    background: var(--serf-tint-verde);
     color: #14532D;
 }
 
@@ -1746,7 +1746,7 @@ a {
     align-self: flex-start;
     border: 1px solid var(--serf-borda);
     border-bottom-left-radius: 3px;
-    background: #EEF2F6;
+    background: var(--serf-superficie-3);
     color: var(--serf-texto-principal);
 }
 
@@ -1760,14 +1760,14 @@ a {
     gap: 10px;
     padding: 14px 24px;
     border-top: 1px solid var(--serf-borda);
-    background: #FFFFFF;
+    background: var(--serf-superficie);
 }
 
 .chat-barra input {
     flex: 1;
     min-width: 0;
     padding: 10px 14px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--serf-borda-forte);
     border-radius: 20px;
     color: var(--serf-texto-principal);
     font-size: 13px;
