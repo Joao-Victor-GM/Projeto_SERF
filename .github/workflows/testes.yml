@@ -1,0 +1,41 @@
+name: Testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Banco (migrations + RLS + regras de negócio)
+        run: npm run test:banco
+
+      - name: Unitários (utils.js)
+        run: npm run test:unit
+
+      - name: Instalar navegador
+        run: npx playwright install --with-deps chromium
+
+      - name: Interface (páginas com Supabase simulado)
+        run: npm run test:e2e
+
+      - name: Relatório da interface
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

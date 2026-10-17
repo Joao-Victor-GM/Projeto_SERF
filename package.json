@@ -1,0 +1,20 @@
+{
+  "name": "serf",
+  "private": true,
+  "description": "S.E.R.F. — testes automatizados (o front-end não tem build)",
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:banco && npm run test:unit && npm run test:e2e",
+    "test:banco": "node --test \"tests/banco/**/*.test.mjs\"",
+    "test:unit": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "servidor": "node tests/e2e/servidor.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "1.63.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

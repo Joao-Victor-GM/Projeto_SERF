@@ -33,6 +33,16 @@ As alterações estruturais do banco são registradas em:
 
 `supabase/migrations/`
 
+## Testes
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md#testes).
+
 ## Documentação
 
 A pasta `docs/` concentra a documentação técnica e funcional do projeto, incluindo:

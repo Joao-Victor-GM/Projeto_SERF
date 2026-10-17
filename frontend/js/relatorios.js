@@ -86,27 +86,17 @@
        2. CARGA DOS DADOS
        ===================================================================== */
 
-    function normalizarPedido(registro) {
-        const produto = registro.produtos || {};
-        const fornecedor = produto.fornecedores || {};
-        const comprador = registro.usuarios || {};
+    // Leitura canônica (pedidos.js) + nomes usados nesta página
+    function normalizarPedido(linha) {
+        const p = window.SERFPedidos.normalizar(linha);
 
         return {
-            id: registro.id_pedido,
-            data: new Date(registro.data_pedido),
-            dataISO: dataLocalISO(registro.data_pedido),
-            dataResposta: registro.data_resposta ? new Date(registro.data_resposta) : null,
-            dataEntrega: registro.data_entrega ? new Date(registro.data_entrega) : null,
-            statusBanco: registro.status_pedido,
-            quantidade: Number(registro.quantidade) || 0,
-            valor: Number(registro.valor_total) || 0,
-            idUsuario: registro.id_usuario,
-            idProduto: registro.id_produto,
-            idFornecedor: produto.id_fornecedor ?? null,
-            produtoNome: produto.nome_produto || `Produto #${registro.id_produto}`,
-            categoria: produto.categoria || "Sem categoria",
-            fornecedorNome: fornecedor.nome_fantasia || fornecedor.razao_social || "Fornecedor",
-            compradorNome: comprador.nome_empresa || "Comprador"
+            ...p,
+            data: p.dataPedido,
+            dataISO: p.criadoEm,
+            valor: p.valorTotal,
+            produtoNome: p.produto,
+            categoria: p.categoria || "Sem categoria"
         };
     }
 
@@ -118,31 +108,9 @@
         empresa.idFornecedor = logada?.idFornecedor ?? null;
         empresa.nome = logada?.nome ?? null;
 
-        const consultaPedidos = client
-            .from("pedidos")
-            .select(`
-                id_pedido,
-                id_usuario,
-                id_produto,
-                quantidade,
-                valor_total,
-                status_pedido,
-                data_pedido,
-                data_resposta,
-                data_entrega,
-                produtos (
-                    nome_produto,
-                    categoria,
-                    id_fornecedor,
-                    fornecedores:fornecedores_publicos (
-                        razao_social,
-                        nome_fantasia
-                    )
-                ),
-                usuarios (
-                    nome_empresa
-                )
-            `)
+        // Histórico completo das duas perspectivas: "novo x recorrente" e o
+        // período anterior (deltas) dependem de pedidos fora do período atual.
+        const consultaPedidos = window.SERFPedidos.consultar(client)
             .order("data_pedido", { ascending: true });
 
         const consultaProdutos = empresa.idFornecedor === null
@@ -169,8 +137,8 @@
 
     function pedidosDaPerspectiva() {
         return estado.perspectiva === "vendas"
-            ? pedidos.filter(p => empresa.idFornecedor !== null && p.idFornecedor === empresa.idFornecedor)
-            : pedidos.filter(p => empresa.idUsuario !== null && p.idUsuario === empresa.idUsuario);
+            ? pedidos.filter(p => p.souFornecedor)
+            : pedidos.filter(p => p.souComprador);
     }
 
     // Período atual e anterior (mesma duração) para os deltas.

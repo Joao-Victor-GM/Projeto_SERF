@@ -104,27 +104,14 @@
     }
 
     async function carregarPedidos(client) {
+        // View pedidos_painel (migration 014): uma linha por pedido, com nomes
+        // e os papéis da empresa logada já calculados pelo banco.
         const { data, error } = await client
-            .from("pedidos")
+            .from("pedidos_painel")
             .select(`
-                id_pedido,
-                id_usuario,
-                valor_total,
-                status_pedido,
-                data_pedido,
-                produtos (
-                    id_fornecedor,
-                    fornecedores:fornecedores_publicos (
-                        id_fornecedor,
-                        razao_social,
-                        nome_fantasia,
-                        cidade,
-                        estado
-                    )
-                ),
-                usuarios (
-                    nome_empresa
-                )
+                id_pedido, id_usuario, id_fornecedor, valor_total, status_pedido, data_pedido,
+                fornecedor_razao_social, fornecedor_nome_fantasia, fornecedor_cidade, fornecedor_estado,
+                comprador_nome, sou_comprador, sou_fornecedor
             `)
             .order("data_pedido", { ascending: false });
 
@@ -412,21 +399,24 @@
     function agruparParceiros() {
         const comoComprador = estado.perspectiva === "fornecedores";
 
-        const relevantes = pedidos.filter(p => comoComprador
-            ? empresa.idUsuario !== null && p.id_usuario === empresa.idUsuario
-            : empresa.idFornecedor !== null && p.produtos?.id_fornecedor === empresa.idFornecedor);
+        const relevantes = pedidos.filter(p => (comoComprador ? p.sou_comprador : p.sou_fornecedor));
 
         const grupos = new Map();
 
         relevantes.forEach(p => {
-            const fornecedor = p.produtos?.fornecedores || {};
-            const chave = comoComprador ? `f-${p.produtos?.id_fornecedor}` : `u-${p.id_usuario}`;
+            const fornecedor = {
+                razao_social: p.fornecedor_razao_social,
+                nome_fantasia: p.fornecedor_nome_fantasia,
+                cidade: p.fornecedor_cidade,
+                estado: p.fornecedor_estado
+            };
+            const chave = comoComprador ? `f-${p.id_fornecedor}` : `u-${p.id_usuario}`;
             const grupo = grupos.get(chave) || {
                 chave,
-                idFornecedor: comoComprador ? p.produtos?.id_fornecedor : null,
+                idFornecedor: comoComprador ? p.id_fornecedor : null,
                 nome: comoComprador
                     ? (fornecedor.nome_fantasia || fornecedor.razao_social || "Fornecedor")
-                    : (p.usuarios?.nome_empresa || "Cliente"),
+                    : (p.comprador_nome || "Cliente"),
                 local: comoComprador ? localDe(fornecedor) : "",
                 pedidos: 0,
                 abertos: 0,

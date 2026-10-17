@@ -166,62 +166,17 @@
     /* =========================================================================
        2. PEDIDOS DA EMPRESA (compras e vendas)
        ========================================================================= */
-    function normalizarPedido(registro) {
-        const produto = registro.produtos || {};
-        const fornecedor = produto.fornecedores || {};
-        const comprador = registro.usuarios || {};
-        const status = statusDoPedido(registro.status_pedido);
-
-        return {
-            id: registro.id_pedido,
-            idUsuario: registro.id_usuario,
-            idProduto: registro.id_produto,
-            idFornecedor: produto.id_fornecedor ?? null,
-            produto: produto.nome_produto || `Produto #${registro.id_produto}`,
-            categoria: produto.categoria || "",
-            quantidade: registro.quantidade,
-            valorUnitario: Number(registro.valor_unitario) || 0,
-            valorTotal: Number(registro.valor_total) || 0,
-            statusBanco: registro.status_pedido,
-            status: status.categoria,
-            rotulo: status.rotulo,
-            data: dataLocalISO(registro.data_pedido),
-            observacao: registro.observacao,
-            fornecedorNome: fornecedor.nome_fantasia || fornecedor.razao_social || "Fornecedor",
-            compradorNome: comprador.nome_empresa || "Comprador"
-        };
+    // Leitura canônica (pedidos.js) + nomes usados nesta página
+    function normalizarPedido(linha) {
+        const p = window.SERFPedidos.normalizar(linha);
+        return { ...p, rotulo: p.statusRotulo, data: p.criadoEm };
     }
 
     async function buscarPedidos(client) {
         erroPedidos = null;
 
         // O RLS devolve só os pedidos em que a empresa é compradora ou fornecedora.
-        const { data, error } = await client
-            .from("pedidos")
-            .select(`
-                id_pedido,
-                id_usuario,
-                id_produto,
-                quantidade,
-                valor_unitario,
-                valor_total,
-                status_pedido,
-                observacao,
-                data_pedido,
-                produtos (
-                    id_produto,
-                    nome_produto,
-                    categoria,
-                    id_fornecedor,
-                    fornecedores:fornecedores_publicos (
-                        razao_social,
-                        nome_fantasia
-                    )
-                ),
-                usuarios (
-                    nome_empresa
-                )
-            `)
+        const { data, error } = await window.SERFPedidos.consultar(client)
             .order("data_pedido", { ascending: false });
 
         if (error) {
@@ -233,11 +188,9 @@
         }
 
         const pedidos = (data || []).map(normalizarPedido);
-        const idUsuario = empresa.comprador?.id_usuario ?? null;
-        const idFornecedor = empresa.fornecedor?.id_fornecedor ?? null;
 
-        compras = pedidos.filter(p => idUsuario !== null && p.idUsuario === idUsuario);
-        vendas = pedidos.filter(p => idFornecedor !== null && p.idFornecedor === idFornecedor);
+        compras = pedidos.filter(p => p.souComprador);
+        vendas = pedidos.filter(p => p.souFornecedor);
     }
 
     /* =========================================================================

@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
+    <script src="../../js/pedidos.js"></script>
     <script src="../../js/auth-check.js"></script>
 </head>
 
@@ -455,7 +456,7 @@
                             </tr>
                         </thead>
 
-                        <!-- Preenchimento futuro pelo home.js.
+                        <!-- Preenchimento futuro pelos scripts de js/home/.
                              Não exibir dados fictícios em produção. -->
                         <tbody id="pedidosTableBody">
                             <tr>
@@ -707,7 +708,7 @@
                         </button>
                     </div>
 
-                    <!-- Resumo do pedido (preenchido pelo home.js) -->
+                    <!-- Resumo do pedido (preenchido pelos scripts de js/home/) -->
                     <dl class="pedido-resumo" id="pedidoResumo"></dl>
 
                     <!-- Gestão de status: visível apenas para o fornecedor do produto -->
@@ -721,6 +722,17 @@
                         </div>
                         <small class="pedido-gestao-ajuda" id="statusPedidoAjuda"></small>
                     </form>
+
+                    <!-- Cancelamento: visível apenas para o comprador (migration 013) -->
+                    <div class="pedido-gestao pedido-cancelamento" id="pedidoCancelamento" hidden>
+                        <span class="pedido-gestao-rotulo">Desistiu da compra?</span>
+                        <div class="pedido-gestao-controles">
+                            <small class="pedido-gestao-ajuda" id="cancelamentoAjuda"></small>
+                            <button type="button" class="btn-secondary" id="btnCancelarPedido">
+                                Cancelar pedido
+                            </button>
+                        </div>
+                    </div>
                     <!-- Pagamento do pedido (preenchido pelo pagamentos.js) -->
                     <section class="pedido-pagamento" id="pedidoPagamento" aria-label="Pagamento do pedido" hidden></section>
 
@@ -773,7 +785,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="../../js/pagamentos.js" defer></script>
     <script src="../../js/notas.js" defer></script>
-    <script src="../../js/home.js" defer></script>
+    <!-- Home em módulos (scripts clássicos, escopo compartilhado): a ORDEM importa -->
+    <script src="../../js/home/estado.js" defer></script>
+    <script src="../../js/home/dashboard.js" defer></script>
+    <script src="../../js/home/eventos.js" defer></script>
+    <script src="../../js/home/chat.js" defer></script>
+    <script src="../../js/home/pedido-modal.js" defer></script>
+    <script src="../../js/home/tempo-real.js" defer></script>
+    <script src="../../js/home/inicializacao.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
 
 </body>

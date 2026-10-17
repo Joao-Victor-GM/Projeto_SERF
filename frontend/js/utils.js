@@ -47,7 +47,7 @@
        EMPRESA LOGADA
        Cadastros da sessão em "usuarios" (comprador) e
        "fornecedores". Uma única consulta por página, mesmo
-       que vários scripts perguntem (home.js + catalogo.js).
+       que vários scripts perguntem (Home + catalogo.js).
        ------------------------------------------------------ */
 
     let empresaEmCache = null; // { authUserId, promessa }

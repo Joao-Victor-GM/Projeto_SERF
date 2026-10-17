@@ -27,7 +27,7 @@
        é um fornecedor cadastrado.
        ========================================================================= */
     async function verificarFornecedorAutenticado() {
-        // Consulta compartilhada com home.js/empresas.js (cache em utils.js).
+        // Consulta compartilhada com Home/empresas.js (cache em utils.js).
         // Identidade vem só da sessão do Supabase Auth (validada pelo auth-check.js).
         try {
             const empresa = await window.SERFUtils.obterEmpresaLogada();
@@ -838,7 +838,7 @@
     function configurarObservadorDeModo() {
         document.querySelectorAll('.modo-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Em páginas como catalogo.html onde home.js não gerencia o switch,
+                // Em páginas como catalogo.html onde a Home (js/home/) não gerencia o switch,
                 // atualiza visualmente os botões
                 document.querySelectorAll('.modo-btn').forEach(b => {
                     const ativo = b === e.currentTarget;
@@ -861,8 +861,8 @@
     /* =========================================================================
        8. INICIALIZAÇÃO DO MÓDULO
        ========================================================================= */
-    // Na catalogo.html (sem home.js), a chave Comprar/Vender só aparece para
-    // empresas com perfil "Ambos". Na Home, o home.js faz esse controle.
+    // Na catalogo.html (sem os scripts da Home), a chave Comprar/Vender só aparece para
+    // empresas com perfil "Ambos". Na Home, js/home/ faz esse controle.
     async function ajustarModosCatalogo() {
         if (typeof window.alterarModo === 'function') return;
 
