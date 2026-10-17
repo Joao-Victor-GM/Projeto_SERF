@@ -52,6 +52,10 @@
                 return null;
             }
 
+            // O Realtime avalia o RLS com o token do usuário: sem isso, a conexão
+            // fica "anônima" e não recebe eventos das tabelas protegidas.
+            client.realtime.setAuth(data.session.access_token);
+
             document.documentElement.style.visibility = "";
             return data.session;
         })
@@ -62,9 +66,15 @@
         });
 
     // Logout em outra aba ou sessão expirada → volta ao login.
-    client.auth.onAuthStateChange(evento => {
+    client.auth.onAuthStateChange((evento, sessao) => {
         if (evento === "SIGNED_OUT") {
             redirecionarParaLogin();
+            return;
+        }
+
+        // Token renovado (a cada ~1h): mantém o Realtime autenticado.
+        if (sessao?.access_token) {
+            client.realtime.setAuth(sessao.access_token);
         }
     });
 

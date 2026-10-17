@@ -1,0 +1,685 @@
+/* ==========================================================
+   S.E.R.F. — RELATORIOS.CSS
+   Relatórios comerciais (vendas e compras).
+
+   Cores dos dados validadas para daltonismo e contraste
+   (validador da skill de dataviz, superfície #FFFFFF):
+   - série única: #2a78d6 (contraste >= 3:1)
+   - rampa ordinal do funil: 250 → 400 → 500 → 600 (azul)
+   Texto nunca usa a cor da série; status sempre com ícone + rótulo.
+   ========================================================== */
+
+.relatorios-main {
+    --viz-serie: #2a78d6;
+    --viz-serie-hover: #256abf;
+    --viz-funil-1: #86b6ef;
+    --viz-funil-2: #3987e5;
+    --viz-funil-3: #256abf;
+    --viz-funil-4: #184f95;
+    --viz-cinza: #c3c2b7;      /* de-ênfase / "Outros" / cancelados */
+    --viz-grade: #EDF1F5;      /* hairline da grade, um passo acima da superfície */
+    --viz-base: #C9D3DE;       /* linha de base */
+    --viz-texto-mudo: #7A8796;
+
+    --status-bom: #0ca30c;
+    --status-atencao: #fab219;
+    --status-critico: #d03b3b;
+    --status-delta-bom: #006300;
+}
+
+.profile-button {
+    text-decoration: none;
+}
+
+
+/* ==========================================================
+   FILTROS (uma linha, acima de tudo o que afetam)
+   ========================================================== */
+
+.rel-filtros {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.rel-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rel-filtro[hidden] {
+    display: none;
+}
+
+.rel-filtro-rotulo {
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.rel-segmentado {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid #E5EBF2;
+    border-radius: 6px;
+    background: #EDF2F7;
+}
+
+.rel-segmento {
+    height: 30px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rel-segmento:hover:not(.active) {
+    background: rgba(8, 43, 76, 0.07);
+}
+
+.rel-segmento.active {
+    background: var(--serf-azul-principal);
+    color: #FFFFFF;
+}
+
+.rel-periodo-texto {
+    padding-bottom: 8px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.rel-aviso {
+    padding: 40px 20px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 6px;
+    background: #FFFFFF;
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+    text-align: center;
+}
+
+.rel-aviso strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--serf-azul-principal);
+    font-size: 15px;
+}
+
+/* Recarga mantém o quadro anterior esmaecido (sem salto de layout) */
+.rel-conteudo.carregando {
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+
+/* ==========================================================
+   PAINÉIS
+   ========================================================== */
+
+.rel-painel[hidden] {
+    display: none;
+}
+
+.rel-corpo {
+    padding: 20px;
+}
+
+.rel-acoes {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.rel-grade-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.rel-grade-2 > .panel {
+    margin-bottom: 20px;
+}
+
+.rel-corpo-dividido {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.rel-vazio {
+    padding: 30px 10px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    text-align: center;
+}
+
+
+/* ==========================================================
+   RESUMO: HERO + KPIs
+   ========================================================== */
+
+.rel-hero {
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--serf-borda);
+}
+
+.rel-hero-rotulo {
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rel-hero-valor {
+    margin: 4px 0;
+    color: var(--serf-azul-principal);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.rel-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+}
+
+.rel-kpi {
+    padding: 14px 16px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 6px;
+    background: #FAFBFD;
+}
+
+.rel-kpi-rotulo {
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.rel-kpi-valor {
+    margin: 6px 0 4px;
+    color: var(--serf-texto-principal);
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.rel-kpi-ajuda {
+    color: var(--viz-texto-mudo);
+    font-size: 10px;
+}
+
+/* Delta: cor = direção × se subir é bom; sempre com seta + texto */
+.rel-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.rel-delta.bom { color: var(--status-delta-bom); }
+.rel-delta.ruim { color: var(--status-critico); }
+.rel-delta.neutro { color: var(--viz-texto-mudo); }
+
+
+/* ==========================================================
+   GRÁFICO DE COLUNAS (evolução)
+   ========================================================== */
+
+.rel-colunas {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 8px;
+}
+
+.rel-eixo-y {
+    position: relative;
+    height: 220px;
+    color: var(--viz-texto-mudo);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.rel-eixo-y span {
+    position: absolute;
+    right: 0;
+    transform: translateY(50%);
+}
+
+.rel-area-plot {
+    position: relative;
+    min-width: 0;
+}
+
+.rel-plot {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 220px;
+    border-bottom: 1px solid var(--viz-base);
+}
+
+.rel-grade-linha {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--viz-grade);
+    pointer-events: none;
+}
+
+/* Cada coluna ocupa uma faixa; a área toda da faixa é o alvo do hover */
+.rel-faixa {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+    min-width: 0;
+    cursor: default;
+    outline: none;
+}
+
+.rel-coluna {
+    width: 100%;
+    max-width: 24px;
+    min-height: 0;
+    border-radius: 4px 4px 0 0;
+    background: var(--viz-serie);
+    transition: background 0.15s ease;
+}
+
+.rel-faixa:hover .rel-coluna,
+.rel-faixa:focus-visible .rel-coluna {
+    background: var(--viz-serie-hover);
+}
+
+.rel-faixa:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(18, 104, 179, 0.35);
+    border-radius: 4px;
+}
+
+.rel-eixo-x {
+    display: flex;
+    gap: 2px;
+    margin-top: 6px;
+    color: var(--viz-texto-mudo);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.rel-eixo-x {
+    height: 14px;
+}
+
+/* Cada faixa guarda o lugar; o rótulo é centralizado nela e pode ultrapassá-la
+   (o JS mostra só alguns rótulos, espaçados pela largura disponível). */
+.rel-eixo-x span {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.rel-eixo-x span i {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-style: normal;
+    white-space: nowrap;
+}
+
+
+/* ==========================================================
+   BARRAS HORIZONTAIS (funil, categorias, produtos, parceiros)
+   ========================================================== */
+
+.rel-barras {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rel-barra-linha {
+    display: grid;
+    grid-template-columns: minmax(90px, 34%) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 3px 0;
+    border-radius: 4px;
+    outline: none;
+}
+
+.rel-barra-linha:hover,
+.rel-barra-linha:focus-visible {
+    background: #F5F8FB;
+}
+
+.rel-barra-rotulo {
+    overflow: hidden;
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rel-barra-trilho {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* A largura vem do JS como fração (--fracao) do espaço que sobra após
+   reservar a área do rótulo: a barra nunca é encolhida pelo texto,
+   então o comprimento é sempre proporcional ao valor. */
+.rel-barra {
+    --reserva-rotulo: 112px;
+    flex-shrink: 0;
+    width: calc((100% - var(--reserva-rotulo)) * var(--fracao, 0));
+    height: 18px;
+    min-width: 2px;
+    border-radius: 0 4px 4px 0;
+    background: var(--viz-serie);
+}
+
+.rel-barra.zero {
+    min-width: 0;
+}
+
+.rel-barra.cinza { background: var(--viz-cinza); }
+.rel-barra.funil-1 { background: var(--viz-funil-1); }
+.rel-barra.funil-2 { background: var(--viz-funil-2); }
+.rel-barra.funil-3 { background: var(--viz-funil-3); }
+.rel-barra.funil-4 { background: var(--viz-funil-4); }
+
+.rel-barra-valor {
+    flex-shrink: 0;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.rel-separador {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--serf-borda);
+}
+
+
+/* ==========================================================
+   TABELAS
+   ========================================================== */
+
+.rel-tabela-wrap {
+    overflow-x: auto;
+}
+
+.rel-tabela-wrap[hidden] {
+    display: none;
+}
+
+.rel-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.rel-tabela th {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--serf-borda);
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.rel-tabela td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #F1F4F8;
+    color: var(--serf-texto-principal);
+}
+
+.rel-tabela .num {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.rel-tabela th.num {
+    text-align: right;
+}
+
+.rel-tabela tr:last-child td {
+    border-bottom: none;
+}
+
+/* Classe ABC: letra + rótulo, nunca só cor */
+.rel-abc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 4px;
+    color: var(--serf-azul-principal);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.rel-abc.a { background: #E8F1FC; border-color: #B7D3F6; }
+
+/* Status do estoque: ícone + rótulo */
+.rel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rel-status-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.rel-status.critico .rel-status-icone { background: var(--status-critico); }
+.rel-status.atencao .rel-status-icone { background: var(--status-atencao); color: #3D2B00; }
+.rel-status.bom .rel-status-icone { background: var(--status-bom); }
+.rel-status.parado .rel-status-icone { background: var(--viz-cinza); color: #3A3A36; }
+
+.rel-estoque-resumo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.rel-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 20px;
+    background: #FAFBFD;
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+}
+
+.rel-chip strong {
+    font-size: 14px;
+}
+
+.rel-insight {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--serf-laranja);
+    border-radius: 0 6px 6px 0;
+    background: #FFF8F1;
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.rel-insight:empty {
+    display: none;
+}
+
+.rel-rodape {
+    margin-top: 4px;
+    color: var(--viz-texto-mudo);
+    font-size: 11px;
+}
+
+
+/* ==========================================================
+   TOOLTIP (valor em destaque, rótulo secundário)
+   ========================================================== */
+
+.rel-tooltip {
+    position: fixed;
+    z-index: 2000;
+    max-width: 260px;
+    padding: 9px 12px;
+    border: 1px solid rgba(11, 11, 11, 0.1);
+    border-radius: 6px;
+    background: #FFFFFF;
+    box-shadow: 0 8px 24px rgba(8, 43, 76, 0.16);
+    pointer-events: none;
+}
+
+.rel-tooltip[hidden] {
+    display: none;
+}
+
+.rel-tooltip-valor {
+    display: block;
+    color: var(--serf-texto-principal);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.rel-tooltip-rotulo {
+    display: block;
+    margin-top: 2px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.rel-tooltip-detalhe {
+    display: block;
+    margin-top: 4px;
+    color: var(--viz-texto-mudo);
+    font-size: 10px;
+}
+
+
+/* ==========================================================
+   RESPONSIVIDADE
+   ========================================================== */
+
+@media (max-width: 1100px) {
+    .rel-grade-2,
+    .rel-corpo-dividido {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .rel-hero-valor {
+        font-size: 36px;
+    }
+
+    .rel-segmento {
+        padding: 0 9px;
+    }
+
+    .rel-corpo {
+        padding: 16px;
+    }
+}
+
+
+/* ==========================================================
+   IMPRESSÃO / PDF
+   Gráficos e tabelas lado a lado viram páginas limpas.
+   ========================================================== */
+
+@media print {
+    .sidebar,
+    .topbar,
+    .rel-somente-tela,
+    .rel-tooltip {
+        display: none !important;
+    }
+
+    .app-layout {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .main-content {
+        max-width: none;
+        padding: 0;
+    }
+
+    .panel {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    /* Na impressão, as tabelas aparecem junto dos gráficos */
+    .rel-tabela-wrap[hidden] {
+        display: block;
+        margin-top: 16px;
+    }
+
+    .rel-grade-2,
+    .rel-corpo-dividido {
+        grid-template-columns: 1fr;
+    }
+
+    body {
+        background: #FFFFFF;
+    }
+
+    /* Mantém as cores das barras e selos ao imprimir/gerar PDF */
+    .rel-coluna,
+    .rel-barra,
+    .rel-status-icone,
+    .rel-abc {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

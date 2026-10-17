@@ -410,6 +410,33 @@ a {
     background: rgba(8, 43, 76, 0.07);
 }
 
+/* Mensagens não lidas esperando no outro modo (empresas "Ambos") */
+.modo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.modo-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--serf-laranja);
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    animation: modoBadgePulso 1.6s ease-in-out 2;
+}
+
+@keyframes modoBadgePulso {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
 /* Notificações e perfil */
 
 .icon-button,

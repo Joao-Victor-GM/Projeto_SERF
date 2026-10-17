@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Relatórios Comerciais</title>
+
+    <!-- Identidade visual e estilos compartilhados -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/relatorios.css">
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-check.js"></script>
+</head>
+
+<body class="serf-home">
+
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="home.html#visao-geral" class="nav-item"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="home.html#empresas" class="nav-item"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="catalogo.html" class="nav-item"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span>Catálogo</span>
+            </a>
+
+            <a href="home.html#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="home.html#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+            </a>
+
+            <a href="relatorios.html" class="nav-item active"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="perfil.html" class="nav-item"
+               data-page="perfil">
+                <span class="nav-icon">◉</span>
+                <span>Perfil</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <a
+                    href="perfil.html"
+                    class="profile-button"
+                    aria-label="Meu perfil"
+                    title="Meu perfil"
+                >
+                    <span class="profile-avatar">E</span>
+                </a>
+
+                <!-- Logout padronizado (tratado pelo auth-check.js) -->
+                <button
+                    type="button"
+                    class="btn-logout"
+                    data-logout
+                    title="Sair da conta"
+                >
+                    Sair
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             RELATÓRIOS (preenchidos pelo relatorios.js)
+        ====================================================== -->
+
+        <main class="main-content relatorios-main" id="visao-relatorios">
+
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">INTELIGÊNCIA COMERCIAL</span>
+                    <h1>Relatórios</h1>
+                    <p id="relSubtitulo">Desempenho comercial da sua empresa a partir dos pedidos reais</p>
+                </div>
+
+                <button type="button" class="btn-secondary rel-somente-tela" id="btnImprimir">
+                    Imprimir / PDF
+                </button>
+            </div>
+
+            <!-- Filtros: uma linha acima de tudo o que eles afetam -->
+            <div class="rel-filtros rel-somente-tela" role="group" aria-label="Filtros dos relatórios">
+
+                <div class="rel-filtro" id="filtroPerspectivaGrupo">
+                    <span class="rel-filtro-rotulo">Perspectiva</span>
+                    <div class="rel-segmentado" id="filtroPerspectiva">
+                        <button type="button" class="rel-segmento active" data-perspectiva="vendas" aria-pressed="true">
+                            Vendas
+                        </button>
+                        <button type="button" class="rel-segmento" data-perspectiva="compras" aria-pressed="false">
+                            Compras
+                        </button>
+                    </div>
+                </div>
+
+                <div class="rel-filtro">
+                    <span class="rel-filtro-rotulo">Período</span>
+                    <div class="rel-segmentado" id="filtroPeriodoRel">
+                        <button type="button" class="rel-segmento" data-dias="7" aria-pressed="false">7 dias</button>
+                        <button type="button" class="rel-segmento active" data-dias="30" aria-pressed="true">30 dias</button>
+                        <button type="button" class="rel-segmento" data-dias="90" aria-pressed="false">90 dias</button>
+                        <button type="button" class="rel-segmento" data-dias="365" aria-pressed="false">12 meses</button>
+                        <button type="button" class="rel-segmento" data-dias="0" aria-pressed="false">Tudo</button>
+                    </div>
+                </div>
+
+                <span class="rel-periodo-texto" id="relPeriodoTexto"></span>
+            </div>
+
+            <!-- Estado geral (carregando, sem perfil, erro) -->
+            <div id="relAviso" class="rel-aviso" hidden></div>
+
+            <div id="relConteudo" class="rel-conteudo">
+
+                <!-- 1. RESUMO EXECUTIVO -->
+                <section class="panel rel-painel" id="secResumo" aria-labelledby="tituloResumo">
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="tituloResumo">Resumo executivo</h2>
+                            <p id="descResumo">Indicadores do período comparados ao período anterior de mesma duração</p>
+                        </div>
+                    </div>
+                    <div class="rel-corpo">
+                        <div class="rel-hero" id="relHero"></div>
+                        <div class="rel-kpis" id="relKpis"></div>
+                    </div>
+                </section>
+
+                <!-- 2. EVOLUÇÃO NO TEMPO -->
+                <section class="panel rel-painel" id="secEvolucao" aria-labelledby="tituloEvolucao">
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="tituloEvolucao">Evolução</h2>
+                            <p id="descEvolucao"></p>
+                        </div>
+                        <div class="rel-acoes rel-somente-tela">
+                            <button type="button" class="btn-text" data-alternar-tabela="evolucao">Ver tabela</button>
+                            <button type="button" class="btn-text" data-exportar="evolucao">Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div class="rel-corpo">
+                        <div class="rel-grafico" id="graficoEvolucao"></div>
+                        <div class="rel-tabela-wrap" id="tabelaEvolucao" hidden></div>
+                    </div>
+                </section>
+
+                <div class="rel-grade-2">
+
+                    <!-- 3. FUNIL / STATUS -->
+                    <section class="panel rel-painel" id="secFunil" aria-labelledby="tituloFunil">
+                        <div class="panel-heading">
+                            <div>
+                                <h2 id="tituloFunil">Funil de pedidos</h2>
+                                <p id="descFunil"></p>
+                            </div>
+                            <div class="rel-acoes rel-somente-tela">
+                                <button type="button" class="btn-text" data-alternar-tabela="funil">Ver tabela</button>
+                                <button type="button" class="btn-text" data-exportar="funil">Exportar CSV</button>
+                            </div>
+                        </div>
+                        <div class="rel-corpo">
+                            <div class="rel-grafico" id="graficoFunil"></div>
+                            <div class="rel-tabela-wrap" id="tabelaFunil" hidden></div>
+                        </div>
+                    </section>
+
+                    <!-- 4. CATEGORIAS -->
+                    <section class="panel rel-painel" id="secCategorias" aria-labelledby="tituloCategorias">
+                        <div class="panel-heading">
+                            <div>
+                                <h2 id="tituloCategorias">Por categoria</h2>
+                                <p id="descCategorias"></p>
+                            </div>
+                            <div class="rel-acoes rel-somente-tela">
+                                <button type="button" class="btn-text" data-alternar-tabela="categorias">Ver tabela</button>
+                                <button type="button" class="btn-text" data-exportar="categorias">Exportar CSV</button>
+                            </div>
+                        </div>
+                        <div class="rel-corpo">
+                            <div class="rel-grafico" id="graficoCategorias"></div>
+                            <div class="rel-tabela-wrap" id="tabelaCategorias" hidden></div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- 5. PRODUTOS (curva ABC) -->
+                <section class="panel rel-painel" id="secProdutos" aria-labelledby="tituloProdutos">
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="tituloProdutos">Produtos</h2>
+                            <p id="descProdutos"></p>
+                        </div>
+                        <div class="rel-acoes rel-somente-tela">
+                            <button type="button" class="btn-text" data-exportar="produtos">Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div class="rel-corpo rel-corpo-dividido">
+                        <div class="rel-grafico" id="graficoProdutos"></div>
+                        <div class="rel-tabela-wrap" id="tabelaProdutos"></div>
+                    </div>
+                </section>
+
+                <!-- 6. PARCEIROS (clientes ou fornecedores) -->
+                <section class="panel rel-painel" id="secParceiros" aria-labelledby="tituloParceiros">
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="tituloParceiros">Clientes</h2>
+                            <p id="descParceiros"></p>
+                        </div>
+                        <div class="rel-acoes rel-somente-tela">
+                            <button type="button" class="btn-text" data-exportar="parceiros">Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div class="rel-corpo">
+                        <div class="rel-insight" id="insightParceiros"></div>
+                        <div class="rel-corpo-dividido">
+                            <div class="rel-grafico" id="graficoParceiros"></div>
+                            <div class="rel-tabela-wrap" id="tabelaParceiros"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. SAÚDE DO ESTOQUE (somente vendas) -->
+                <section class="panel rel-painel" id="secEstoque" aria-labelledby="tituloEstoque">
+                    <div class="panel-heading">
+                        <div>
+                            <h2 id="tituloEstoque">Saúde do estoque</h2>
+                            <p>Cobertura estimada = estoque atual ÷ média diária vendida no período</p>
+                        </div>
+                        <div class="rel-acoes rel-somente-tela">
+                            <button type="button" class="btn-text" data-exportar="estoque">Exportar CSV</button>
+                        </div>
+                    </div>
+                    <div class="rel-corpo">
+                        <div class="rel-estoque-resumo" id="resumoEstoque"></div>
+                        <div class="rel-tabela-wrap" id="tabelaEstoque"></div>
+                    </div>
+                </section>
+
+            </div>
+
+            <p class="rel-rodape" id="relRodape"></p>
+
+        </main>
+    </div>
+
+    <!-- Tooltip compartilhado pelos gráficos -->
+    <div class="rel-tooltip" id="relTooltip" role="tooltip" hidden></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../js/relatorios.js" defer></script>
+
+</body>
+</html>

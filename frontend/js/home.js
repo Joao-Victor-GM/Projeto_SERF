@@ -637,6 +637,8 @@ function atualizarIndicadores() {
     elementos.kpiMensagens.textContent = carregando ? "…" : mensagens;
     elementos.kpiConcluidos.textContent = carregando ? "…" : concluidos;
     elementos.mensagensCount.textContent = mensagens;
+
+    atualizarBadgesModo();
 }
 
 
@@ -947,15 +949,44 @@ function registrarMensagemNaConversa(mensagem) {
 }
 
 // Conversas cujo pedido pertence ao modo ativo, da mais recente à mais antiga.
-function obterConversasDoModo() {
+function obterConversasDoModo(modo = estado.modo) {
 
     return [...conversasCache.values()]
         .map(conversa => ({
             ...conversa,
             pedido: pedidosCache.find(pedido => pedido.id === conversa.idPedido)
         }))
-        .filter(conversa => conversa.pedido?.modos.includes(estado.modo))
+        .filter(conversa => conversa.pedido?.modos.includes(modo))
         .sort((a, b) => new Date(b.ultimaData) - new Date(a.ultimaData));
+}
+
+// Empresas "Ambos": mostra no botão do OUTRO modo quantas mensagens
+// não lidas esperam lá (ex.: "Vender 2" enquanto está em Comprar).
+function atualizarBadgesModo() {
+
+    document.querySelectorAll(".modo-btn").forEach(botao => {
+        const modo = botao.dataset.mode;
+        const naoLidas = modo === estado.modo
+            ? 0
+            : obterConversasDoModo(modo).reduce((total, c) => total + c.naoLidas, 0);
+
+        let badge = botao.querySelector(".modo-badge");
+
+        if (naoLidas === 0) {
+            badge?.remove();
+            botao.removeAttribute("title");
+            return;
+        }
+
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "modo-badge";
+            botao.appendChild(badge);
+        }
+
+        badge.textContent = naoLidas > 99 ? "99+" : String(naoLidas);
+        botao.title = `${naoLidas} mensagem(ns) não lida(s) no modo ${modo === "vender" ? "Vender" : "Comprar"}`;
+    });
 }
 
 function renderizarConversas() {
@@ -1350,8 +1381,42 @@ function configurarAcoes() {
 const chat = {
     pedido: null,           // Pedido com o modal aberto
     canal: null,            // Canal Realtime do pedido
+    sincronizacao: null,    // Intervalo de conferência (plano B do Realtime)
     mensagens: new Map()    // id → mensagem (evita duplicar insert + realtime)
 };
+
+// Com o chat aberto, confere mensagens novas periodicamente. Garante a
+// entrega mesmo se o Realtime cair ou for bloqueado (rede, RLS, token).
+const INTERVALO_SINCRONIZACAO_CHAT = 4000;
+
+async function sincronizarMensagensChat(idPedido) {
+
+    if (chat.pedido?.id !== idPedido || document.hidden) return;
+
+    try {
+        const historico = await buscarMensagensPedido(idPedido);
+
+        if (chat.pedido?.id !== idPedido) return;
+
+        const novas = historico.filter(mensagem => !chat.mensagens.has(mensagem.id));
+
+        if (novas.length === 0) return;
+
+        adicionarMensagens(novas);
+
+        // Mensagens recebidas pelo plano B também atualizam conversas e leitura.
+        novas.forEach(registrarMensagemNaConversa);
+
+        if (novas.some(mensagem => mensagem.id_remetente !== empresaLogada.authUserId)) {
+            marcarMensagensComoLidas(idPedido);
+        }
+
+        renderizarConversas();
+        atualizarIndicadores();
+    } catch (erro) {
+        console.warn("[SERF:Chat] Falha na sincronização das mensagens:", erro);
+    }
+}
 
 // 1) Histórico de mensagens do pedido
 async function buscarMensagensPedido(idPedido) {
@@ -1654,6 +1719,11 @@ async function abrirDetalhesPedido(pedido) {
 
         // Abrir o chat confirma a leitura das mensagens recebidas.
         marcarMensagensComoLidas(pedido.id);
+
+        chat.sincronizacao = setInterval(
+            () => sincronizarMensagensChat(pedido.id),
+            INTERVALO_SINCRONIZACAO_CHAT
+        );
     } catch (erro) {
         console.error("[SERF:Chat] Falha ao buscar mensagens:", erro);
 
@@ -1673,6 +1743,9 @@ function fecharCanalChat() {
         obterSupabase()?.removeChannel(chat.canal);
         chat.canal = null;
     }
+
+    clearInterval(chat.sincronizacao);
+    chat.sincronizacao = null;
 }
 
 function fecharDetalhesPedido() {
@@ -1877,11 +1950,30 @@ async function iniciarHome() {
     // Pedido criado pelo catálogo (catalogo.js) entra na lista na hora.
     window.addEventListener("serf:pedido-criado", recarregarPedidos);
 
+    // O Realtime precisa do token da sessão (auth-check.js) antes de assinar.
+    await window.serfSessao;
+
     // Status alterado pela outra empresa aparece sem recarregar a página.
     assinarPedidosTempoReal();
 
     // Novas mensagens atualizam "Conversas recentes" e o contador.
     assinarMensagensTempoReal();
+
+    // Plano B das conversas: recarrega ao voltar para a aba e a cada 30 s.
+    const atualizarConversas = async () => {
+        if (document.hidden || estado.carregamento !== "ok") return;
+
+        try {
+            await buscarConversasSupabase();
+            renderizarConversas();
+            atualizarIndicadores();
+        } catch (erro) {
+            console.warn("[SERF:Home] Falha ao atualizar conversas:", erro);
+        }
+    };
+
+    setInterval(atualizarConversas, 30000);
+    document.addEventListener("visibilitychange", atualizarConversas);
 
     console.info("[SERF] Home inicializada com pedidos do Supabase.");
 }
