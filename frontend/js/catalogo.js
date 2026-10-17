@@ -27,57 +27,25 @@
        é um fornecedor cadastrado.
        ========================================================================= */
     async function verificarFornecedorAutenticado() {
-        const client = obterSupabase();
-        if (!client) return null;
-
-        let authUserId = null;
-
-        // Identidade vem só da sessão do Supabase Auth (validada pelo auth-check.js)
+        // Consulta compartilhada com home.js/empresas.js (cache em utils.js).
+        // Identidade vem só da sessão do Supabase Auth (validada pelo auth-check.js).
         try {
-            const { data: { session } } = await client.auth.getSession();
-            if (session?.user?.id) {
-                authUserId = session.user.id;
+            const empresa = await window.SERFUtils.obterEmpresaLogada();
+
+            fornecedorAtual = empresa?.fornecedor || null;
+
+            if (!empresa) {
+                console.info('[SERF:Catalogo] Usuário anônimo ou sem ID de autenticação.');
+            } else if (fornecedorAtual) {
+                console.info(`[SERF:Catalogo] Fornecedor autenticado: ${fornecedorAtual.razao_social} (ID: ${fornecedorAtual.id_fornecedor})`);
             }
         } catch (err) {
-            console.warn('[SERF:Catalogo] Verificação de sessão Supabase:', err);
+            console.error('[SERF:Catalogo] Erro ao consultar tabela fornecedores:', err);
+            fornecedorAtual = null;
         }
 
-        if (!authUserId) {
-            console.info('[SERF:Catalogo] Usuário anônimo ou sem ID de autenticação.');
-            atualizarVisibilidadeBotaoCadastro(false);
-            return null;
-        }
-
-        // C) Consulta a tabela fornecedores usando o auth_user_id
-        try {
-            const { data, error } = await client
-                .from('fornecedores')
-                .select('id_fornecedor, auth_user_id, razao_social, nome_fantasia, cnpj, email, status_cadastro')
-                .eq('auth_user_id', authUserId)
-                .maybeSingle();
-
-            if (error) {
-                console.error('[SERF:Catalogo] Erro ao consultar tabela fornecedores:', error);
-                atualizarVisibilidadeBotaoCadastro(false);
-                return null;
-            }
-
-            if (data && data.id_fornecedor) {
-                fornecedorAtual = data;
-                console.info(`[SERF:Catalogo] Fornecedor autenticado: ${data.razao_social} (ID: ${data.id_fornecedor})`);
-                atualizarVisibilidadeBotaoCadastro(true);
-                return data;
-            } else {
-                fornecedorAtual = null;
-                atualizarVisibilidadeBotaoCadastro(false);
-                return null;
-            }
-
-        } catch (err) {
-            console.error('[SERF:Catalogo] Erro inesperado na verificação de fornecedor:', err);
-            atualizarVisibilidadeBotaoCadastro(false);
-            return null;
-        }
+        atualizarVisibilidadeBotaoCadastro();
+        return fornecedorAtual;
     }
 
     // Verifica se o modo ativo atual na interface é 'vender'
@@ -379,24 +347,10 @@
     async function obterCompradorAutenticado() {
         if (compradorAtual) return compradorAtual;
 
-        const client = obterSupabase();
-        if (!client) return null;
-
         try {
-            const { data: { session } } = await client.auth.getSession();
-            const authUserId = session?.user?.id;
-            if (!authUserId) return null;
-
-            const { data, error } = await client
-                .from('usuarios')
-                .select('id_usuario, nome_empresa')
-                .eq('auth_user_id', authUserId)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            compradorAtual = data;
-            return data;
+            const empresa = await window.SERFUtils.obterEmpresaLogada();
+            compradorAtual = empresa?.comprador || null;
+            return compradorAtual;
         } catch (err) {
             console.error('[SERF:Catalogo] Falha ao identificar empresa compradora:', err);
             return null;

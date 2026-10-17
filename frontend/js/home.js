@@ -48,16 +48,9 @@ const empresaLogada = {
 // Status do banco → categoria de filtros/KPIs + rótulo (definido em utils.js)
 const STATUS_BANCO = window.SERFUtils.STATUS_PEDIDO;
 
-// Próximos status que o fornecedor pode aplicar a partir do atual.
-// A mesma regra é validada no banco (trigger da migration 003).
-const TRANSICOES_STATUS = {
-    PENDENTE: ["CONFIRMADO", "CANCELADO"],
-    CONFIRMADO: ["EM_SEPARACAO", "ENVIADO", "CANCELADO"],
-    EM_SEPARACAO: ["ENVIADO", "CANCELADO"],
-    ENVIADO: ["ENTREGUE"],
-    ENTREGUE: [],
-    CANCELADO: []
-};
+// Próximos status que o fornecedor pode aplicar (definido em utils.js,
+// espelho do trigger do banco).
+const TRANSICOES_STATUS = window.SERFUtils.TRANSICOES_STATUS;
 
 // Conversas do chat agrupadas por pedido (tabela mensagens_pedidos).
 // idPedido → { idPedido, ultimoTexto, ultimaData, ultimaMinha, naoLidas }
@@ -173,54 +166,22 @@ function parceiroDoPedido(pedido) {
    ========================================================== */
 
 // Localiza os cadastros da empresa autenticada (mesma lógica do catalogo.js).
-async function identificarEmpresaLogada(client) {
+async function identificarEmpresaLogada() {
 
-    let authUserId = null;
+    // Consulta compartilhada com catalogo.js (utils.js mantém em cache).
+    // Erro aqui interrompe a carga: sem saber quem é a empresa, os pedidos
+    // não podem ser separados entre os modos Comprar e Vender.
+    const empresa = await window.SERFUtils.obterEmpresaLogada();
 
-    // Identidade vem só da sessão do Supabase Auth (validada pelo auth-check.js).
-    try {
-        const { data: { session } } = await client.auth.getSession();
-        authUserId = session?.user?.id || null;
-    } catch (erro) {
-        console.warn("[SERF:Home] Verificação de sessão Supabase:", erro);
-    }
-
-    if (!authUserId) {
+    if (!empresa) {
         console.info("[SERF:Home] Usuário sem ID de autenticação.");
         return;
     }
 
-    empresaLogada.authUserId = authUserId;
-
-    const [usuario, fornecedor] = await Promise.all([
-        client
-            .from("usuarios")
-            .select("id_usuario, nome_empresa")
-            .eq("auth_user_id", authUserId)
-            .maybeSingle(),
-        client
-            .from("fornecedores")
-            .select("id_fornecedor, razao_social, nome_fantasia")
-            .eq("auth_user_id", authUserId)
-            .maybeSingle()
-    ]);
-
-    if (usuario.error) {
-        console.warn("[SERF:Home] Erro ao consultar usuarios:", usuario.error);
-    }
-    if (fornecedor.error) {
-        console.warn("[SERF:Home] Erro ao consultar fornecedores:", fornecedor.error);
-    }
-
-    if (usuario.data) {
-        empresaLogada.idUsuario = usuario.data.id_usuario;
-        empresaLogada.nome = usuario.data.nome_empresa;
-    }
-
-    if (fornecedor.data) {
-        empresaLogada.idFornecedor = fornecedor.data.id_fornecedor;
-        empresaLogada.nome = empresaLogada.nome || fornecedor.data.razao_social;
-    }
+    empresaLogada.authUserId = empresa.authUserId;
+    empresaLogada.idUsuario = empresa.idUsuario;
+    empresaLogada.idFornecedor = empresa.idFornecedor;
+    empresaLogada.nome = empresa.nome;
 }
 
 // Converte um registro do banco para o formato usado pela interface.
@@ -349,7 +310,7 @@ async function buscarPedidosSupabase() {
         throw new Error("Conexão com o banco de dados não estabelecida.");
     }
 
-    await identificarEmpresaLogada(client);
+    await identificarEmpresaLogada();
 
     const { data, error } = await client
         .from("pedidos")
@@ -921,16 +882,16 @@ const LIMITE_CONVERSAS = 6;
 async function buscarConversasSupabase() {
 
     const client = obterSupabase();
-    const idsPedidos = pedidosCache.map(pedido => pedido.id);
 
     conversasCache = new Map();
 
-    if (!client || idsPedidos.length === 0) return;
+    if (!client || pedidosCache.length === 0) return;
 
+    // Sem filtro por id_pedido: o RLS já entrega só as mensagens dos pedidos
+    // da empresa. (Uma lista .in() com todos os ids crescia sem limite na URL.)
     const { data, error } = await client
         .from("mensagens_pedidos")
         .select("id, id_pedido, texto, id_remetente, lida, data_envio")
-        .in("id_pedido", idsPedidos)
         .order("data_envio", { ascending: false })
         .limit(500);
 
@@ -1398,6 +1359,8 @@ const chat = {
     pedido: null,           // Pedido com o modal aberto
     canal: null,            // Canal Realtime do pedido
     sincronizacao: null,    // Intervalo de conferência (plano B do Realtime)
+    realtimeAtivo: false,   // Canal do pedido em SUBSCRIBED
+    ciclos: 0,              // Contador de execuções do plano B
     mensagens: new Map()    // id → mensagem (evita duplicar insert + realtime)
 };
 
@@ -1405,12 +1368,31 @@ const chat = {
 // entrega mesmo se o Realtime cair ou for bloqueado (rede, RLS, token).
 const INTERVALO_SINCRONIZACAO_CHAT = 4000;
 
+// Com o Realtime ativo, o plano B só confere a cada N ciclos (4 s × 5 = 20 s).
+const CICLOS_SINCRONIZACAO_COM_REALTIME = 5;
+
+// Data da mensagem mais recente já exibida (base da busca incremental).
+function ultimaDataDoChat() {
+    let ultima = null;
+
+    chat.mensagens.forEach(mensagem => {
+        const data = new Date(mensagem.data_envio);
+        if (!Number.isNaN(data.getTime()) && (!ultima || data > ultima)) ultima = data;
+    });
+
+    return ultima ? ultima.toISOString() : null;
+}
+
 async function sincronizarMensagensChat(idPedido) {
 
     if (chat.pedido?.id !== idPedido || document.hidden) return;
 
+    chat.ciclos += 1;
+    if (chat.realtimeAtivo && chat.ciclos % CICLOS_SINCRONIZACAO_COM_REALTIME !== 0) return;
+
     try {
-        const historico = await buscarMensagensPedido(idPedido);
+        // Busca só o que chegou depois da última mensagem exibida.
+        const historico = await buscarMensagensPedido(idPedido, ultimaDataDoChat());
 
         if (chat.pedido?.id !== idPedido) return;
 
@@ -1435,7 +1417,8 @@ async function sincronizarMensagensChat(idPedido) {
 }
 
 // 1) Histórico de mensagens do pedido
-async function buscarMensagensPedido(idPedido) {
+// desde: só mensagens a partir dessa data (inclusive; o Map descarta repetidas).
+async function buscarMensagensPedido(idPedido, desde = null) {
 
     const client = obterSupabase();
 
@@ -1443,11 +1426,16 @@ async function buscarMensagensPedido(idPedido) {
         throw new Error("Conexão com o banco de dados não estabelecida.");
     }
 
-    const { data, error } = await client
+    let consulta = client
         .from("mensagens_pedidos")
         .select("id, id_pedido, texto, id_remetente, lida, data_envio")
-        .eq("id_pedido", idPedido)
-        .order("data_envio", { ascending: true });
+        .eq("id_pedido", idPedido);
+
+    if (desde) {
+        consulta = consulta.gte("data_envio", desde);
+    }
+
+    const { data, error } = await consulta.order("data_envio", { ascending: true });
 
     if (error) {
         throw error;
@@ -1513,9 +1501,13 @@ function assinarChatTempoReal(idPedido) {
             }
         )
         .subscribe(status => {
+            if (chat.pedido?.id !== idPedido) return;
+
             if (status === "SUBSCRIBED") {
+                chat.realtimeAtivo = true;
                 atualizarStatusChat("Tempo real ativo", "online");
             } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
+                chat.realtimeAtivo = false;
                 atualizarStatusChat("Tempo real indisponível", "offline");
             }
         });
@@ -1901,6 +1893,8 @@ function fecharCanalChat() {
 
     clearInterval(chat.sincronizacao);
     chat.sincronizacao = null;
+    chat.realtimeAtivo = false;
+    chat.ciclos = 0;
 }
 
 function fecharDetalhesPedido() {

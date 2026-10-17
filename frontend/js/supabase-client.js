@@ -4,9 +4,12 @@
 
    Ordem de carregamento em todas as páginas que usam o banco:
 
-     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
      <script src="../../js/supabase-client.js"></script>
      <script src="../../js/utils.js"></script>
+
+   Versões dos CDNs ficam FIXAS (ex.: @2.118.0): uma versão nova só entra
+   quando alguém atualizar e testar todas as páginas.
 
    Os demais scripts usam a mesma instância por:
      - window.supabaseClient  (ou apenas supabaseClient)

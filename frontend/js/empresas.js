@@ -57,18 +57,13 @@
        1. CARGA
        ===================================================================== */
 
-    async function carregarEmpresa(client) {
-        const { data: { session } } = await client.auth.getSession();
-        const id = session?.user?.id;
+    async function carregarEmpresa() {
+        // Consulta compartilhada com catalogo.js (cache em utils.js)
+        const logada = await window.SERFUtils.obterEmpresaLogada();
 
-        const [comprador, fornecedor] = await Promise.all([
-            client.from("usuarios").select("id_usuario, nome_empresa").eq("auth_user_id", id).maybeSingle(),
-            client.from("fornecedores").select("id_fornecedor, razao_social").eq("auth_user_id", id).maybeSingle()
-        ]);
-
-        empresa.idUsuario = comprador.data?.id_usuario ?? null;
-        empresa.idFornecedor = fornecedor.data?.id_fornecedor ?? null;
-        empresa.nome = comprador.data?.nome_empresa || fornecedor.data?.razao_social || null;
+        empresa.idUsuario = logada?.idUsuario ?? null;
+        empresa.idFornecedor = logada?.idFornecedor ?? null;
+        empresa.nome = logada?.nome ?? null;
     }
 
     async function carregarDiretorio(client) {
@@ -607,7 +602,7 @@
         const client = obterSupabase();
 
         try {
-            await carregarEmpresa(client);
+            await carregarEmpresa();
             exibirEmpresa();
 
             const comprador = empresa.idUsuario !== null;

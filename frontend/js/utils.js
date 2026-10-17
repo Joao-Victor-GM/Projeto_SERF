@@ -31,6 +31,86 @@
         return STATUS_PEDIDO[codigo] || { categoria: "aberto", rotulo: codigo || "—" };
     }
 
+    // Próximos status que o fornecedor pode aplicar a partir do atual.
+    // Espelho da regra validada no banco (trigger pedidos_validar, migration 005):
+    // ao mudar uma, mude a outra.
+    const TRANSICOES_STATUS = Object.freeze({
+        PENDENTE: ["CONFIRMADO", "CANCELADO"],
+        CONFIRMADO: ["EM_SEPARACAO", "ENVIADO", "CANCELADO"],
+        EM_SEPARACAO: ["ENVIADO", "CANCELADO"],
+        ENVIADO: ["ENTREGUE"],
+        ENTREGUE: [],
+        CANCELADO: []
+    });
+
+    /* ------------------------------------------------------
+       EMPRESA LOGADA
+       Cadastros da sessão em "usuarios" (comprador) e
+       "fornecedores". Uma única consulta por página, mesmo
+       que vários scripts perguntem (home.js + catalogo.js).
+       ------------------------------------------------------ */
+
+    let empresaEmCache = null; // { authUserId, promessa }
+
+    async function carregarEmpresa(client, authUserId) {
+        const [comprador, fornecedor] = await Promise.all([
+            client
+                .from("usuarios")
+                .select("id_usuario, nome_empresa")
+                .eq("auth_user_id", authUserId)
+                .maybeSingle(),
+            client
+                .from("fornecedores")
+                .select("id_fornecedor, auth_user_id, razao_social, nome_fantasia, cnpj, email, status_cadastro")
+                .eq("auth_user_id", authUserId)
+                .maybeSingle()
+        ]);
+
+        if (comprador.error) throw comprador.error;
+        if (fornecedor.error) throw fornecedor.error;
+
+        const dadosComprador = comprador.data || null;
+        const dadosFornecedor = fornecedor.data || null;
+
+        let perfil = null;
+        if (dadosComprador && dadosFornecedor) perfil = "Ambos";
+        else if (dadosFornecedor) perfil = "Fornecedor";
+        else if (dadosComprador) perfil = "Comprador";
+
+        return {
+            authUserId,
+            idUsuario: dadosComprador?.id_usuario ?? null,
+            idFornecedor: dadosFornecedor?.id_fornecedor ?? null,
+            nome: dadosComprador?.nome_empresa || dadosFornecedor?.razao_social || null,
+            perfil,
+            comprador: dadosComprador,
+            fornecedor: dadosFornecedor
+        };
+    }
+
+    // Retorna a empresa da sessão ou null (sem sessão / sem cliente).
+    // Erros de consulta são propagados e não ficam em cache.
+    async function obterEmpresaLogada({ recarregar = false } = {}) {
+        const client = window.obterSupabase ? window.obterSupabase() : null;
+        if (!client) return null;
+
+        const { data: { session } } = await client.auth.getSession();
+        const authUserId = session?.user?.id || null;
+
+        if (!authUserId) return null;
+
+        if (recarregar || empresaEmCache?.authUserId !== authUserId) {
+            const promessa = carregarEmpresa(client, authUserId);
+            empresaEmCache = { authUserId, promessa };
+
+            promessa.catch(() => {
+                if (empresaEmCache?.promessa === promessa) empresaEmCache = null;
+            });
+        }
+
+        return empresaEmCache.promessa;
+    }
+
     // Impede a inserção de HTML não confiável (dados do banco ou do usuário).
     function escaparHTML(valor) {
         if (valor === null || valor === undefined) return "";
@@ -128,7 +208,9 @@
     window.SERFUtils = Object.freeze({
         swalConfig,
         STATUS_PEDIDO,
+        TRANSICOES_STATUS,
         statusDoPedido,
+        obterEmpresaLogada,
         escaparHTML,
         formatarMoeda,
         formatarCNPJ,

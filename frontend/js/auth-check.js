@@ -5,7 +5,7 @@
 
    Deve ser carregado no <head>, SEM defer, depois do cliente:
 
-     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
      <script src="../../js/supabase-client.js"></script>
      <script src="../../js/utils.js"></script>
      <script src="../../js/auth-check.js"></script>
