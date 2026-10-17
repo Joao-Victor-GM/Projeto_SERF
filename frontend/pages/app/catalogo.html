@@ -49,59 +49,9 @@
         </div>
 
         <!-- Links para os módulos internos do sistema -->
-        <nav class="sidebar-nav" aria-label="Menu principal">
-
-            <a href="home.html#visao-geral" class="nav-item"
-               data-page="home">
-                <span class="nav-icon">▦</span>
-                <span>Home</span>
-            </a>
-
-            <a href="empresas.html" class="nav-item"
-               data-page="empresas">
-                <span class="nav-icon">▤</span>
-                <span>Empresas</span>
-            </a>
-
-            <a href="#produtos" class="nav-item active"
-               data-page="produtos">
-                <span class="nav-icon">▣</span>
-                <span id="menuProdutosLabel">Catálogo</span>
-            </a>
-
-            <a href="home.html#pedidos" class="nav-item"
-               data-page="pedidos">
-                <span class="nav-icon">☷</span>
-                <span>Pedidos</span>
-            </a>
-
-            <a href="home.html#mensagens" class="nav-item"
-               data-page="mensagens">
-                <span class="nav-icon">✉</span>
-                <span>Mensagens</span>
-                <span class="nav-count" id="mensagensCount">0</span>
-            </a>
-
-            <a href="relatorios.html" class="nav-item"
-               data-page="relatorios">
-                <span class="nav-icon">▥</span>
-                <span>Relatórios</span>
-            </a>
-
-            <a href="alertas.html" class="nav-item"
-               data-page="alertas">
-                <span class="nav-icon">⚑</span>
-                <span>Alertas</span>
-                <span class="nav-count" data-alertas-contagem hidden></span>
-            </a>
-
-            <a href="home.html#radar-oportunidades" class="nav-item"
-               data-page="oportunidades">
-                <span class="nav-icon">◎</span>
-                <span>Oportunidades</span>
-            </a>
-
-        </nav>
+        <nav class="sidebar-nav" aria-label="Menu principal" data-pagina-atual="produtos"></nav>
+        <!-- Menu único de todas as páginas internas (js/ui/layout.js) -->
+        <script src="../../js/ui/layout.js"></script>
 
         <!-- Informações institucionais -->
         <div class="sidebar-footer">
@@ -409,13 +359,7 @@
     <!-- Script leve para menu responsivo e perfil na página de catálogo -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.getElementById('sidebar');
-            if (menuToggle && sidebar) {
-                menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('open');
-                });
-            }
+            // Menu responsivo (☰): js/ui/layout.js
 
             // Exibe nome da empresa do localStorage se disponível
             const usuarioSalvo = localStorage.getItem('usuario_logado');
@@ -441,6 +385,9 @@
         });
     </script>
 
+    <!-- Camada de dados (alertas) usada pelo contador do menu -->
+    <script src="../../js/dados/base.js" defer></script>
+    <script src="../../js/dados/pendencias.repositorio.js" defer></script>
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>
 

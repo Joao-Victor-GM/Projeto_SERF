@@ -86,6 +86,7 @@
 /* Feixe de varredura */
 .rop-varredura {
     position: absolute;
+    will-change: transform;   /* gira na GPU, sem repintar o radar */
     inset: 0;
     border-radius: 50%;
     background: conic-gradient(from 0deg, rgba(244, 122, 32, 0.42), rgba(244, 122, 32, 0.08) 40deg, transparent 75deg);
@@ -106,7 +107,7 @@
     stroke-linecap: round;
     stroke-dasharray: 2 1.2;
     opacity: 0.85;
-    filter: drop-shadow(0 0 1.5px var(--cor));
+    /* sem filter: drop-shadow — repintava a cada quadro da animação do tracejado */
     animation: rop-linha-fluxo 1s linear infinite, rop-sumir 6.5s ease forwards;
 }
 
@@ -189,8 +190,9 @@
     border-left: 3px solid var(--cor);
     border-radius: 8px;
 
-    background: rgba(9, 32, 58, 0.82);
-    backdrop-filter: blur(8px);
+    /* Fundo quase opaco em vez de backdrop-filter: o desfoque era recalculado
+       a cada quadro, porque o feixe do radar gira por baixo dos cartões. */
+    background: rgba(9, 32, 58, 0.95);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), 0 0 14px color-mix(in srgb, var(--cor) 25%, transparent);
     color: var(--rop-texto);
     font: inherit;
@@ -202,7 +204,6 @@
     width: 100%;
     background: rgba(255, 255, 255, 0.05);
     box-shadow: none;
-    backdrop-filter: none;
 }
 
 .rop-cartao:hover,

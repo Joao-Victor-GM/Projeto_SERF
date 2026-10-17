@@ -22,6 +22,12 @@
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
     <script src="../../js/pedidos.js"></script>
+    <!-- Domínio (regras puras) e camada de dados (única que fala com o Supabase) -->
+    <script src="../../js/dominio/painel.js"></script>
+    <script src="../../js/dados/base.js"></script>
+    <script src="../../js/dados/pedidos.repositorio.js"></script>
+    <script src="../../js/dados/mensagens.repositorio.js"></script>
+    <script src="../../js/dados/pendencias.repositorio.js"></script>
     <script src="../../js/auth-check.js"></script>
 </head>
 
@@ -53,59 +59,9 @@
         </div>
 
         <!-- Links para os módulos internos do sistema -->
-        <nav class="sidebar-nav" aria-label="Menu principal">
-
-            <a href="#visao-geral" class="nav-item active"
-               data-page="home">
-                <span class="nav-icon">▦</span>
-                <span>Home</span>
-            </a>
-
-            <a href="empresas.html" class="nav-item"
-               data-page="empresas">
-                <span class="nav-icon">▤</span>
-                <span>Empresas</span>
-            </a>
-
-            <a href="#produtos" class="nav-item"
-               data-page="produtos">
-                <span class="nav-icon">▣</span>
-                <span id="menuProdutosLabel">Produtos</span>
-            </a>
-
-            <a href="#pedidos" class="nav-item"
-               data-page="pedidos">
-                <span class="nav-icon">☷</span>
-                <span>Pedidos</span>
-            </a>
-
-            <a href="#mensagens" class="nav-item"
-               data-page="mensagens">
-                <span class="nav-icon">✉</span>
-                <span>Mensagens</span>
-                <span class="nav-count" id="mensagensCount">0</span>
-            </a>
-
-            <a href="relatorios.html" class="nav-item"
-               data-page="relatorios">
-                <span class="nav-icon">▥</span>
-                <span>Relatórios</span>
-            </a>
-
-            <a href="alertas.html" class="nav-item"
-               data-page="alertas">
-                <span class="nav-icon">⚑</span>
-                <span>Alertas</span>
-                <span class="nav-count" data-alertas-contagem hidden></span>
-            </a>
-
-            <a href="#radar-oportunidades" class="nav-item"
-               data-page="oportunidades">
-                <span class="nav-icon">◎</span>
-                <span>Oportunidades</span>
-            </a>
-
-        </nav>
+        <nav class="sidebar-nav" aria-label="Menu principal" data-pagina-atual="home"></nav>
+        <!-- Menu único de todas as páginas internas (js/ui/layout.js) -->
+        <script src="../../js/ui/layout.js"></script>
 
         <!-- Informações institucionais -->
         <div class="sidebar-footer">
@@ -518,6 +474,9 @@
 
                     </table>
                 </div>
+
+                <!-- Tabela paginada (dashboard.js → mostrarMaisPedidos) -->
+                <button type="button" class="btn-text btn-mais-pedidos" id="btnMaisPedidos" hidden></button>
 
             </section>
 

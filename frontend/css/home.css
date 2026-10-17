@@ -1844,3 +1844,19 @@ a {
    Próxima etapa:
    Implementar comportamento e dados no home.js.
    ========================================================== */
+
+/* Tabela paginada (dashboard.js → mostrarMaisPedidos) */
+.btn-mais-pedidos {
+    display: block;
+    margin: 12px auto 0;
+}
+
+.btn-mais-pedidos[hidden] {
+    display: none;
+}
+
+/* Radar de pedidos: aviso das pendências além das exibidas */
+.radar-mais a {
+    color: var(--serf-azul-interacao);
+    font-weight: 700;
+}

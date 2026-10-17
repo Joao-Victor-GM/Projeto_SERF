@@ -68,87 +68,38 @@ function alterarModo(novoModo) {
 
 /* ==========================================================
    08 — FILTRAGEM DE PEDIDOS
-   Aplica modo, período, status, empresa e pesquisa.
+   As regras ficam em js/dominio/painel.js (funções puras);
+   aqui só a ligação com o estado da Home.
    ========================================================== */
+
+// Linhas desenhadas por vez na tabela ("Mostrar mais" acrescenta outras)
+const LIMITE_LINHAS_TABELA = 100;
+
+// Pendências exibidas no radar de pedidos (o resto fica em alertas.html)
+const LIMITE_RADAR = 8;
+
+const hojeDoPainel = () => SERFPainel.inicioDoDia();
 
 // Pedidos do modo ativo, sem outros filtros.
 function obterPedidosDoModo() {
-    return pedidosCache.filter(pedido =>
-        pedido.modos.includes(estado.modo)
-    );
+    return SERFPainel.doModo(pedidosCache, estado.modo);
 }
 
-// Modo, período, empresa e busca.
-// Base comum da tabela e dos indicadores.
+// Modo, período, empresa e busca: base comum da tabela e dos indicadores.
 function obterPedidosBase() {
-
-    return obterPedidosDoModo().filter(pedido => {
-
-        // Considera a criação do pedido no período escolhido.
-        if (calcularDias(pedido.criadoEm) > estado.periodo) {
-            return false;
-        }
-
-        const parceiro = parceiroDoPedido(pedido);
-
-        // Filtra pela empresa parceira.
-        if (
-            estado.empresa !== "todas" &&
-            parceiro.id !== estado.empresa
-        ) {
-            return false;
-        }
-
-        // Pesquisa por número, empresa ou produto.
-        if (estado.busca) {
-            const conteudo = [
-                pedido.id,
-                pedido.produto,
-                parceiro.nome
-            ].join(" ").toLowerCase();
-
-            if (!conteudo.includes(estado.busca)) {
-                return false;
-            }
-        }
-
-        return true;
-    });
+    return SERFPainel.base(pedidosCache, estado, hojeDoPainel());
 }
 
 function obterPedidosFiltrados() {
-
-    return obterPedidosBase().filter(pedido => {
-
-        // Filtra pelo status selecionado.
-        if (
-            estado.status !== "todos" &&
-            pedido.status !== estado.status
-        ) {
-            return false;
-        }
-
-        // Filtro adicional ao clicar nos indicadores.
-        if (estado.indicador === "abertos") {
-            return pedido.status === "aberto";
-        }
-
-        if (estado.indicador === "respostas") {
-            return pedido.aguardandoResposta;
-        }
-
-        if (estado.indicador === "concluidos") {
-            return pedido.status === "concluido";
-        }
-
-        return true;
-    });
+    return SERFPainel.filtrados(obterPedidosBase(), estado);
 }
 
 
 /* ==========================================================
    09 — TABELA DE PEDIDOS
-   Constrói as linhas a partir dos registros filtrados.
+   Desenha no máximo estado.limiteTabela linhas: com milhares de
+   pedidos, recriar todas as linhas a cada tecla da busca era o
+   maior custo da Home.
    ========================================================== */
 
 // Linha única ocupando toda a tabela (carregando, erro, vazio).
@@ -162,11 +113,21 @@ function mensagemTabela(texto, cor = "") {
     `;
 }
 
+function atualizarBotaoMaisPedidos(total, exibidos) {
+    const botao = elementos.btnMaisPedidos;
+    if (!botao) return;
+
+    const restantes = total - exibidos;
+    botao.hidden = restantes <= 0;
+    botao.textContent = `Mostrar mais ${Math.min(restantes, LIMITE_LINHAS_TABELA)} de ${restantes} restantes`;
+}
+
 function renderizarPedidos(pedidos) {
 
     if (estado.carregamento === "carregando") {
         elementos.totalPedidos.textContent = "Carregando...";
         mensagemTabela("Carregando pedidos do banco de dados...");
+        atualizarBotaoMaisPedidos(0, 0);
         return;
     }
 
@@ -177,6 +138,7 @@ function renderizarPedidos(pedidos) {
              <small>${escaparHTML(estado.mensagemErro)}</small>`,
             "#DC2626"
         );
+        atualizarBotaoMaisPedidos(0, 0);
         return;
     }
 
@@ -186,16 +148,14 @@ function renderizarPedidos(pedidos) {
     // Exibe uma mensagem quando nenhum registro é encontrado.
     if (pedidos.length === 0) {
         mensagemTabela("Nenhum pedido encontrado para os filtros selecionados.");
+        atualizarBotaoMaisPedidos(0, 0);
         return;
     }
 
-    // Ordena os pedidos pela última atualização.
-    const ordenados = [...pedidos].sort((a, b) =>
-        converterData(b.atualizadoEm) -
-        converterData(a.atualizadoEm)
-    );
+    // Pela última atualização; só a primeira "página" vira HTML.
+    const visiveis = SERFPainel.ordenarPorAtualizacao(pedidos).slice(0, estado.limiteTabela);
 
-    elementos.pedidosTableBody.innerHTML = ordenados.map(pedido => {
+    elementos.pedidosTableBody.innerHTML = visiveis.map(pedido => {
 
         const parceiro = parceiroDoPedido(pedido);
 
@@ -235,6 +195,13 @@ function renderizarPedidos(pedidos) {
             </tr>
         `;
     }).join("");
+
+    atualizarBotaoMaisPedidos(pedidos.length, visiveis.length);
+}
+
+function mostrarMaisPedidos() {
+    estado.limiteTabela += LIMITE_LINHAS_TABELA;
+    renderizarPedidos(obterPedidosFiltrados());
 }
 
 
@@ -243,27 +210,15 @@ function renderizarPedidos(pedidos) {
    Calcula as métricas com os dados do modo selecionado.
    ========================================================== */
 
-function atualizarIndicadores() {
+// pedidosBase: quem já calculou a base passa adiante (evita refiltrar).
+function atualizarIndicadores(pedidosBase = obterPedidosBase()) {
 
     // Mantém período, empresa e busca nos indicadores.
     // O filtro de status é aplicado apenas à tabela.
-    const pedidosBase = obterPedidosBase();
-
-    const abertos = pedidosBase.filter(
-        pedido => pedido.status === "aberto"
-    ).length;
-
-    const respostas = pedidosBase.filter(
-        pedido => pedido.aguardandoResposta
-    ).length;
-
-    const concluidos = pedidosBase.filter(
-        pedido => pedido.status === "concluido"
-    ).length;
+    const { abertos, respostas, concluidos } = SERFPainel.indicadores(pedidosBase);
 
     // Total de mensagens não lidas nos pedidos do modo ativo.
-    const mensagens = obterConversasDoModo()
-        .reduce((total, conversa) => total + conversa.naoLidas, 0);
+    const mensagens = SERFPainel.totalNaoLidas(obterConversasDoModo());
 
     const carregando = estado.carregamento === "carregando";
 
@@ -284,15 +239,10 @@ function atualizarIndicadores() {
 
 function preencherFiltroEmpresas() {
 
-    const empresas = new Map();
-
-    obterPedidosDoModo().forEach(pedido => {
-        const parceiro = parceiroDoPedido(pedido);
-        empresas.set(parceiro.id, parceiro.nome);
-    });
+    const empresas = SERFPainel.parceiros(obterPedidosDoModo(), estado.modo);
 
     // Descarta a seleção anterior se a empresa não existir no modo atual.
-    if (!empresas.has(estado.empresa)) {
+    if (!empresas.some(([id]) => id === estado.empresa)) {
         estado.empresa = "todas";
     }
 
@@ -300,16 +250,14 @@ function preencherFiltroEmpresas() {
         <option value="todas">Todas as empresas</option>
     `;
 
-    [...empresas.entries()]
-        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
-        .forEach(([id, nome]) => {
-            const opcao = document.createElement("option");
+    empresas.forEach(([id, nome]) => {
+        const opcao = document.createElement("option");
 
-            opcao.value = id;
-            opcao.textContent = nome;
+        opcao.value = id;
+        opcao.textContent = nome;
 
-            elementos.filtroEmpresa.appendChild(opcao);
-        });
+        elementos.filtroEmpresa.appendChild(opcao);
+    });
 
     elementos.filtroEmpresa.value = estado.empresa;
 }
@@ -322,51 +270,8 @@ function preencherFiltroEmpresas() {
 
 function renderizarGrafico() {
 
-    const pedidos = obterPedidosDoModo();
-
-    // Distribui o período selecionado em até seis faixas.
-    const quantidadeFaixas = Math.min(
-        6,
-        Math.ceil(estado.periodo / 7)
-    );
-
-    const tamanhoFaixa = estado.periodo / quantidadeFaixas;
-
-    const faixas = [];
-
-    for (let indice = quantidadeFaixas - 1; indice >= 0; indice--) {
-
-        const inicio = indice * tamanhoFaixa;
-        const fim = (indice + 1) * tamanhoFaixa;
-
-        const criados = pedidos.filter(pedido => {
-            const dias = calcularDias(pedido.criadoEm);
-
-            return dias >= inicio && dias < fim;
-        }).length;
-
-        const concluidos = pedidos.filter(pedido => {
-            if (!pedido.concluidoEm) return false;
-
-            const dias = calcularDias(pedido.concluidoEm);
-
-            return dias >= inicio && dias < fim;
-        }).length;
-
-        faixas.push({
-            rotulo: `${Math.ceil(inicio)}–${Math.ceil(fim)}d`,
-            criados,
-            concluidos
-        });
-    }
-
-    const maiorValor = Math.max(
-        1,
-        ...faixas.flatMap(faixa => [
-            faixa.criados,
-            faixa.concluidos
-        ])
-    );
+    const { quantidade: quantidadeFaixas, faixas, maiorValor } =
+        SERFPainel.faixasDoGrafico(obterPedidosDoModo(), estado.periodo, hojeDoPainel());
 
     // Gráfico simples em HTML, sem bibliotecas externas.
     elementos.graficoProducao.innerHTML = `
@@ -457,6 +362,8 @@ function renderizarGrafico() {
 /* ==========================================================
    13 — RADAR DE PEDIDOS
    Destaca registros sem resposta ou sem movimentação.
+   Mostra as primeiras pendências; a lista completa e priorizada
+   fica na central de alertas.
    ========================================================== */
 
 function renderizarRadar() {
@@ -473,40 +380,7 @@ function renderizarRadar() {
         return;
     }
 
-    const pedidos = obterPedidosDoModo().filter(pedido =>
-        pedido.status !== "concluido" &&
-        pedido.status !== "cancelado"
-    );
-
-    const alertas = [];
-
-    pedidos.forEach(pedido => {
-
-        const parceiro = parceiroDoPedido(pedido);
-        const diasParado = calcularDias(pedido.atualizadoEm);
-
-        // Pedido pendente aguardando resposta do fornecedor.
-        if (pedido.aguardandoResposta) {
-            alertas.push({
-                pedidoId: pedido.id,
-                tipo: "atencao",
-                titulo: `Pedido #${pedido.id} — Resposta pendente`,
-                descricao: `${parceiro.nome} aguarda acompanhamento.`
-            });
-
-            return;
-        }
-
-        // Pedido sem movimentação há 3 dias ou mais.
-        if (diasParado >= 3) {
-            alertas.push({
-                pedidoId: pedido.id,
-                tipo: "urgente",
-                titulo: `Pedido #${pedido.id} — Sem movimentação`,
-                descricao: `Última atualização há ${diasParado} dias.`
-            });
-        }
-    });
+    const alertas = SERFPainel.alertasDoRadar(obterPedidosDoModo(), estado.modo, hojeDoPainel());
 
     if (alertas.length === 0) {
         elementos.radarLista.innerHTML = `
@@ -518,13 +392,20 @@ function renderizarRadar() {
         return;
     }
 
-    elementos.radarLista.innerHTML = alertas.map(alerta => `
+    const restantes = alertas.length - LIMITE_RADAR;
+
+    elementos.radarLista.innerHTML = alertas.slice(0, LIMITE_RADAR).map(alerta => `
         <div class="radar-alert ${alerta.tipo}">
             <strong>${escaparHTML(alerta.titulo)}</strong>
             <p>${escaparHTML(alerta.descricao)}</p>
             <small>Pedido #${alerta.pedidoId}</small>
         </div>
-    `).join("");
+    `).join("") + (restantes > 0 ? `
+        <p class="empty-state radar-mais">
+            + ${restantes} pedido${restantes === 1 ? "" : "s"} com pendência.
+            <a href="alertas.html">Ver todos os alertas</a>
+        </p>
+    ` : "");
 }
 
 
@@ -539,26 +420,15 @@ const LIMITE_CONVERSAS = 6;
 // Busca as mensagens dos pedidos carregados e agrupa por pedido.
 async function buscarConversasSupabase() {
 
-    const client = obterSupabase();
-
     conversasCache = new Map();
 
-    if (!client || pedidosCache.length === 0) return;
+    if (pedidosCache.length === 0) return;
 
-    // Sem filtro por id_pedido: o RLS já entrega só as mensagens dos pedidos
-    // da empresa. (Uma lista .in() com todos os ids crescia sem limite na URL.)
-    const { data, error } = await client
-        .from("mensagens_pedidos")
-        .select("id, id_pedido, texto, id_remetente, lida, data_envio")
-        .order("data_envio", { ascending: false })
-        .limit(500);
-
-    if (error) {
-        throw error;
-    }
+    // O RLS já entrega só as mensagens dos pedidos da empresa.
+    const recentes = await SERFDados.mensagens.listarRecentes(500);
 
     // Do mais recente para o mais antigo: a primeira de cada pedido é a última.
-    [...(data || [])].reverse().forEach(registrarMensagemNaConversa);
+    [...recentes].reverse().forEach(registrarMensagemNaConversa);
 }
 
 // Atualiza o resumo da conversa de um pedido com uma mensagem.
@@ -583,16 +453,9 @@ function registrarMensagemNaConversa(mensagem) {
     conversasCache.set(mensagem.id_pedido, atual);
 }
 
-// Conversas cujo pedido pertence ao modo ativo, da mais recente à mais antiga.
+// Conversas cujo pedido pertence ao modo, da mais recente à mais antiga.
 function obterConversasDoModo(modo = estado.modo) {
-
-    return [...conversasCache.values()]
-        .map(conversa => ({
-            ...conversa,
-            pedido: pedidosCache.find(pedido => pedido.id === conversa.idPedido)
-        }))
-        .filter(conversa => conversa.pedido?.modos.includes(modo))
-        .sort((a, b) => new Date(b.ultimaData) - new Date(a.ultimaData));
+    return SERFPainel.conversasDoModo(conversasCache, pedidosPorId, modo);
 }
 
 // Empresas "Ambos": mostra no botão do OUTRO modo quantas mensagens
@@ -603,7 +466,7 @@ function atualizarBadgesModo() {
         const modo = botao.dataset.mode;
         const naoLidas = modo === estado.modo
             ? 0
-            : obterConversasDoModo(modo).reduce((total, c) => total + c.naoLidas, 0);
+            : SERFPainel.totalNaoLidas(obterConversasDoModo(modo));
 
         let badge = botao.querySelector(".modo-badge");
 
@@ -693,7 +556,7 @@ function renderizarConversas() {
 
 // Abre o modal/chat do pedido a partir de uma conversa.
 function abrirConversa(idPedido) {
-    const pedido = pedidosCache.find(item => item.id === idPedido);
+    const pedido = obterPedido(idPedido);
 
     if (pedido) {
         abrirDetalhesPedido(pedido);
@@ -703,22 +566,16 @@ function abrirConversa(idPedido) {
 // Marca como lidas as mensagens RECEBIDAS do pedido (UPDATE só em "lida").
 async function marcarMensagensComoLidas(idPedido) {
 
-    const client = obterSupabase();
     const conversa = conversasCache.get(idPedido);
 
-    if (!client || !empresaLogada.authUserId || !conversa || conversa.naoLidas === 0) {
+    if (!empresaLogada.authUserId || !conversa || conversa.naoLidas === 0) {
         return;
     }
 
-    const { error } = await client
-        .from("mensagens_pedidos")
-        .update({ lida: true })
-        .eq("id_pedido", idPedido)
-        .eq("lida", false)
-        .neq("id_remetente", empresaLogada.authUserId);
-
-    if (error) {
-        console.warn("[SERF:Chat] Não foi possível marcar mensagens como lidas:", error);
+    try {
+        await SERFDados.mensagens.marcarComoLidas(idPedido, empresaLogada.authUserId);
+    } catch (erro) {
+        console.warn("[SERF:Chat] Não foi possível marcar mensagens como lidas:", erro);
         return;
     }
 
@@ -733,45 +590,46 @@ let canalMensagens = null;
 
 function assinarMensagensTempoReal() {
 
-    const client = obterSupabase();
+    if (canalMensagens) return;
 
-    if (!client || canalMensagens) return;
+    canalMensagens = SERFDados.mensagens.assinarNovas(payload => {
+        const mensagem = payload.new;
 
-    canalMensagens = client
-        .channel("mensagens-painel")
-        .on(
-            "postgres_changes",
-            { event: "INSERT", schema: "public", table: "mensagens_pedidos" },
-            payload => {
-                const mensagem = payload.new;
+        registrarMensagemNaConversa(mensagem);
 
-                registrarMensagemNaConversa(mensagem);
+        // Chat deste pedido aberto: a mensagem já está sendo lida.
+        const recebida = mensagem.id_remetente !== empresaLogada.authUserId;
+        if (recebida && chat.pedido?.id === mensagem.id_pedido) {
+            marcarMensagensComoLidas(mensagem.id_pedido);
+        }
 
-                // Chat deste pedido aberto: a mensagem já está sendo lida.
-                const recebida = mensagem.id_remetente !== empresaLogada.authUserId;
-                if (recebida && chat.pedido?.id === mensagem.id_pedido) {
-                    marcarMensagensComoLidas(mensagem.id_pedido);
-                }
-
-                renderizarConversas();
-                atualizarIndicadores();
-            }
-        )
-        .subscribe();
+        renderizarConversas();
+        atualizarIndicadores();
+    });
 }
 
 
 /* ==========================================================
    15 — ATUALIZAÇÃO DO DASHBOARD
-   Reúne as funções de renderização da Home.
+   Duas granularidades, para não redesenhar o que não mudou:
+   - atualizarListagem(): tabela + KPIs (busca, status, empresa,
+     indicador clicado — nada disso afeta gráfico, radar ou conversas);
+   - atualizarDashboard(): tudo (dados, modo, período).
    ========================================================== */
+
+function atualizarListagem({ manterPaginacao = false } = {}) {
+
+    if (!manterPaginacao) estado.limiteTabela = LIMITE_LINHAS_TABELA;
+
+    const base = obterPedidosBase();
+
+    renderizarPedidos(SERFPainel.filtrados(base, estado));
+    atualizarIndicadores(base);
+}
 
 function atualizarDashboard() {
 
-    const pedidos = obterPedidosFiltrados();
-
-    renderizarPedidos(pedidos);
-    atualizarIndicadores();
+    atualizarListagem();
     renderizarGrafico();
     renderizarRadar();
     renderizarConversas();

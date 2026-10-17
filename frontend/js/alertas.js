@@ -166,15 +166,9 @@
     }
 
     async function carregar() {
-        const client = obterSupabase();
+        const alertas = await window.SERFDados.pendencias.listarAlertas();
 
-        const { data, error } = await client
-            .from("alertas")
-            .select("codigo, severidade, papel, id_pedido, id_produto, parceiro_nome, produto_nome, valor, quantidade, referencia, vencimento, detalhe");
-
-        if (error) throw error;
-
-        estado.alertas = (data || [])
+        estado.alertas = alertas
             .filter(a => ORDEM_SEVERIDADE[a.severidade] !== undefined)
             .sort(ordenar);
     }
@@ -328,14 +322,6 @@
         });
     }
 
-    function configurarMenu() {
-        const menuToggle = el("menuToggle");
-        menuToggle?.addEventListener("click", () => {
-            const aberto = el("sidebar").classList.toggle("open");
-            menuToggle.setAttribute("aria-expanded", String(aberto));
-        });
-    }
-
     async function exibirEmpresa() {
         const empresa = await window.SERFUtils.obterEmpresaLogada().catch(() => null);
         const nome = empresa?.nome || "Empresa";
@@ -349,7 +335,6 @@
     }
 
     async function iniciar() {
-        configurarMenu();
         configurarFiltros();
         renderizar();
 

@@ -83,89 +83,34 @@ async function sincronizarMensagensChat(idPedido) {
 
 // 1) Histórico de mensagens do pedido
 // desde: só mensagens a partir dessa data (inclusive; o Map descarta repetidas).
-async function buscarMensagensPedido(idPedido, desde = null) {
-
-    const client = obterSupabase();
-
-    if (!client) {
-        throw new Error("Conexão com o banco de dados não estabelecida.");
-    }
-
-    let consulta = client
-        .from("mensagens_pedidos")
-        .select("id, id_pedido, texto, id_remetente, lida, data_envio")
-        .eq("id_pedido", idPedido);
-
-    if (desde) {
-        consulta = consulta.gte("data_envio", desde);
-    }
-
-    const { data, error } = await consulta.order("data_envio", { ascending: true });
-
-    if (error) {
-        throw error;
-    }
-
-    return data || [];
+function buscarMensagensPedido(idPedido, desde = null) {
+    return SERFDados.mensagens.listarDoPedido(idPedido, desde);
 }
 
 // 2) Envio de uma nova mensagem
 async function enviarMensagemPedido(idPedido, texto) {
 
-    const client = obterSupabase();
-
-    if (!client) {
-        throw new Error("Conexão com o banco de dados não estabelecida.");
-    }
-
     if (!empresaLogada.authUserId) {
         throw new Error("Faça login para enviar mensagens.");
     }
 
-    const { data, error } = await client
-        .from("mensagens_pedidos")
-        .insert({
-            id_pedido: idPedido,
-            texto,
-            id_remetente: empresaLogada.authUserId
-        })
-        .select("id, id_pedido, texto, id_remetente, lida, data_envio")
-        .single();
-
-    if (error) {
-        throw error;
-    }
-
-    return data;
+    return SERFDados.mensagens.enviar(idPedido, empresaLogada.authUserId, texto);
 }
 
 // 3) Tempo real: novas mensagens do pedido aparecem sem recarregar
 function assinarChatTempoReal(idPedido) {
 
-    const client = obterSupabase();
-
-    if (!client) return null;
-
     atualizarStatusChat("Conectando...", "");
 
-    return client
-        .channel(`chat-pedido-${idPedido}`)
-        .on(
-            "postgres_changes",
-            {
-                event: "INSERT",
-                schema: "public",
-                table: "mensagens_pedidos",
-                filter: `id_pedido=eq.${idPedido}`
-            },
-            payload => {
-                // Ignora eventos que chegarem após trocar ou fechar o pedido.
-                if (chat.pedido?.id !== idPedido) return;
+    return SERFDados.mensagens.assinarDoPedido(
+        idPedido,
+        payload => {
+            // Ignora eventos que chegarem após trocar ou fechar o pedido.
+            if (chat.pedido?.id !== idPedido) return;
 
-                adicionarMensagens([payload.new]);
-            }
-        )
-        .subscribe(status => {
+            adicionarMensagens([payload.new]);
+        },
+        status => {
             if (chat.pedido?.id !== idPedido) return;
 
             if (status === "SUBSCRIBED") {
@@ -175,7 +120,8 @@ function assinarChatTempoReal(idPedido) {
                 chat.realtimeAtivo = false;
                 atualizarStatusChat("Tempo real indisponível", "offline");
             }
-        });
+        }
+    );
 }
 
 function atualizarStatusChat(texto, classe) {
@@ -197,23 +143,77 @@ function formatarHorarioMensagem(timestamp) {
     });
 }
 
-// Guarda as mensagens (sem repetir) e redesenha a conversa.
-function adicionarMensagens(lista) {
-    lista.forEach(mensagem => {
-        chat.mensagens.set(mensagem.id, mensagem);
-    });
+// Instante da mensagem em ms (ordenação e anexação incremental)
+const instanteDaMensagem = mensagem => Date.parse(mensagem.data_envio) || 0;
 
-    renderizarMensagens();
+function htmlDaMensagem(mensagem, nomeParceiro) {
+
+    const minha =
+        empresaLogada.authUserId !== null &&
+        mensagem.id_remetente === empresaLogada.authUserId;
+
+    return `
+            <div class="chat-balao ${minha ? "enviada" : "recebida"}">
+                <span class="chat-autor">
+                    ${minha ? "Você" : escaparHTML(nomeParceiro)}
+                </span>
+                <p>${escaparHTML(mensagem.texto)}</p>
+                <small>${formatarHorarioMensagem(mensagem.data_envio)}</small>
+            </div>
+        `;
+}
+
+// Guarda as mensagens (sem repetir) e atualiza a conversa.
+// Caso comum (mensagem nova chegando no fim): só ANEXA os balões novos.
+// Antes, cada mensagem reordenava e redesenhava o histórico inteiro
+// (custo quadrático: 300 mensagens levavam segundos).
+function adicionarMensagens(lista) {
+
+    const novas = lista.filter(mensagem => !chat.mensagens.has(mensagem.id));
+    lista.forEach(mensagem => chat.mensagens.set(mensagem.id, mensagem));
+
+    if (novas.length === 0) return;
+
+    const container = elementos.chatMensagens;
+    const desenhadas = Number(container.dataset.desenhadas ?? -1);
+    const ultima = Number(container.dataset.ultima ?? Infinity);
+
+    novas.sort((a, b) => instanteDaMensagem(a) - instanteDaMensagem(b));
+
+    // Só anexa se a tela mostra exatamente as mensagens anteriores
+    // e as novas vêm depois da última exibida; senão, redesenha tudo.
+    const podeAnexar =
+        desenhadas > 0 &&
+        desenhadas === chat.mensagens.size - novas.length &&
+        instanteDaMensagem(novas[0]) >= ultima;
+
+    if (!podeAnexar) {
+        renderizarMensagens();
+        return;
+    }
+
+    const parceiro = parceiroDoPedido(chat.pedido);
+    container.insertAdjacentHTML("beforeend", novas.map(m => htmlDaMensagem(m, parceiro.nome)).join(""));
+
+    container.dataset.desenhadas = String(chat.mensagens.size);
+    container.dataset.ultima = String(instanteDaMensagem(novas[novas.length - 1]));
+
+    // Mantém a conversa rolada até a mensagem mais recente.
+    container.scrollTop = container.scrollHeight;
 }
 
 function renderizarMensagens() {
 
+    const container = elementos.chatMensagens;
     const mensagens = [...chat.mensagens.values()].sort(
-        (a, b) => new Date(a.data_envio) - new Date(b.data_envio)
+        (a, b) => instanteDaMensagem(a) - instanteDaMensagem(b)
     );
 
+    container.dataset.desenhadas = String(mensagens.length);
+    container.dataset.ultima = String(mensagens.length ? instanteDaMensagem(mensagens[mensagens.length - 1]) : 0);
+
     if (mensagens.length === 0) {
-        elementos.chatMensagens.innerHTML = `
+        container.innerHTML = `
             <p class="chat-vazio">
                 Nenhuma mensagem ainda. Envie a primeira para iniciar a negociação.
             </p>
@@ -224,23 +224,8 @@ function renderizarMensagens() {
 
     const parceiro = parceiroDoPedido(chat.pedido);
 
-    elementos.chatMensagens.innerHTML = mensagens.map(mensagem => {
-
-        const minha =
-            empresaLogada.authUserId !== null &&
-            mensagem.id_remetente === empresaLogada.authUserId;
-
-        return `
-            <div class="chat-balao ${minha ? "enviada" : "recebida"}">
-                <span class="chat-autor">
-                    ${minha ? "Você" : escaparHTML(parceiro.nome)}
-                </span>
-                <p>${escaparHTML(mensagem.texto)}</p>
-                <small>${formatarHorarioMensagem(mensagem.data_envio)}</small>
-            </div>
-        `;
-    }).join("");
+    container.innerHTML = mensagens.map(mensagem => htmlDaMensagem(mensagem, parceiro.nome)).join("");
 
     // Mantém a conversa rolada até a mensagem mais recente.
-    elementos.chatMensagens.scrollTop = elementos.chatMensagens.scrollHeight;
+    container.scrollTop = container.scrollHeight;
 }

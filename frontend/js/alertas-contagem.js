@@ -19,21 +19,18 @@
 
     async function atualizarContagem() {
         const contadores = document.querySelectorAll("[data-alertas-contagem]");
-        const client = window.obterSupabase ? window.obterSupabase() : null;
 
-        if (contadores.length === 0 || !client) return;
+        if (contadores.length === 0 || !window.SERFDados?.pendencias) return;
 
         // Sessão validada pelo auth-check.js (o RLS filtra pela empresa).
         if (!(await window.serfSessao)) return;
 
-        const { data, error } = await client
-            .from("alertas")
-            .select("severidade")
-            .in("severidade", SEVERIDADES_DE_ACAO);
-
-        if (error) {
+        let data;
+        try {
+            data = await window.SERFDados.pendencias.severidadesDosAlertas(SEVERIDADES_DE_ACAO);
+        } catch (erro) {
             // Sem a migration 015 o menu continua funcionando, só sem número.
-            console.warn("[SERF:Alertas] Contagem indisponível:", error.message);
+            console.warn("[SERF:Alertas] Contagem indisponível:", erro.message);
             return;
         }
 

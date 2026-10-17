@@ -1137,13 +1137,7 @@
             redimensionamento = setTimeout(renderizarTudo, 200);
         });
 
-        // Menu lateral em telas menores
-        const menuToggle = el("menuToggle");
-        const sidebar = el("sidebar");
-        menuToggle?.addEventListener("click", () => {
-            const aberto = sidebar.classList.toggle("open");
-            menuToggle.setAttribute("aria-expanded", String(aberto));
-        });
+        // Menu lateral em telas menores: js/ui/layout.js
     }
 
     function exibirEmpresa() {

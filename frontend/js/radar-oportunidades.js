@@ -124,18 +124,9 @@
     }
 
     async function carregar() {
-        const client = obterSupabase();
+        const lista = await window.SERFDados.pendencias.listarOportunidades(40);
 
-        const { data, error } = await client
-            .from("oportunidades")
-            .select("*")
-            .order("relevancia", { ascending: false })
-            .order("referencia", { ascending: false, nullsFirst: false })
-            .limit(40);
-
-        if (error) throw error;
-
-        estado.oportunidades = semRepeticao((data || []).filter(o => TIPOS[o.tipo]));
+        estado.oportunidades = semRepeticao(lista.filter(o => TIPOS[o.tipo]));
         estado.proximo = 0;
     }
 
@@ -249,10 +240,18 @@
         cartao.style.top = `${Math.round(topo)}px`;
     }
 
+    // Compara as posições FINAIS (left/top definidos em posicionarCartao), não as
+    // da tela: durante a animação de entrada o cartão ainda está deslocado.
+    function caixaFinal(cartao) {
+        const esquerda = parseFloat(cartao.style.left) || 0;
+        const topo = parseFloat(cartao.style.top) || 0;
+        return { esquerda, topo, direita: esquerda + cartao.offsetWidth, base: topo + cartao.offsetHeight };
+    }
+
     function seSobrepoem(a, b) {
-        const ra = a.getBoundingClientRect();
-        const rb = b.getBoundingClientRect();
-        return ra.left < rb.right && rb.left < ra.right && ra.top < rb.bottom && rb.top < ra.bottom;
+        const ra = caixaFinal(a);
+        const rb = caixaFinal(b);
+        return ra.esquerda < rb.direita && rb.esquerda < ra.direita && ra.topo < rb.base && rb.topo < ra.base;
     }
 
     function retirarCartao(cartao) {
@@ -423,6 +422,12 @@
        6. INICIALIZAÇÃO
        ===================================================================== */
 
+    // Identidade do conteúdo: se a recarga trouxer o mesmo, nada é redesenhado
+    const assinatura = () => `${estado.carregamento}|${estado.oportunidades
+        .map(o => `${chaveDe(o)}:${o.tipo}:${o.relevancia}:${o.preco}:${o.quantidade}:${o.referencia}:${o.detalhe}`).join(",")}`;
+
+    let ultimaAssinatura = null;
+
     async function recarregar() {
         try {
             await carregar();
@@ -433,6 +438,10 @@
             estado.carregamento = "erro";
             estado.oportunidades = [];
         }
+
+        const atual = assinatura();
+        if (atual === ultimaAssinatura) return;   // mesmo conteúdo: mantém pontos, lista e ciclo
+        ultimaAssinatura = atual;
 
         desenharPontos();
         renderizarResumo();
@@ -468,8 +477,9 @@
                 .observe(raiz);
         }
 
+        // Só busca de novo se alguém pode ver o radar (aba visível e na tela)
         setInterval(() => {
-            if (!document.hidden) recarregar();
+            if (!estado.pausas.has("oculto") && !estado.pausas.has("fora-da-tela")) recarregar();
         }, RECARGA_MS);
     }
 

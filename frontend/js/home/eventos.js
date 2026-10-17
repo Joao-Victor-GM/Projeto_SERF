@@ -21,15 +21,7 @@
 function configurarNavegacao() {
 
     // Abre ou recolhe o menu em telas menores.
-    elementos.menuToggle.addEventListener("click", () => {
-
-        const aberto = elementos.sidebar.classList.toggle("open");
-
-        elementos.menuToggle.setAttribute(
-            "aria-expanded",
-            String(aberto)
-        );
-    });
+    // Botão ☰ do celular: tratado por js/ui/layout.js (todas as páginas)
 
     // Mantém os links internos sem gerar navegação inválida.
     document.querySelectorAll(".nav-item").forEach(link => {
@@ -81,6 +73,9 @@ function configurarNavegacao() {
    Atualiza os registros quando o usuário muda critérios.
    ========================================================== */
 
+// Espera após a última tecla antes de filtrar (digitação contínua = 1 render)
+const ATRASO_BUSCA_MS = 150;
+
 function configurarFiltros() {
 
     elementos.filtroPeriodo.addEventListener("change", evento => {
@@ -88,19 +83,24 @@ function configurarFiltros() {
         atualizarDashboard();
     });
 
+    // Status e empresa afetam só a listagem (gráfico/radar/conversas não mudam)
     elementos.filtroStatus.addEventListener("change", evento => {
         estado.status = evento.target.value;
-        atualizarDashboard();
+        atualizarListagem();
     });
 
     elementos.filtroEmpresa.addEventListener("change", evento => {
         estado.empresa = evento.target.value;
-        atualizarDashboard();
+        atualizarListagem();
     });
 
+    // Busca com debounce: uma renderização por pausa na digitação,
+    // não uma por tecla. Só tabela e KPIs dependem da busca.
+    let buscaAgendada = null;
     elementos.buscaGlobal.addEventListener("input", evento => {
         estado.busca = evento.target.value.trim().toLowerCase();
-        atualizarDashboard();
+        clearTimeout(buscaAgendada);
+        buscaAgendada = setTimeout(atualizarListagem, ATRASO_BUSCA_MS);
     });
 
     // Restaura os filtros para os valores iniciais.
@@ -158,7 +158,7 @@ function configurarIndicadores() {
                 );
             });
 
-            renderizarPedidos(obterPedidosFiltrados());
+            atualizarListagem();
         });
     });
 }
@@ -195,14 +195,15 @@ function configurarAcoes() {
 
         if (!botao) return;
 
-        const pedido = pedidosCache.find(
-            item => item.id === Number(botao.dataset.pedido)
-        );
+        const pedido = obterPedido(Number(botao.dataset.pedido));
 
         if (pedido) {
             abrirDetalhesPedido(pedido);
         }
     });
+
+    // Tabela paginada: acrescenta mais linhas sem refiltrar o resto do painel
+    elementos.btnMaisPedidos?.addEventListener("click", mostrarMaisPedidos);
 
     // Acesso ao futuro módulo de mensagens.
     // "Ver todas": abre a conversa mais recente com mensagens não lidas

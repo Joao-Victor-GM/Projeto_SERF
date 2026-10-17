@@ -15,7 +15,7 @@
 
 /* ==========================================================
    01 — DEPENDÊNCIAS COMPARTILHADAS
-   obterSupabase() vem de supabase-client.js;
+   Dados: SERFDados (js/dados/); regras: SERFPainel (js/dominio/);
    formatação e escape de texto vêm de utils.js.
    ========================================================== */
 
@@ -35,6 +35,18 @@ const {
 
 // Pedidos do Supabase já convertidos para o formato da interface.
 let pedidosCache = [];
+
+// Índice id → pedido (busca O(1) em Realtime, conversas, links e tabela).
+// Sempre atualizado junto com pedidosCache (ver indexarPedidos).
+let pedidosPorId = new Map();
+
+function indexarPedidos() {
+    pedidosPorId = new Map(pedidosCache.map(pedido => [pedido.id, pedido]));
+}
+
+function obterPedido(idPedido) {
+    return pedidosPorId.get(idPedido);
+}
 
 // Cadastros da empresa logada nas tabelas usuarios e fornecedores.
 // Uma empresa com perfil "Ambos" possui os dois identificadores.
@@ -69,6 +81,7 @@ const estado = {
     empresa: "todas",
     busca: "",
     indicador: null,
+    limiteTabela: 100,          // linhas desenhadas na tabela (LIMITE_LINHAS_TABELA)
     carregamento: "carregando", // "carregando" | "ok" | "erro"
     mensagemErro: ""
 };
@@ -92,6 +105,7 @@ const elementos = {
     btnLimparFiltros: document.getElementById("btnLimparFiltros"),
     buscaGlobal: document.getElementById("buscaGlobal"),
     pedidosTableBody: document.getElementById("pedidosTableBody"),
+    btnMaisPedidos: document.getElementById("btnMaisPedidos"),
     totalPedidos: document.getElementById("totalPedidos"),
     kpiAbertos: document.getElementById("kpiAbertos"),
     kpiRespostas: document.getElementById("kpiRespostas"),
@@ -139,23 +153,6 @@ const elementos = {
    05 — FUNÇÕES AUXILIARES
    Cálculos de datas e contexto da negociação.
    ========================================================== */
-
-// Converte uma data ISO para o início do dia local.
-function converterData(dataISO) {
-    return new Date(`${dataISO}T00:00:00`);
-}
-
-// Calcula dias decorridos desde uma data.
-function calcularDias(dataISO) {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const data = converterData(dataISO);
-
-    return Math.floor(
-        (hoje.getTime() - data.getTime()) / 86400000
-    );
-}
 
 // Empresa do outro lado da negociação, conforme o modo ativo:
 // ao comprar, o fornecedor; ao vender, o comprador.
@@ -252,31 +249,8 @@ function souFornecedorDoPedido(pedido) {
 }
 
 // UPDATE do status na tabela pedidos (permitido ao fornecedor pelo RLS).
-async function atualizarStatusPedido(idPedido, novoStatus) {
-
-    const client = obterSupabase();
-
-    if (!client) {
-        throw new Error("Conexão com o banco de dados não estabelecida.");
-    }
-
-    const { data, error } = await client
-        .from("pedidos")
-        .update({ status_pedido: novoStatus })
-        .eq("id_pedido", idPedido)
-        .select("id_pedido, status_pedido, data_atualizacao, data_entrega")
-        .maybeSingle();
-
-    if (error) {
-        throw error;
-    }
-
-    // Com RLS, um UPDATE sem permissão não gera erro: apenas não altera linhas.
-    if (!data) {
-        throw new Error("Você não tem permissão para alterar este pedido.");
-    }
-
-    return data;
+function atualizarStatusPedido(idPedido, novoStatus) {
+    return SERFDados.pedidos.atualizarStatus(idPedido, novoStatus);
 }
 
 // Recorte feito NO SERVIDOR: pedidos movimentados dentro do maior período
@@ -291,31 +265,17 @@ function janelaDoPainelDias() {
 
 async function buscarPedidosSupabase() {
 
-    const client = obterSupabase();
-
-    if (!client) {
-        throw new Error("Conexão com o banco de dados não estabelecida.");
-    }
-
     await identificarEmpresaLogada();
 
     const desde = new Date(Date.now() - janelaDoPainelDias() * 86400000).toISOString();
-    const emAberto = window.SERFPedidos.STATUS_EM_ABERTO.join(",");
+    const linhas = await SERFDados.pedidos.consultarPainel({ desde, limite: LIMITE_PEDIDOS_PAINEL });
 
-    const { data, error } = await window.SERFPedidos.consultar(client)
-        .or(`data_atualizacao.gte."${desde}",status_pedido.in.(${emAberto})`)
-        .order("data_atualizacao", { ascending: false })
-        .limit(LIMITE_PEDIDOS_PAINEL);
-
-    if (error) {
-        throw error;
-    }
-
-    if ((data || []).length >= LIMITE_PEDIDOS_PAINEL) {
+    if (linhas.length >= LIMITE_PEDIDOS_PAINEL) {
         console.warn(`[SERF:Home] Limite de ${LIMITE_PEDIDOS_PAINEL} pedidos atingido: os mais antigos não aparecem no painel.`);
     }
 
-    pedidosCache = (data || []).map(normalizarPedido);
+    pedidosCache = linhas.map(normalizarPedido);
+    indexarPedidos();
 
     console.info(`[SERF:Home] ${pedidosCache.length} pedido(s) carregado(s) do Supabase.`);
 
@@ -325,22 +285,19 @@ async function buscarPedidosSupabase() {
 // Pedido fora do recorte do painel (ex.: link antigo da página Empresas).
 async function buscarPedidoPorId(idPedido) {
 
-    const client = obterSupabase();
-    if (!client) return null;
-
-    const { data, error } = await window.SERFPedidos.consultar(client)
-        .eq("id_pedido", idPedido)
-        .maybeSingle();
-
-    if (error) {
-        console.warn(`[SERF:Home] Falha ao buscar o pedido #${idPedido}:`, error);
+    let linha;
+    try {
+        linha = await SERFDados.pedidos.buscarPorId(idPedido);
+    } catch (erro) {
+        console.warn(`[SERF:Home] Falha ao buscar o pedido #${idPedido}:`, erro);
         return null;
     }
 
-    if (!data) return null;
+    if (!linha) return null;
 
-    const pedido = normalizarPedido(data);
+    const pedido = normalizarPedido(linha);
     pedidosCache.push(pedido);
+    pedidosPorId.set(pedido.id, pedido);
 
     return pedido;
 }

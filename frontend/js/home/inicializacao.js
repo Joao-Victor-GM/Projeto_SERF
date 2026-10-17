@@ -69,8 +69,7 @@ async function abrirPedidoDaUrl() {
 // Busca no servidor se estiver fora do recorte do painel. Retorna false se
 // a empresa não participa do pedido.
 async function abrirPedidoPorId(idPedido) {
-    const pedido = pedidosCache.find(item => item.id === idPedido)
-        || await buscarPedidoPorId(idPedido);
+    const pedido = obterPedido(idPedido) || await buscarPedidoPorId(idPedido);
 
     if (!pedido) {
         console.warn(`[SERF:Home] Pedido #${idPedido} não encontrado para esta empresa.`);

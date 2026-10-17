@@ -149,6 +149,70 @@ Renomear um trigger muda o comportamento.
 
 ## Front-end
 
+### Camadas
+
+Sem build e sem framework, mas com responsabilidades separadas. A regra de
+dependência aponta sempre para dentro: apresentação → domínio/dados → núcleo.
+
+```
+apresentação   js/home/*.js, alertas.js, radar-oportunidades.js, ...   (DOM, eventos)
+     │                │
+     ▼                ▼
+domínio        js/dominio/painel.js     regras puras: sem DOM, sem Supabase, testadas em Node
+dados          js/dados/*.js            ÚNICA camada que fala com o Supabase (repositórios)
+     │
+     ▼
+núcleo         supabase-client.js, utils.js, pedidos.js, auth-check.js
+layout         js/ui/layout.js          menu lateral único + botão ☰ de todas as páginas internas
+```
+
+| Camada | Pode | Não pode |
+|---|---|---|
+| Apresentação | ler/escrever DOM, chamar domínio e repositórios | chamar `obterSupabase()` / `.from()` |
+| Domínio (`SERFPainel`) | calcular a partir dos parâmetros | tocar DOM, rede, `estado` global, `new Date()` implícito |
+| Dados (`SERFDados.*`) | consultar, gravar e assinar Realtime | conhecer elementos da tela |
+
+Repositórios: `SERFDados.pedidos` (painel, por id, status, cancelamento,
+Realtime), `SERFDados.mensagens` (chat), `SERFDados.financeiro` (Realtime de
+pagamento/NF-e), `SERFDados.pendencias` (alertas e oportunidades). Relatórios,
+Perfil, Empresas, Catálogo, pagamentos.js e notas.js ainda consultam o Supabase
+direto: migrar quando forem alterados.
+
+**Menu lateral:** os itens ficam em `ITENS` (js/ui/layout.js). Cada página só
+declara `<nav class="sidebar-nav" data-pagina-atual="...">` seguido do script.
+Item novo = uma linha em `ITENS`.
+
+### Desempenho
+
+Medido com `npm run test:desempenho` (Home com 3.000 pedidos e 2.000 mensagens;
+mesma máquina, antes × depois da refatoração):
+
+| Interação | Antes | Depois |
+|---|---|---|
+| Digitar 10 letras na busca | 489 ms | 7,5 ms |
+| Trocar filtro de status | 39,6 ms | 5,0 ms |
+| Alternar Comprar/Vender | 59,9 ms | 20,7 ms |
+| Evento Realtime (1 pedido) | 23,6 ms | 6,0 ms |
+| Chat: 300 mensagens chegando | 3.339 ms | 38,9 ms |
+
+Regras que mantêm esses números (não desfazer sem medir):
+
+- **Tabela paginada** (100 linhas + "Mostrar mais"): desenhar todas as linhas
+  era 90% do custo de cada filtro.
+- **Redesenho por escopo:** busca, status, empresa e indicador chamam
+  `atualizarListagem()` (tabela + KPIs); só dados, modo e período chamam
+  `atualizarDashboard()` (tudo).
+- **Busca com debounce** de 150 ms; texto de busca pré-calculado por pedido.
+- **Índice `pedidosPorId`** (Map) em vez de `pedidosCache.find` — use
+  `obterPedido(id)`; ao alterar `pedidosCache`, chame `indexarPedidos()`.
+- **Chat incremental:** mensagens novas são anexadas; só redesenha tudo se
+  chegar mensagem fora de ordem.
+- **Radar de pedidos** limitado a 8 pendências (o resto em alertas.html).
+- **Radar de Oportunidades:** não recarrega fora da tela/aba oculta, não
+  redesenha se nada mudou; sem `backdrop-filter`/`filter` sobre animação.
+- **Banco:** `oportunidades` usa `fornecedores_do_nicho()` (017) em vez de
+  `fornecedores_vitrine`, que agrega todos os pedidos da plataforma.
+
 | Arquivo | Papel |
 |---|---|
 | `js/supabase-client.js` | Cria o cliente único (`window.supabaseClient`, `obterSupabase()`) |
@@ -156,6 +220,9 @@ Renomear um trigger muda o comportamento.
 | `js/pedidos.js` | Leitura da view `pedidos_painel` e normalização canônica do pedido |
 | `js/auth-check.js` | Protege páginas internas; expõe `window.serfSessao`; logout via `[data-logout]` |
 | `js/home/*.js` | Home dividida em 7 scripts (ver abaixo) |
+| `js/dominio/painel.js` | Regras puras do painel (filtros, KPIs, gráfico, radar, conversas) |
+| `js/dados/*.js` | Repositórios: única camada que acessa o Supabase |
+| `js/ui/layout.js` | Menu lateral único e botão ☰ |
 | `js/alertas.js` | Página de alertas: textos por tipo, filtros, agrupamento |
 | `js/alertas-contagem.js` | Contador de alertas no menu lateral (todas as páginas internas) |
 | `js/radar-oportunidades.js` | Radar de Oportunidades no topo da Home |
@@ -206,7 +273,10 @@ páginas e teste o fluxo completo (login → pedido → pagamento → NF → env
 - Unificar `usuarios` e `fornecedores` em `empresas` + papéis.
 - Itens de pedido (vários produtos por pedido / NF).
 - Relatórios agregados no banco (RPC), quando o volume de pedidos crescer.
-- `dashboard.js` (~780 linhas) ainda pode ser dividido (gráfico/radar/conversas).
+- Migrar Relatórios, Perfil, Empresas, Catálogo, pagamentos.js e notas.js para
+  a camada de dados (`SERFDados`), como a Home.
+- Realtime com `filter` por empresa (hoje o RLS filtra no servidor, mas cada
+  mudança é avaliada para todos os assinantes).
 - Pagamento real: a confirmação deve vir de webhook do gateway, nunca do comprador.
 - Validar o CNPJ no servidor (Edge Function) em vez de confiar no navegador.
 
@@ -219,6 +289,7 @@ npm test                         # tudo
 npm run test:banco               # migrations + RLS + regras (PostgreSQL em memória)
 npm run test:unit                # utils.js e pedidos.js
 npm run test:e2e                 # páginas no navegador com Supabase simulado
+npm run test:desempenho          # benchmark da Home (fora do CI: mede tempo)
 npm run servidor                 # abre o front-end em http://localhost:4173
 ```
 
@@ -234,7 +305,8 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 
 Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
 depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
-(view `pedidos_painel`), 015 (view `alertas`) e 016 (view `oportunidades`). Publicar as páginas antes delas
+(view `pedidos_painel`), 015 (view `alertas`), 016 (view `oportunidades`) e
+017 (desempenho do radar; sem ela tudo funciona, só mais lento). Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
 mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
 "Radar indisponível" (o resto funciona).

@@ -23,20 +23,14 @@ let canalPagamentos = null;
 
 function assinarPagamentosTempoReal() {
 
-    const client = obterSupabase();
+    if (canalPagamentos || !window.SERFPagamentos) return;
 
-    if (!client || canalPagamentos || !window.SERFPagamentos) return;
-
-    canalPagamentos = client
-        .channel("pagamentos-painel")
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "pagamentos" },
+    canalPagamentos = SERFDados.financeiro.assinarPagamentos(
             payload => {
                 const registro = payload.new;
                 if (!registro?.id_pedido) return;
 
-                const pedido = pedidosCache.find(item => item.id === registro.id_pedido);
+                const pedido = obterPedido(registro.id_pedido);
                 if (!pedido) return;
 
                 pedido.pagamento = registro;
@@ -47,8 +41,7 @@ function assinarPagamentosTempoReal() {
                     renderizarNota(pedido);
                 }
             }
-        )
-        .subscribe();
+    );
 }
 
 // NF-e em tempo real: o comprador vê a nota assim que é emitida.
@@ -56,20 +49,14 @@ let canalNotas = null;
 
 function assinarNotasTempoReal() {
 
-    const client = obterSupabase();
+    if (canalNotas || !window.SERFNotas) return;
 
-    if (!client || canalNotas || !window.SERFNotas) return;
-
-    canalNotas = client
-        .channel("notas-painel")
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "notas_fiscais" },
+    canalNotas = SERFDados.financeiro.assinarNotas(
             payload => {
                 const registro = payload.new;
                 if (!registro?.id_pedido) return;
 
-                const pedido = pedidosCache.find(item => item.id === registro.id_pedido);
+                const pedido = obterPedido(registro.id_pedido);
                 if (!pedido) return;
 
                 // Mantém a nota mais recente do pedido
@@ -82,25 +69,16 @@ function assinarNotasTempoReal() {
                     renderizarGestaoStatus(pedido);
                 }
             }
-        )
-        .subscribe();
+    );
 }
 
 function assinarPedidosTempoReal() {
 
-    const client = obterSupabase();
+    if (canalPedidos) return;
 
-    if (!client || canalPedidos) return;
-
-    canalPedidos = client
-        .channel("pedidos-painel")
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "pedidos" },
+    canalPedidos = SERFDados.pedidos.assinarMudancas(
             payload => {
-                const pedido = pedidosCache.find(
-                    item => item.id === payload.new?.id_pedido
-                );
+                const pedido = obterPedido(payload.new?.id_pedido);
 
                 // Mudança de status de um pedido já carregado: atualiza no lugar.
                 if (payload.eventType === "UPDATE" && pedido) {
@@ -121,6 +99,5 @@ function assinarPedidosTempoReal() {
                 clearTimeout(recargaPedidosAgendada);
                 recargaPedidosAgendada = setTimeout(recarregarPedidos, 400);
             }
-        )
-        .subscribe();
+    );
 }

@@ -48,58 +48,9 @@
             MENU PRINCIPAL
         </div>
 
-        <nav class="sidebar-nav" aria-label="Menu principal">
-
-            <a href="home.html#visao-geral" class="nav-item"
-               data-page="home">
-                <span class="nav-icon">▦</span>
-                <span>Home</span>
-            </a>
-
-            <a href="empresas.html" class="nav-item active"
-               data-page="empresas">
-                <span class="nav-icon">▤</span>
-                <span>Empresas</span>
-            </a>
-
-            <a href="catalogo.html" class="nav-item"
-               data-page="produtos">
-                <span class="nav-icon">▣</span>
-                <span>Catálogo</span>
-            </a>
-
-            <a href="home.html#pedidos" class="nav-item"
-               data-page="pedidos">
-                <span class="nav-icon">☷</span>
-                <span>Pedidos</span>
-            </a>
-
-            <a href="home.html#mensagens" class="nav-item"
-               data-page="mensagens">
-                <span class="nav-icon">✉</span>
-                <span>Mensagens</span>
-            </a>
-
-            <a href="relatorios.html" class="nav-item"
-               data-page="relatorios">
-                <span class="nav-icon">▥</span>
-                <span>Relatórios</span>
-            </a>
-
-            <a href="alertas.html" class="nav-item"
-               data-page="alertas">
-                <span class="nav-icon">⚑</span>
-                <span>Alertas</span>
-                <span class="nav-count" data-alertas-contagem hidden></span>
-            </a>
-
-            <a href="home.html#radar-oportunidades" class="nav-item"
-               data-page="oportunidades">
-                <span class="nav-icon">◎</span>
-                <span>Oportunidades</span>
-            </a>
-
-        </nav>
+        <nav class="sidebar-nav" aria-label="Menu principal" data-pagina-atual="empresas"></nav>
+        <!-- Menu único de todas as páginas internas (js/ui/layout.js) -->
+        <script src="../../js/ui/layout.js"></script>
 
         <div class="sidebar-footer">
             <span>S.E.R.F. • 2026</span>
@@ -290,6 +241,9 @@
     <script src="../../js/catalogo.js" defer></script>
     <script src="../../js/empresas.js" defer></script>
 
+    <!-- Camada de dados (alertas) usada pelo contador do menu -->
+    <script src="../../js/dados/base.js" defer></script>
+    <script src="../../js/dados/pendencias.repositorio.js" defer></script>
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>
 

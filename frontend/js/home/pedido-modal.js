@@ -200,14 +200,9 @@ async function cancelarPedidoComoComprador() {
     botao.textContent = "Cancelando...";
 
     try {
-        const { data, error } = await obterSupabase().rpc("cancelar_pedido_comprador", {
-            p_id_pedido: pedido.id,
-            p_motivo: motivo || null
-        });
+        const registro = await SERFDados.pedidos.cancelarComoComprador(pedido.id, motivo);
 
-        if (error) throw error;
-
-        aplicarStatusPedido(pedido, Array.isArray(data) ? data[0] : data);
+        aplicarStatusPedido(pedido, registro);
 
         renderizarResumoPedido(pedido);
         renderizarGestaoStatus(pedido);
@@ -399,6 +394,7 @@ async function abrirDetalhesPedido(pedido) {
     elementos.modalPedidoSubtitulo.textContent = `Realizado em ${formatarData(pedido.criadoEm)}`;
     elementos.chatParceiroNome.textContent = parceiro.nome;
     elementos.chatMensagens.innerHTML = `<p class="chat-vazio">Carregando mensagens...</p>`;
+    delete elementos.chatMensagens.dataset.desenhadas;   // nova conversa: redesenho completo
     elementos.chatInput.value = "";
 
     renderizarResumoPedido(pedido);
@@ -447,7 +443,7 @@ async function abrirDetalhesPedido(pedido) {
 
 function fecharCanalChat() {
     if (chat.canal) {
-        obterSupabase()?.removeChannel(chat.canal);
+        SERFDados.base.cancelarAssinatura(chat.canal);
         chat.canal = null;
     }
 
