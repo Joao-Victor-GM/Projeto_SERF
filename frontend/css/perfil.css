@@ -313,18 +313,25 @@
 .thermometer-step {
     border-radius: 2px;
     opacity: 0.25;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .thermometer-step.step-1 { background: #EF4444; }
 .thermometer-step.step-2 { background: #F97316; }
 .thermometer-step.step-3 { background: #FBBF24; }
 .thermometer-step.step-4 { background: #84CC16; }
+.thermometer-step.step-5 { background: var(--status-concluido); }
 
-.thermometer-step.step-5 {
-    background: var(--status-concluido);
+/* Nível atual da empresa (definido pelo perfil.js) */
+.thermometer-step.atual {
     opacity: 1;
     transform: scaleY(1.6);
-    box-shadow: 0 0 10px rgba(21, 128, 61, 0.45);
+    box-shadow: 0 0 10px rgba(8, 43, 76, 0.25);
+}
+
+.reputation-level.sem-historico {
+    background: #E2E8F0;
+    color: var(--serf-texto-secundario);
 }
 
 .reputation-stats {
@@ -723,6 +730,16 @@
 
 .form-two-cols { grid-template-columns: 1fr 1fr; }
 .form-three-cols { grid-template-columns: 1fr 1fr 1fr; }
+
+.form-two-cols[hidden],
+.form-three-cols[hidden] {
+    display: none;
+}
+
+.selo-icone.neutro {
+    background: #E2E8F0;
+    color: var(--serf-texto-secundario);
+}
 
 .campo-form input[readonly] {
     background: var(--serf-fundo);

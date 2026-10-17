@@ -361,6 +361,32 @@ a {
     border-radius: 5px;
 }
 
+/* Botão Sair da barra superior (home, catálogo e perfil) */
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid #FECACA;
+    border-radius: 5px;
+    background: #FFFFFF;
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: #DC2626;
+    color: #FFFFFF;
+}
+
+/* Empresas só compradoras ou só fornecedoras não alternam de modo */
+.modo-switch[hidden] {
+    display: none;
+}
+
 .modo-btn {
     min-width: 68px;
     height: 30px;
@@ -904,6 +930,22 @@ a {
 
 .conversation-item:hover {
     background: #FAFCFE;
+}
+
+/* Conversa clicável: abre o chat do pedido */
+.conversation-item[data-conversa] {
+    cursor: pointer;
+}
+
+.conversation-item[data-conversa]:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: -2px;
+}
+
+.conversation-pedido {
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 400;
 }
 
 .conversation-info {

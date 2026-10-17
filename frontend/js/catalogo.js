@@ -9,50 +9,17 @@
 "use strict";
 
 (function () {
-    // 1. CONFIGURAÇÕES DE CONEXÃO AO SUPABASE
-    const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC';
-
-    // Garante que window.supabaseClient esteja disponível
-    function obterSupabase() {
-        if (window.supabaseClient) {
-            return window.supabaseClient;
-        }
-        if (typeof supabase !== 'undefined' && supabase.createClient) {
-            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            return window.supabaseClient;
-        }
-        console.error('[SERF:Catalogo] Biblioteca do Supabase JS não foi carregada no documento.');
-        return null;
-    }
-
-    // Configuração de Estilo do SweetAlert2 (Identidade Visual SERF)
-    const swalConfig = {
-        background: '#ffffff',
-        color: '#1d2d5c',
-        confirmButtonColor: '#f77f00'
-    };
+    // 1. DEPENDÊNCIAS COMPARTILHADAS
+    // obterSupabase() vem de supabase-client.js; utilitários de utils.js.
+    const {
+        swalConfig,
+        escaparHTML,
+        formatarMoeda: formatarMoedaBRL
+    } = window.SERFUtils;
 
     // Estado local do módulo
     let fornecedorAtual = null; // Armazena dados se o usuário for fornecedor
     let listaProdutosCache = []; // Cache dos produtos em memória
-
-    // Utilitário para escapar caracteres HTML prevenindo XSS
-    function escaparHTML(texto) {
-        if (texto === null || texto === undefined) return '';
-        const div = document.createElement('div');
-        div.textContent = String(texto);
-        return div.innerHTML;
-    }
-
-    // Utilitário para formatar moeda brasileira (R$)
-    function formatarMoedaBRL(valor) {
-        const numero = Number(valor) || 0;
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(numero);
-    }
 
     /* =========================================================================
        2. VERIFICAÇÃO DE FORNECEDOR (Painel do Vendedor)
@@ -177,7 +144,7 @@
                     quantidade_estoque,
                     ativo,
                     data_cadastro,
-                    fornecedores (
+                    fornecedores:fornecedores_publicos (
                         id_fornecedor,
                         razao_social,
                         nome_fantasia,
@@ -940,9 +907,36 @@
     /* =========================================================================
        8. INICIALIZAÇÃO DO MÓDULO
        ========================================================================= */
+    // Na catalogo.html (sem home.js), a chave Comprar/Vender só aparece para
+    // empresas com perfil "Ambos". Na Home, o home.js faz esse controle.
+    async function ajustarModosCatalogo() {
+        if (typeof window.alterarModo === 'function') return;
+
+        const modoSwitch = document.getElementById('modoSwitch');
+        if (!modoSwitch) return;
+
+        const comprador = await obterCompradorAutenticado();
+        const fornecedor = fornecedorAtual;
+
+        if (!comprador && !fornecedor) return;
+
+        const ambos = Boolean(comprador && fornecedor);
+        modoSwitch.hidden = !ambos;
+
+        if (!ambos) {
+            const modoUnico = fornecedor ? 'vender' : 'comprar';
+            document.querySelectorAll('.modo-btn').forEach(botao => {
+                const ativo = botao.dataset.mode === modoUnico;
+                botao.classList.toggle('active', ativo);
+                botao.setAttribute('aria-pressed', String(ativo));
+            });
+        }
+    }
+
     async function inicializarCatalogo() {
         console.info('[SERF] Inicializando módulo catalogo.js...');
         await verificarFornecedorAutenticado();
+        await ajustarModosCatalogo();
         configurarModalNovoProduto();
         configurarObservadorDeModo();
         atualizarVisibilidadeBotaoCadastro();

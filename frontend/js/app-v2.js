@@ -1,54 +1,59 @@
 // =========================================================================
 // S.E.R.F. - SCRIPT DE INTEGRAÇÃO COMPLETO (app-v2.js)
-// Conecta a Tela de Login/Cadastro ao Supabase + Validação de CNPJ (BrasilAPI)
+// Login por e-mail no Supabase Auth + Cadastro com validação de CNPJ (BrasilAPI)
 // =========================================================================
 
-// 1. CONFIGURAÇÕES DE ACESSO AO BANCO DE DADOS (SUPABASE)
-const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
-const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
-
-// Inicializa o cliente do Supabase
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-console.log("🚀 Ponte com o Supabase configurada com sucesso!");
+// 1. DEPENDÊNCIAS COMPARTILHADAS
+// O cliente (supabaseClient) é criado em supabase-client.js;
+// swalConfig e a máscara de CNPJ vêm de utils.js.
+const { swalConfig, aplicarMascaraCNPJ } = window.SERFUtils;
 
 // 2. CAPTURA DOS ELEMENTOS DO HTML (DOM)
 const formCadastro = document.getElementById('formCadastro');
 const formLogin = document.getElementById('formLogin');
 const cnpjCadastro = document.getElementById('cnpjCadastro');
-const cnpjLogin = document.getElementById('cnpjLogin');
+const emailLogin = document.getElementById('emailLogin');
 const campoRazao = document.getElementById('razaoSocialCadastro');
 const containerTela = document.getElementById('container');
 
-// Configurações Globais de Cores do SweetAlert2 (Identidade do S.E.R.F.)
-const swalConfig = {
-    background: '#ffffff',
-    color: '#1d2d5c',
-    confirmButtonColor: '#f77f00' // Laranja do SERF
-};
-
-// Busca o e-mail de login a partir do CNPJ pela função RPC do banco.
-// A função (SECURITY DEFINER) devolve apenas o e-mail, sem expor as tabelas.
-async function obterEmailPorCnpj(cnpj) {
-    const { data, error } = await supabaseClient.rpc('obter_email_por_cnpj', { p_cnpj: cnpj });
-    if (error) throw error;
-    return data || null;
-}
-
 // Após o login (sessão ativa), lê apenas o cadastro da própria empresa.
+// Consulta as DUAS tabelas, sem parar na primeira: a empresa pode ser
+// compradora (usuarios), fornecedora (fornecedores) ou Ambos.
 async function obterEmpresaDaSessao(authUserId) {
     const [comprador, fornecedor] = await Promise.all([
-        supabaseClient.from('usuarios').select('nome_empresa').eq('auth_user_id', authUserId).maybeSingle(),
-        supabaseClient.from('fornecedores').select('razao_social').eq('auth_user_id', authUserId).maybeSingle()
+        supabaseClient.from('usuarios').select('nome_empresa, cnpj').eq('auth_user_id', authUserId).maybeSingle(),
+        supabaseClient.from('fornecedores').select('razao_social, cnpj').eq('auth_user_id', authUserId).maybeSingle()
     ]);
 
     const ehComprador = Boolean(comprador.data);
     const ehFornecedor = Boolean(fornecedor.data);
 
+    let perfil = null;
+    if (ehComprador && ehFornecedor) perfil = 'Ambos';
+    else if (ehFornecedor) perfil = 'Fornecedor';
+    else if (ehComprador) perfil = 'Comprador';
+
     return {
         nome: comprador.data?.nome_empresa || fornecedor.data?.razao_social || null,
-        perfil: ehComprador && ehFornecedor ? 'Ambos' : (ehFornecedor ? 'Fornecedor' : 'Comprador')
+        cnpj: comprador.data?.cnpj || fornecedor.data?.cnpj || null,
+        perfil
     };
+}
+
+// Traduz os erros do Supabase Auth mais comuns para o usuário.
+function mensagemErroAuth(error) {
+    const msg = error?.message || '';
+
+    if (msg.includes('Invalid login credentials')) return 'E-mail ou senha inválidos.';
+    if (msg.includes('Email not confirmed')) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
+    if (msg.includes('User already registered')) return 'Já existe uma conta com este e-mail.';
+    // O trigger do banco recusa CNPJ repetido; o Auth devolve um erro genérico.
+    if (msg.includes('Database error saving new user') || msg.includes('CNPJ_JA_CADASTRADO')) {
+        return 'Este CNPJ já está cadastrado no S.E.R.F.';
+    }
+    if (msg.includes('rate limit')) return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.';
+
+    return msg || 'Erro de comunicação com o servidor.';
 }
 
 // Função utilitária para fazer o container do login tremer fisicamente em caso de erro
@@ -62,36 +67,9 @@ function tremerTela() {
 }
 
 // =========================================================================
-// FUNCIONALIDADE 1: MÁSCARA DE CNPJ EM TEMPO REAL
+// FUNCIONALIDADE 1: MÁSCARA DE CNPJ EM TEMPO REAL (utils.js)
 // =========================================================================
-function aplicarMascaraCNPJ(inputElement) {
-    if (!inputElement) return;
-    
-    inputElement.addEventListener('input', (e) => {
-        let value = e.target.value;
-        value = value.replace(/\D/g, ''); // Remove tudo que não é número
-        
-        if (value.length > 14) {
-            value = value.slice(0, 14); // Limita a 14 dígitos no máximo
-        }
-        
-        // Aplica os pontos, barra e traço dinamicamente conforme digita
-        if (value.length > 12) {
-            value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})$/, "$1.$2.$3/$4-$5");
-        } else if (value.length > 8) {
-            value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{1,4})$/, "$1.$2.$3/$4");
-        } else if (value.length > 5) {
-            value = value.replace(/^(\d{2})(\d{3})(\d{1,3})$/, "$1.$2.$3");
-        } else if (value.length > 2) {
-            value = value.replace(/^(\d{2})(\d{1,3})$/, "$1.$2");
-        }
-        
-        e.target.value = value;
-    });
-}
-
 aplicarMascaraCNPJ(cnpjCadastro);
-aplicarMascaraCNPJ(cnpjLogin);
 
 
 // =========================================================================
@@ -217,7 +195,8 @@ if (formCadastro) {
                 }
             });
 
-            // ETAPA A: Cadastra no Auth do Supabase inserindo a etiqueta 'segmentacao_concluida: false' nos metadados
+            // Cadastra no Supabase Auth. CNPJ e razão social vão nos metadados e
+            // o registro em 'usuarios' é criado pelo trigger do banco (migration 005).
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email: email,
                 password: senha,
@@ -232,39 +211,30 @@ if (formCadastro) {
 
             if (authError) throw authError;
 
-            const uuidUsuario = authData.user?.id;
-            if (!uuidUsuario) throw new Error('Erro ao gerar ID de segurança no banco.');
-
-            // ETAPA B: Salva na tabela 'usuarios'
-            const { error: dbError } = await supabaseClient
-                .from('usuarios')
-                .insert([{
-                    auth_user_id: uuidUsuario,
-                    nome_empresa: razaoSocial,
-                    cnpj: cnpj,
-                    email: email
-                }]);
-
-            if (dbError) throw dbError;
-
-            // Guarda no cache local para a triagem de segmentação
-            const dadosProvisorios = {
-                cnpj: cnpj,
-                razaoSocial: razaoSocial,
-                email: email
-            };
-            localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
-
             Swal.close();
+            formCadastro.reset();
 
-            // Mensagem de sucesso bonita com direcionamento para segmentação
+            // Confirmação de e-mail LIGADA: não há sessão até o usuário clicar no link.
+            // A segmentação acontece no primeiro login.
+            if (!authData.session) {
+                Swal.fire({
+                    ...swalConfig,
+                    title: 'Confirme seu E-mail',
+                    html: `Enviamos um link de confirmação para <strong>${email}</strong>.<br><br>Depois de confirmar, faça login para configurar o perfil da sua empresa.`,
+                    icon: 'info'
+                }).then(() => {
+                    containerTela?.classList.remove('right-panel-active');
+                });
+                return;
+            }
+
+            // Confirmação de e-mail DESLIGADA: segue direto para a segmentação.
             Swal.fire({
                 ...swalConfig,
                 title: 'Cadastro Realizado!',
                 text: 'Sua conta foi criada! Vamos configurar as preferências da sua empresa agora.',
                 icon: 'success'
             }).then(() => {
-                formCadastro.reset();
                 window.location.href = 'segmentacao.html';
             });
 
@@ -275,7 +245,7 @@ if (formCadastro) {
             Swal.fire({
                 ...swalConfig,
                 title: 'Erro ao Cadastrar',
-                text: error.message,
+                text: mensagemErroAuth(error),
                 icon: 'error',
                 confirmButtonColor: '#d33'
             });
@@ -291,15 +261,15 @@ if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const cnpj = cnpjLogin.value.replace(/\D/g, '');
+        const email = emailLogin.value.trim();
         const senha = document.getElementById('senhaLogin').value;
 
-        if (cnpj.length !== 14) {
+        if (!email || !senha) {
             tremerTela();
             Swal.fire({
                 ...swalConfig,
-                title: 'CNPJ Incompleto',
-                text: 'Por favor, insira o CNPJ completo com 14 dígitos.',
+                title: 'Dados Incompletos',
+                text: 'Informe o e-mail e a senha da sua empresa.',
                 icon: 'warning'
             });
             return;
@@ -315,16 +285,10 @@ if (formLogin) {
                 }
             });
 
-            // ETAPA A: Obtém apenas o e-mail do CNPJ pela função segura do banco
-            const emailAssociadoAoCnpj = await obterEmailPorCnpj(cnpj);
-
-            if (!emailAssociadoAoCnpj) {
-                throw new Error('CNPJ ou senha inválidos.');
-            }
-
-            // ETAPA B: Autentica com E-mail + Senha no Supabase Auth
+            // ETAPA A: Autentica com E-mail + Senha no Supabase Auth.
+            // Erro genérico: não revela se o e-mail existe.
             const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
-                email: emailAssociadoAoCnpj,
+                email: email,
                 password: senha
             });
 
@@ -332,40 +296,33 @@ if (formLogin) {
 
             const user = sessionData.user;
 
-            // ETAPA C: Com a sessão ativa, lê o cadastro da própria empresa
+            // ETAPA B: Com a sessão ativa, lê o cadastro da própria empresa
             const empresa = await obterEmpresaDaSessao(user.id);
-            const nomeEmpresaEncontrada = empresa.nome;
-            const perfilEncontrado = empresa.perfil;
 
             // VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
-            const segmentado = user?.user_metadata?.segmentacao_concluida;
+            const segmentado = user?.user_metadata?.segmentacao_concluida === true;
 
             Swal.close();
 
-            if (segmentado === false || segmentado === undefined) {
+            if (!segmentado || !empresa.perfil) {
                 Swal.fire({
                     ...swalConfig,
                     title: 'Onboarding Pendente',
                     text: 'Vamos configurar o perfil e nicho da sua empresa antes de acessar o painel.',
                     icon: 'info'
                 }).then(() => {
-                    const dadosProvisorios = {
-                        cnpj: cnpj,
-                        razaoSocial: nomeEmpresaEncontrada || user.user_metadata?.razao_social || 'Empresa Local',
-                        email: user.email
-                    };
-                    localStorage.setItem('cadastro_pendente', JSON.stringify(dadosProvisorios));
                     window.location.href = 'segmentacao.html';
                 });
                 return;
             }
 
-            // Salva os dados para exibição contextual na Home
+            // Salva os dados SOMENTE para exibição na Home (não servem para autenticar)
             const dadosUsuario = {
-                cnpj: cnpj,
-                razaoSocial: nomeEmpresaEncontrada || user.user_metadata?.razao_social || 'Empresa Autenticada',
+                cnpj: empresa.cnpj,
+                razaoSocial: empresa.nome || user.user_metadata?.razao_social || 'Empresa Autenticada',
                 email: user.email,
-                perfil: perfilEncontrado
+                perfil: empresa.perfil,
+                nicho: user.user_metadata?.nicho || null
             };
             localStorage.setItem('usuario_logado', JSON.stringify(dadosUsuario));
 
@@ -388,7 +345,7 @@ if (formLogin) {
             Swal.fire({
                 ...swalConfig,
                 title: 'Falha ao Acessar',
-                text: error.message,
+                text: mensagemErroAuth(error),
                 icon: 'error',
                 confirmButtonColor: '#d33'
             });
@@ -404,12 +361,7 @@ const modalRecuperar = document.getElementById('modalRecuperar');
 const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
 const closeModal = document.querySelector('.close-modal');
 const formRecuperar = document.getElementById('formRecuperar');
-const cnpjRecuperar = document.getElementById('cnpjRecuperar');
-
-// Aplica a máscara de CNPJ no campo do modal se a função existir
-if (typeof aplicarMascaraCNPJ === 'function') {
-    aplicarMascaraCNPJ(cnpjRecuperar);
-}
+const emailRecuperar = document.getElementById('emailRecuperar');
 
 // Abre o Modal ao clicar no link de esqueceu senha
 if (linkEsqueceuSenha) {
@@ -437,39 +389,32 @@ window.addEventListener('click', (e) => {
 if (formRecuperar) {
     formRecuperar.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const cnpj = cnpjRecuperar.value.replace(/\D/g, '');
-        
-        if (cnpj.length !== 14) {
+        const email = emailRecuperar.value.trim();
+
+        if (!email) {
             Swal.fire({
                 ...swalConfig,
-                title: 'CNPJ Inválido',
-                text: 'Por favor, insira um CNPJ válido de 14 dígitos.',
+                title: 'E-mail Obrigatório',
+                text: 'Informe o e-mail cadastrado da sua empresa.',
                 icon: 'warning'
             });
             return;
         }
 
         try {
-            // Feedback visual no botão com SweetAlert2
             Swal.fire({
                 title: 'Processando pedido...',
-                text: 'Buscando o e-mail cadastrado associado a esse CNPJ.',
+                text: 'Solicitando o link de redefinição de senha.',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
                 }
             });
 
-            // 1 e 2. Obtém o e-mail do CNPJ pela função segura do banco
-            const emailAssociado = await obterEmailPorCnpj(cnpj);
-
-            if (!emailAssociado) {
-                throw new Error('Nenhuma empresa localizada com este CNPJ no banco de dados do S.E.R.F.');
-            }
-
-            // 3. Disparar link de reset de senha para o e-mail encontrado
+            // O Supabase só envia o e-mail se a conta existir, mas responde
+            // igual nos dois casos: a tela não revela quais e-mails estão cadastrados.
             const urlRedefinir = new URL('redefinir-senha.html', window.location.href).href;
-            const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(emailAssociado, {
+            const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
                 redirectTo: urlRedefinir
             });
 
@@ -477,33 +422,26 @@ if (formRecuperar) {
 
             Swal.close();
 
-            // Mensagem elegante com e-mail parcialmente mascarado (ex: t***@gmail.com)
-            const emailMascarado = emailAssociado.replace(/(.{3})(.*)(@.*)/, "$1***$3");
-            
-            // 🌟 SUCESSO DE VERDADE COM SWEETALERT2
             Swal.fire({
                 ...swalConfig,
-                title: 'E-mail Enviado!',
-                html: `Enviamos o link de redefinição para a caixa de: <strong>${emailMascarado}</strong>.<br><br>Verifique também a caixa de Spam ou Lixo Eletrônico!`,
+                title: 'Verifique seu E-mail',
+                html: `Se <strong>${email.replace(/[<>&"']/g, '')}</strong> estiver cadastrado no S.E.R.F., você receberá o link de redefinição em instantes.<br><br>Confira também a caixa de Spam ou Lixo Eletrônico.`,
                 icon: 'success'
             });
-            
+
             modalRecuperar.style.display = 'none';
             formRecuperar.reset();
 
         } catch (error) {
             Swal.close();
-            
+
             // TRATAMENTO DE ERRO PROFISSIONAL: Traduzindo erros do Supabase
             let tituloErro = 'Erro de Recuperação';
-            let mensagemAmigavel = error.message;
+            let mensagemAmigavel = mensagemErroAuth(error);
 
-            if (error.message.includes('rate limit exceeded')) {
+            if (error.message.includes('rate limit')) {
                 tituloErro = 'Limite Excedido';
                 mensagemAmigavel = 'Você já solicitou um link de recuperação recentemente. Por favor, aguarde alguns minutos antes de tentar novamente para evitar spam!';
-            } else if (error.message.includes('Nenhuma empresa localizada')) {
-                tituloErro = 'CNPJ não encontrado';
-                mensagemAmigavel = 'Não encontramos nenhuma empresa cadastrada com este CNPJ no S.E.R.F. Verifique o número!';
             }
 
             // Exibe o SweetAlert com a mensagem traduzida e bonita

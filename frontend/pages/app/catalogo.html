@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="../../css/home.css">
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/utils.js"></script>
     <script src="../../js/auth-check.js"></script>
 </head>
 
@@ -192,9 +194,19 @@
                     class="profile-button"
                     id="btnPerfil"
                     aria-label="Meu perfil"
-                    title="Sair / Trocar de conta"
+                    title="Meu perfil"
                 >
                     <span class="profile-avatar">E</span>
+                </button>
+
+                <!-- Logout padronizado (tratado pelo auth-check.js) -->
+                <button
+                    type="button"
+                    class="btn-logout"
+                    data-logout
+                    title="Sair da conta"
+                >
+                    Sair
                 </button>
 
             </div>

@@ -5,38 +5,27 @@
    SCRUM-13: Navegação lateral
 
    Objetivo:
-   Controlar a interface da Home com os pedidos reais
-   cadastrados no Supabase (tabela pedidos + produtos +
-   fornecedores + usuarios).
-
-   IMPORTANTE:
-   As conversas recentes ainda são fictícias, pois o
-   módulo de chat (SCRUM-20) não possui tabela no banco.
+   Controlar a interface da Home com os dados reais do
+   Supabase: pedidos (+ produtos, fornecedores, usuarios)
+   e conversas do chat (mensagens_pedidos).
    ========================================================== */
 
 "use strict";
 
 
 /* ==========================================================
-   01 — CONEXÃO COM O SUPABASE
-   Mesmo cliente compartilhado utilizado pelo catalogo.js.
+   01 — DEPENDÊNCIAS COMPARTILHADAS
+   obterSupabase() vem de supabase-client.js;
+   formatação e escape de texto vêm de utils.js.
    ========================================================== */
 
-const SUPABASE_URL = "https://rparlqdgcwzoanpqqeof.supabase.co";
-const SUPABASE_KEY = "sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC";
-
-// Garante que window.supabaseClient esteja disponível
-function obterSupabase() {
-    if (window.supabaseClient) {
-        return window.supabaseClient;
-    }
-    if (typeof supabase !== "undefined" && supabase.createClient) {
-        window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        return window.supabaseClient;
-    }
-    console.error("[SERF:Home] Biblioteca do Supabase JS não foi carregada no documento.");
-    return null;
-}
+const {
+    escaparHTML,
+    formatarMoeda,
+    formatarData,
+    dataLocalISO,
+    tempoRelativo
+} = window.SERFUtils;
 
 
 /* ==========================================================
@@ -56,19 +45,11 @@ const empresaLogada = {
     nome: null
 };
 
-// Converte o status do banco para as categorias de filtros e KPIs,
-// mantendo o rótulo original para exibição na tabela.
-const STATUS_BANCO = {
-    PENDENTE: { categoria: "aberto", rotulo: "Pendente" },
-    CONFIRMADO: { categoria: "negociacao", rotulo: "Confirmado" },
-    EM_SEPARACAO: { categoria: "negociacao", rotulo: "Em separação" },
-    ENVIADO: { categoria: "negociacao", rotulo: "Enviado" },
-    ENTREGUE: { categoria: "concluido", rotulo: "Entregue" },
-    CANCELADO: { categoria: "cancelado", rotulo: "Cancelado" }
-};
+// Status do banco → categoria de filtros/KPIs + rótulo (definido em utils.js)
+const STATUS_BANCO = window.SERFUtils.STATUS_PEDIDO;
 
 // Próximos status que o fornecedor pode aplicar a partir do atual.
-// A mesma regra é validada no banco (trigger da migration 002).
+// A mesma regra é validada no banco (trigger da migration 003).
 const TRANSICOES_STATUS = {
     PENDENTE: ["CONFIRMADO", "CANCELADO"],
     CONFIRMADO: ["EM_SEPARACAO", "ENVIADO", "CANCELADO"],
@@ -78,42 +59,9 @@ const TRANSICOES_STATUS = {
     CANCELADO: []
 };
 
-// Conversas fictícias, separadas por contexto.
-// Serão substituídas quando o chat (SCRUM-20) tiver tabela própria.
-const conversasDemo = [
-    {
-        id: 1,
-        empresaNome: "Metalúrgica Horizonte",
-        modo: "comprar",
-        mensagem: "Enviamos uma atualização da proposta.",
-        dias: 1,
-        naoLidas: 2
-    },
-    {
-        id: 2,
-        empresaNome: "Distribuidora Prime",
-        modo: "comprar",
-        mensagem: "Podemos confirmar o prazo de entrega?",
-        dias: 2,
-        naoLidas: 0
-    },
-    {
-        id: 3,
-        empresaNome: "Tecnologia Nexus",
-        modo: "vender",
-        mensagem: "Gostaríamos de solicitar um orçamento.",
-        dias: 1,
-        naoLidas: 3
-    },
-    {
-        id: 4,
-        empresaNome: "Comercial Aurora",
-        modo: "vender",
-        mensagem: "Aguardamos sua confirmação.",
-        dias: 3,
-        naoLidas: 1
-    }
-];
+// Conversas do chat agrupadas por pedido (tabela mensagens_pedidos).
+// idPedido → { idPedido, ultimoTexto, ultimaData, ultimaMinha, naoLidas }
+let conversasCache = new Map();
 
 
 /* ==========================================================
@@ -187,34 +135,12 @@ const elementos = {
 
 /* ==========================================================
    05 — FUNÇÕES AUXILIARES
-   Formatam datas, valores e tratam textos.
+   Cálculos de datas e contexto da negociação.
    ========================================================== */
-
-// Formata datas no padrão brasileiro.
-function formatarData(dataISO) {
-    if (!dataISO) return "—";
-
-    const [ano, mes, dia] = dataISO.split("-");
-
-    return `${dia}/${mes}/${ano}`;
-}
 
 // Converte uma data ISO para o início do dia local.
 function converterData(dataISO) {
     return new Date(`${dataISO}T00:00:00`);
-}
-
-// Converte o TIMESTAMPTZ do banco para "AAAA-MM-DD" no fuso local.
-function dataLocalISO(timestamp) {
-    const data = new Date(timestamp);
-
-    if (Number.isNaN(data.getTime())) return null;
-
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const dia = String(data.getDate()).padStart(2, "0");
-
-    return `${ano}-${mes}-${dia}`;
 }
 
 // Calcula dias decorridos desde uma data.
@@ -227,29 +153,6 @@ function calcularDias(dataISO) {
     return Math.floor(
         (hoje.getTime() - data.getTime()) / 86400000
     );
-}
-
-// Formata valores em reais.
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(Number(valor) || 0);
-}
-
-// Impede a inserção de HTML não confiável vindo do banco.
-function escaparHTML(valor) {
-    return String(valor).replace(/[&<>"']/g, caractere => {
-        const entidades = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        };
-
-        return entidades[caractere];
-    });
 }
 
 // Empresa do outro lado da negociação, conforme o modo ativo:
@@ -450,7 +353,7 @@ async function buscarPedidosSupabase() {
                 id_produto,
                 nome_produto,
                 id_fornecedor,
-                fornecedores (
+                fornecedores:fornecedores_publicos (
                     id_fornecedor,
                     razao_social,
                     nome_fantasia
@@ -723,16 +626,15 @@ function atualizarIndicadores() {
         pedido => pedido.status === "concluido"
     ).length;
 
-    // Total de mensagens não lidas no modo ativo.
-    const mensagens = conversasDemo
-        .filter(conversa => conversa.modo === estado.modo)
+    // Total de mensagens não lidas nos pedidos do modo ativo.
+    const mensagens = obterConversasDoModo()
         .reduce((total, conversa) => total + conversa.naoLidas, 0);
 
     const carregando = estado.carregamento === "carregando";
 
     elementos.kpiAbertos.textContent = carregando ? "…" : abertos;
     elementos.kpiRespostas.textContent = carregando ? "…" : respostas;
-    elementos.kpiMensagens.textContent = mensagens;
+    elementos.kpiMensagens.textContent = carregando ? "…" : mensagens;
     elementos.kpiConcluidos.textContent = carregando ? "…" : concluidos;
     elementos.mensagensCount.textContent = mensagens;
 }
@@ -991,56 +893,205 @@ function renderizarRadar() {
 
 /* ==========================================================
    14 — CONVERSAS RECENTES
-   Exibe mensagens fictícias relacionadas ao modo ativo.
+   Últimos contatos do chat (mensagens_pedidos), agrupados
+   por pedido e filtrados pelo modo ativo.
    ========================================================== */
+
+const LIMITE_CONVERSAS = 6;
+
+// Busca as mensagens dos pedidos carregados e agrupa por pedido.
+async function buscarConversasSupabase() {
+
+    const client = obterSupabase();
+    const idsPedidos = pedidosCache.map(pedido => pedido.id);
+
+    conversasCache = new Map();
+
+    if (!client || idsPedidos.length === 0) return;
+
+    const { data, error } = await client
+        .from("mensagens_pedidos")
+        .select("id, id_pedido, texto, id_remetente, lida, data_envio")
+        .in("id_pedido", idsPedidos)
+        .order("data_envio", { ascending: false })
+        .limit(500);
+
+    if (error) {
+        throw error;
+    }
+
+    // Do mais recente para o mais antigo: a primeira de cada pedido é a última.
+    [...(data || [])].reverse().forEach(registrarMensagemNaConversa);
+}
+
+// Atualiza o resumo da conversa de um pedido com uma mensagem.
+function registrarMensagemNaConversa(mensagem) {
+
+    const minha = mensagem.id_remetente === empresaLogada.authUserId;
+    const atual = conversasCache.get(mensagem.id_pedido) || {
+        idPedido: mensagem.id_pedido,
+        naoLidas: 0
+    };
+
+    if (!atual.ultimaData || new Date(mensagem.data_envio) >= new Date(atual.ultimaData)) {
+        atual.ultimoTexto = mensagem.texto;
+        atual.ultimaData = mensagem.data_envio;
+        atual.ultimaMinha = minha;
+    }
+
+    if (!minha && !mensagem.lida) {
+        atual.naoLidas += 1;
+    }
+
+    conversasCache.set(mensagem.id_pedido, atual);
+}
+
+// Conversas cujo pedido pertence ao modo ativo, da mais recente à mais antiga.
+function obterConversasDoModo() {
+
+    return [...conversasCache.values()]
+        .map(conversa => ({
+            ...conversa,
+            pedido: pedidosCache.find(pedido => pedido.id === conversa.idPedido)
+        }))
+        .filter(conversa => conversa.pedido?.modos.includes(estado.modo))
+        .sort((a, b) => new Date(b.ultimaData) - new Date(a.ultimaData));
+}
 
 function renderizarConversas() {
 
-    const conversas = conversasDemo.filter(
-        conversa => conversa.modo === estado.modo
-    );
+    if (estado.carregamento === "carregando") {
+        elementos.conversasRecentes.innerHTML = `
+            <p class="empty-state">Carregando conversas...</p>
+        `;
+        return;
+    }
+
+    const conversas = obterConversasDoModo().slice(0, LIMITE_CONVERSAS);
 
     if (conversas.length === 0) {
         elementos.conversasRecentes.innerHTML = `
             <p class="empty-state">
-                Nenhuma conversa disponível.
+                Nenhuma conversa ainda. Abra um pedido e use o chat para falar com a outra empresa.
             </p>
         `;
 
         return;
     }
 
-    elementos.conversasRecentes.innerHTML = conversas.map(conversa => `
-        <div class="conversation-item">
+    elementos.conversasRecentes.innerHTML = conversas.map(conversa => {
 
-            <div class="conversation-info">
-                <strong>
-                    ${escaparHTML(conversa.empresaNome)}
-                </strong>
+        const parceiro = parceiroDoPedido(conversa.pedido);
+        const prefixo = conversa.ultimaMinha ? "Você: " : "";
 
-                <span>
-                    ${escaparHTML(conversa.mensagem)}
-                </span>
-            </div>
+        return `
+            <div
+                class="conversation-item"
+                data-conversa="${conversa.idPedido}"
+                role="button"
+                tabindex="0"
+                title="Abrir o chat do pedido #${conversa.idPedido}"
+            >
 
-            <div style="
-                display:flex;
-                align-items:center;
-                gap:12px;
-            ">
-                ${conversa.naoLidas > 0 ? `
-                    <span class="nav-count">
-                        ${conversa.naoLidas}
+                <div class="conversation-info">
+                    <strong>
+                        ${escaparHTML(parceiro.nome)}
+                        <small class="conversation-pedido">· Pedido #${conversa.idPedido}</small>
+                    </strong>
+
+                    <span>
+                        ${escaparHTML(prefixo + conversa.ultimoTexto)}
                     </span>
-                ` : ""}
+                </div>
 
-                <span class="conversation-time">
-                    Há ${conversa.dias} dia(s)
-                </span>
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                ">
+                    ${conversa.naoLidas > 0 ? `
+                        <span class="nav-count" title="Mensagens não lidas">
+                            ${conversa.naoLidas}
+                        </span>
+                    ` : ""}
+
+                    <span class="conversation-time">
+                        ${tempoRelativo(conversa.ultimaData)}
+                    </span>
+                </div>
+
             </div>
+        `;
+    }).join("");
+}
 
-        </div>
-    `).join("");
+// Abre o modal/chat do pedido a partir de uma conversa.
+function abrirConversa(idPedido) {
+    const pedido = pedidosCache.find(item => item.id === idPedido);
+
+    if (pedido) {
+        abrirDetalhesPedido(pedido);
+    }
+}
+
+// Marca como lidas as mensagens RECEBIDAS do pedido (UPDATE só em "lida").
+async function marcarMensagensComoLidas(idPedido) {
+
+    const client = obterSupabase();
+    const conversa = conversasCache.get(idPedido);
+
+    if (!client || !empresaLogada.authUserId || !conversa || conversa.naoLidas === 0) {
+        return;
+    }
+
+    const { error } = await client
+        .from("mensagens_pedidos")
+        .update({ lida: true })
+        .eq("id_pedido", idPedido)
+        .eq("lida", false)
+        .neq("id_remetente", empresaLogada.authUserId);
+
+    if (error) {
+        console.warn("[SERF:Chat] Não foi possível marcar mensagens como lidas:", error);
+        return;
+    }
+
+    conversa.naoLidas = 0;
+    renderizarConversas();
+    atualizarIndicadores();
+}
+
+// Novas mensagens de qualquer pedido atualizam a lista de conversas.
+// O RLS garante que só chegam mensagens dos pedidos da empresa.
+let canalMensagens = null;
+
+function assinarMensagensTempoReal() {
+
+    const client = obterSupabase();
+
+    if (!client || canalMensagens) return;
+
+    canalMensagens = client
+        .channel("mensagens-painel")
+        .on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "mensagens_pedidos" },
+            payload => {
+                const mensagem = payload.new;
+
+                registrarMensagemNaConversa(mensagem);
+
+                // Chat deste pedido aberto: a mensagem já está sendo lida.
+                const recebida = mensagem.id_remetente !== empresaLogada.authUserId;
+                if (recebida && chat.pedido?.id === mensagem.id_pedido) {
+                    marcarMensagensComoLidas(mensagem.id_pedido);
+                }
+
+                renderizarConversas();
+                atualizarIndicadores();
+            }
+        )
+        .subscribe();
 }
 
 
@@ -1253,10 +1304,31 @@ function configurarAcoes() {
     });
 
     // Acesso ao futuro módulo de mensagens.
+    // "Ver todas": abre a conversa mais recente com mensagens não lidas
+    // (ou simplesmente a mais recente).
     elementos.btnTodasMensagens.addEventListener("click", () => {
-        alert(
-            "O módulo de chat entre empresas será integrado na SCRUM-20."
-        );
+        const conversas = obterConversasDoModo();
+        const alvo = conversas.find(conversa => conversa.naoLidas > 0) || conversas[0];
+
+        if (alvo) {
+            abrirConversa(alvo.idPedido);
+        } else {
+            alert("Nenhuma conversa ainda. Abra um pedido na tabela e use o chat para falar com a outra empresa.");
+        }
+    });
+
+    // Clique (ou Enter) numa conversa abre o chat do pedido.
+    elementos.conversasRecentes.addEventListener("click", evento => {
+        const item = evento.target.closest("[data-conversa]");
+        if (item) abrirConversa(Number(item.dataset.conversa));
+    });
+
+    elementos.conversasRecentes.addEventListener("keydown", evento => {
+        const item = evento.target.closest("[data-conversa]");
+        if (item && (evento.key === "Enter" || evento.key === " ")) {
+            evento.preventDefault();
+            abrirConversa(Number(item.dataset.conversa));
+        }
     });
 
     // Acesso ao perfil corporativo
@@ -1579,6 +1651,9 @@ async function abrirDetalhesPedido(pedido) {
         if (chat.pedido?.id !== pedido.id) return;
 
         adicionarMensagens(historico);
+
+        // Abrir o chat confirma a leitura das mensagens recebidas.
+        marcarMensagensComoLidas(pedido.id);
     } catch (erro) {
         console.error("[SERF:Chat] Falha ao buscar mensagens:", erro);
 
@@ -1672,6 +1747,72 @@ function exibirEmpresaAtiva(nome) {
     }
 }
 
+// Mostra a chave Comprar/Vender apenas para empresas com perfil "Ambos";
+// as demais ficam fixas no único modo que possuem.
+function ajustarModosDisponiveis() {
+
+    const comprador = empresaLogada.idUsuario !== null;
+    const fornecedor = empresaLogada.idFornecedor !== null;
+
+    // Sem cadastro identificado, mantém a interface como está.
+    if (!comprador && !fornecedor) return;
+
+    const ambos = comprador && fornecedor;
+
+    if (elementos.modoSwitch) {
+        elementos.modoSwitch.hidden = !ambos;
+    }
+
+    if (!ambos) {
+        const modoUnico = fornecedor ? "vender" : "comprar";
+        if (estado.modo !== modoUnico) {
+            alterarModo(modoUnico);
+        }
+    }
+}
+
+// Pedidos em tempo real (tabela pedidos na publicação supabase_realtime).
+// O RLS garante que cada empresa só recebe os próprios pedidos.
+let canalPedidos = null;
+let recargaPedidosAgendada = null;
+
+function assinarPedidosTempoReal() {
+
+    const client = obterSupabase();
+
+    if (!client || canalPedidos) return;
+
+    canalPedidos = client
+        .channel("pedidos-painel")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "pedidos" },
+            payload => {
+                const pedido = pedidosCache.find(
+                    item => item.id === payload.new?.id_pedido
+                );
+
+                // Mudança de status de um pedido já carregado: atualiza no lugar.
+                if (payload.eventType === "UPDATE" && pedido) {
+                    aplicarStatusPedido(pedido, payload.new.status_pedido);
+                    atualizarDashboard();
+
+                    if (chat.pedido?.id === pedido.id) {
+                        renderizarResumoPedido(pedido);
+                        renderizarGestaoStatus(pedido);
+                    }
+                    return;
+                }
+
+                // Pedido novo (ou desconhecido): recarrega com os JOINs.
+                // Agrupa eventos em sequência numa única consulta.
+                clearTimeout(recargaPedidosAgendada);
+                recargaPedidosAgendada = setTimeout(recarregarPedidos, 400);
+            }
+        )
+        .subscribe();
+}
+
 async function recarregarPedidos() {
     try {
         await buscarPedidosSupabase();
@@ -1680,6 +1821,13 @@ async function recarregarPedidos() {
         console.error("[SERF:Home] Falha ao buscar pedidos:", erro);
         estado.carregamento = "erro";
         estado.mensagemErro = erro.message || "Erro de comunicação com o Supabase";
+    }
+
+    // Conversas dependem dos pedidos carregados; falha aqui não derruba o painel.
+    try {
+        await buscarConversasSupabase();
+    } catch (erro) {
+        console.error("[SERF:Home] Falha ao buscar conversas:", erro);
     }
 
     preencherFiltroEmpresas();
@@ -1724,8 +1872,16 @@ async function iniciarHome() {
         exibirEmpresaAtiva(empresaLogada.nome || "Empresa não identificada");
     }
 
+    ajustarModosDisponiveis();
+
     // Pedido criado pelo catálogo (catalogo.js) entra na lista na hora.
     window.addEventListener("serf:pedido-criado", recarregarPedidos);
+
+    // Status alterado pela outra empresa aparece sem recarregar a página.
+    assinarPedidosTempoReal();
+
+    // Novas mensagens atualizam "Conversas recentes" e o contador.
+    assinarMensagensTempoReal();
 
     console.info("[SERF] Home inicializada com pedidos do Supabase.");
 }
@@ -1740,6 +1896,5 @@ iniciarHome();
 
    Próximas integrações:
    - Histórico de status (data de atualização/conclusão).
-   - Chat entre empresas (SCRUM-20).
-   - Regras de acesso por empresa (RLS).
+   - Módulos Empresas e Relatórios.
    ========================================================== */

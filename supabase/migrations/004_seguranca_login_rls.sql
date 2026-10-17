@@ -1,11 +1,10 @@
--- S.E.R.F. - Login seguro por CNPJ e RLS das tabelas de empresas
+-- S.E.R.F. - RLS das tabelas de empresas
 -- Banco utilizado: PostgreSQL/Supabase
 --
--- Executar DEPOIS da 002_pedidos_fluxo_rls.sql (usa as funções
+-- Executar DEPOIS da 003_pedidos_fluxo_rls.sql (usa as funções
 -- meu_id_fornecedor() e fornecedor_do_produto() criadas nela).
 --
 -- O que este script faz:
---   1. Função RPC obter_email_por_cnpj: o login deixa de ler as tabelas.
 --   2. RLS em usuarios: cada empresa lê/edita apenas o próprio cadastro
 --      (o fornecedor também lê o nome dos compradores dos seus pedidos).
 --   3. RLS em fornecedores: leitura só para usuários logados (catálogo);
@@ -18,33 +17,11 @@
 
 
 -- ==========================================================
--- 1. LOGIN POR CNPJ
--- Devolve somente o e-mail; nenhuma outra coluna é exposta.
+-- 1. LOGIN
+-- A busca de e-mail por CNPJ (obter_email_por_cnpj) foi descartada:
+-- permitia descobrir o e-mail de qualquer empresa. O login passou a
+-- ser por e-mail + senha (ver 005).
 -- ==========================================================
-
-CREATE OR REPLACE FUNCTION public.obter_email_por_cnpj(p_cnpj TEXT)
-RETURNS TEXT
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-    SELECT email
-    FROM (
-        SELECT email, 1 AS ordem
-          FROM public.usuarios
-         WHERE cnpj = regexp_replace(p_cnpj, '\D', '', 'g')
-        UNION ALL
-        SELECT email, 2 AS ordem
-          FROM public.fornecedores
-         WHERE cnpj = regexp_replace(p_cnpj, '\D', '', 'g')
-    ) AS encontrados
-    ORDER BY ordem
-    LIMIT 1;
-$$;
-
-REVOKE ALL ON FUNCTION public.obter_email_por_cnpj(TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.obter_email_por_cnpj(TEXT) TO anon, authenticated;
 
 
 -- ==========================================================

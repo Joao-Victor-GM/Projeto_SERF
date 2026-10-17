@@ -42,7 +42,7 @@
             <h2>Acesse sua conta</h2>
             <span class="subtitle">Insira seus dados para continuar.</span>
 
-            <input type="text" id="cnpjLogin" placeholder="CNPJ" required />
+            <input type="email" id="emailLogin" placeholder="E-mail corporativo" autocomplete="username" required />
             <input type="password" id="senhaLogin" placeholder="Senha" required />
 
             <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
@@ -72,9 +72,9 @@
     <div class="modal-content">
         <span class="close-modal">&times;</span>
         <h3>Recuperar Senha</h3>
-        <p>Digite o CNPJ da sua empresa cadastrada. Enviaremos um link de redefinição de senha para o e-mail associado.</p>
+        <p>Digite o e-mail cadastrado da sua empresa. Se ele estiver no S.E.R.F., enviaremos um link de redefinição de senha.</p>
         <form id="formRecuperar">
-            <input type="text" id="cnpjRecuperar" placeholder="00.000.000/0000-00" required>
+            <input type="email" id="emailRecuperar" placeholder="contato@suaempresa.com.br" autocomplete="email" required>
             <button type="submit" class="btn-recuperar">Enviar Link de Recuperação</button>
         </form>
     </div>
@@ -107,6 +107,8 @@
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
 <!-- Scripts lógicos e de configurações do app -->
+<script src="../../js/supabase-client.js"></script>
+<script src="../../js/utils.js"></script>
 <script src="../../js/app-v2.js"></script>
 <script src="../../js/particles-config-1.js"></script>
 

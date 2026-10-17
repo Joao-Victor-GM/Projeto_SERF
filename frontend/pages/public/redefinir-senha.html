@@ -116,11 +116,9 @@
 
     <!-- SDK do Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
     <script>
-        // CONFIGURAÇÕES DO SUPABASE (Mesmas credenciais do seu app-v2.js)
-        const SUPABASE_URL = 'https://rparlqdgcwzoanpqqeof.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_6qr9OUA3nojtAt5SJb06TQ_QdumnPbC'; 
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Cliente Supabase compartilhado (supabaseClient) vem de supabase-client.js
 
         const form = document.getElementById('formRedefinir');
 
