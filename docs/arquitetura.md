@@ -66,6 +66,34 @@ Quem cancela:
 A tabela de transições existe em dois lugares e **deve mudar junto**:
 `pedidos_validar()` (migration 005) e `SERFUtils.TRANSICOES_STATUS` (utils.js).
 
+## Alertas (migration 015)
+
+A view **`alertas`** lista as pendências da empresa logada. Os alertas são
+**derivados do estado**: não existe tabela de notificações, nada para marcar
+como lido; quando a empresa resolve a pendência, o alerta some.
+
+| Código | Quem age | Quando aparece | Severidade |
+|---|---|---|---|
+| `RESPONDER_PEDIDO` | fornecedor | pedido PENDENTE | atenção; urgente após 24 h |
+| `APROVAR_PRAZO` | fornecedor | pagamento a prazo em análise | urgente |
+| `EMITIR_NFE` | fornecedor | pagamento liberado, sem NF-e | atenção |
+| `PRONTO_PARA_ENVIO` | fornecedor | NF-e autorizada, ainda não enviado | atenção |
+| `CONFIRMAR_ENTREGA` | fornecedor | ENVIADO há 3 dias ou mais | atenção |
+| `SEM_ESTOQUE` | fornecedor | estoque abaixo do pedido mínimo | urgente |
+| `ESTOQUE_BAIXO` | fornecedor | estoque abaixo de 2× o mínimo | atenção |
+| `CANCELADO_COMPRADOR` | fornecedor | comprador cancelou (7 dias) | info |
+| `PAGAR_PEDIDO` | comprador | confirmado e não pago | atenção |
+| `COBRANCA_VENCIDA` | comprador | Pix/boleto/cartão vencido | urgente |
+| `FATURA_A_PRAZO` | comprador | fatura a prazo em aberto | info; urgente a 3 dias |
+| `MENSAGENS` | ambos | mensagens recebidas não lidas | info |
+
+- Regra nova = uma parte nova no `UNION ALL` da view + teste em
+  `tests/banco/alertas.test.mjs` + texto em `TIPOS` (alertas.js). Tipo sem
+  texto no front-end aparece de forma genérica, sem quebrar a página.
+- O menu lateral de todas as páginas internas tem o item **Alertas** (o perfil
+  fica só no canto superior direito). O contador (`alertas-contagem.js`) soma
+  urgentes + atenção e fica vermelho se houver urgência.
+
 ## Triggers em `pedidos` — a ORDEM IMPORTA
 
 O PostgreSQL executa triggers do mesmo momento em **ordem alfabética do nome**.
@@ -102,6 +130,8 @@ Renomear um trigger muda o comportamento.
 | `js/pedidos.js` | Leitura da view `pedidos_painel` e normalização canônica do pedido |
 | `js/auth-check.js` | Protege páginas internas; expõe `window.serfSessao`; logout via `[data-logout]` |
 | `js/home/*.js` | Home dividida em 7 scripts (ver abaixo) |
+| `js/alertas.js` | Página de alertas: textos por tipo, filtros, agrupamento |
+| `js/alertas-contagem.js` | Contador de alertas no menu lateral (todas as páginas internas) |
 | `js/catalogo.js` | Catálogo, cadastro de produto, negociação (carregado em home/catálogo/empresas) |
 | `js/pagamentos.js`, `js/notas.js` | Fluxos de pagamento e NF-e (usados pela home) |
 | `js/relatorios.js`, `js/empresas.js`, `js/perfil.js` | Páginas homônimas |
@@ -176,6 +206,7 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 ## Deploy
 
 Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
-depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento) e 014
-(view `pedidos_painel`). Publicar as páginas antes delas quebra Home,
-Relatórios, Perfil e Empresas.
+depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
+(view `pedidos_painel`) e 015 (view `alertas`). Publicar as páginas antes delas
+quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
+mostra erro e o contador do menu fica oculto (o resto funciona).

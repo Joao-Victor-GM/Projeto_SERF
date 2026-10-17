@@ -127,6 +127,26 @@ function paraPainel(p) {
     };
 }
 
+// Linhas da view "alertas" (migration 015) coerentes com o cenário acima:
+// 2 urgentes + 1 atenção (contador do menu = 3) e 2 informativos.
+export const ALERTAS = [
+    { codigo: "RESPONDER_PEDIDO", severidade: "urgente", papel: "fornecedor", id_pedido: 201, id_produto: 10,
+      parceiro_nome: "Mercado Bom Preço", produto_nome: "Arroz Tipo 1 5kg", valor: 510, quantidade: 20,
+      referencia: atras(2), vencimento: null, detalhe: null },
+    { codigo: "SEM_ESTOQUE", severidade: "urgente", papel: "fornecedor", id_pedido: null, id_produto: 11,
+      parceiro_nome: null, produto_nome: "Feijão Carioca 1kg", valor: null, quantidade: 5,
+      referencia: null, vencimento: null, detalhe: "10" },
+    { codigo: "PAGAR_PEDIDO", severidade: "atencao", papel: "comprador", id_pedido: 102, id_produto: 21,
+      parceiro_nome: "Distribuidora Sul", produto_nome: "Café Torrado 500g", valor: 510, quantidade: 20,
+      referencia: atras(5), vencimento: null, detalhe: null },
+    { codigo: "MENSAGENS", severidade: "info", papel: "comprador", id_pedido: 101, id_produto: 20,
+      parceiro_nome: "Distribuidora Sul", produto_nome: "Açúcar Cristal 2kg", valor: null, quantidade: null,
+      referencia: atras(0.5), vencimento: null, detalhe: "1" },
+    { codigo: "MENSAGENS", severidade: "info", papel: "fornecedor", id_pedido: 201, id_produto: 10,
+      parceiro_nome: "Mercado Bom Preço", produto_nome: "Arroz Tipo 1 5kg", valor: null, quantidade: null,
+      referencia: atras(1), vencimento: null, detalhe: "1" }
+];
+
 // Tabelas novas a cada teste (o mock altera as linhas em POST/PATCH)
 export function criarTabelas() {
     const copia = valor => structuredClone(valor);
@@ -150,6 +170,7 @@ export function criarTabelas() {
         pagamentos: [],
         notas_fiscais: [],
         favoritos_fornecedores: [],
+        alertas: copia(ALERTAS),
         fornecedores_publicos: [FORN_MINHA, FORN_PARCEIRO],
         fornecedores_vitrine: [FORN_MINHA, FORN_PARCEIRO].map(f => ({
             ...f, homologado: false, data_cadastro: atras(90), produtos_ativos: 2,

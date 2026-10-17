@@ -1,0 +1,260 @@
+/* ==========================================================
+   SERF - ALERTAS.CSS
+   Central de alertas. Usa apenas as variáveis de global.css,
+   então o modo escuro funciona sem regras extras.
+   ========================================================== */
+
+.alertas-main {
+    --alerta-urgente: #DC2626;
+    --alerta-atencao: var(--serf-laranja);
+    --alerta-info: var(--serf-azul-interacao);
+}
+
+.alertas-atualizacao {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alertas-atualizacao small {
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+}
+
+/* Totais por severidade */
+
+.alertas-resumo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.alerta-resumo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+
+    padding: 16px 18px;
+    border: 1px solid var(--serf-borda);
+    border-left: 4px solid var(--cor-severidade);
+    border-radius: 8px;
+
+    background: var(--serf-superficie);
+    box-shadow: var(--serf-sombra-cartao);
+    color: var(--serf-texto-secundario);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.alerta-resumo strong {
+    color: var(--cor-severidade);
+    font-size: 26px;
+    line-height: 1;
+}
+
+.alerta-resumo span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.alerta-resumo:hover,
+.alerta-resumo.active {
+    background: var(--tint-severidade);
+}
+
+.alerta-resumo.active {
+    outline: 2px solid var(--cor-severidade);
+    outline-offset: -2px;
+}
+
+.alerta-resumo:focus-visible,
+.alerta-acao:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
+
+/* Cores por severidade (resumo e cartões) */
+
+.alerta-resumo.urgente,
+.alerta.urgente {
+    --cor-severidade: var(--alerta-urgente);
+    --tint-severidade: var(--serf-tint-vermelho);
+}
+
+.alerta-resumo.atencao,
+.alerta.atencao {
+    --cor-severidade: var(--alerta-atencao);
+    --tint-severidade: var(--serf-tint-laranja);
+}
+
+.alerta-resumo.info,
+.alerta.info {
+    --cor-severidade: var(--alerta-info);
+    --tint-severidade: var(--serf-tint-azul);
+}
+
+/* Grupos e cartões */
+
+.alertas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.alertas-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alertas-grupo header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--serf-azul-principal);
+    font-size: 15px;
+}
+
+.alertas-grupo header h2 span {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--serf-superficie-4);
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.alertas-grupo header p {
+    margin: 2px 0 4px;
+    color: var(--serf-texto-mudo);
+    font-size: 12px;
+}
+
+.alerta {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+
+    padding: 14px 18px;
+    border: 1px solid var(--serf-borda);
+    border-left: 4px solid var(--cor-severidade);
+    border-radius: 8px;
+
+    background: var(--serf-superficie);
+    box-shadow: var(--serf-sombra-cartao);
+}
+
+.alerta-icone {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--tint-severidade);
+    font-size: 18px;
+}
+
+.alerta-texto h3 {
+    margin: 0 0 3px;
+    color: var(--serf-texto-principal);
+    font-size: 14px;
+}
+
+.alerta-texto p {
+    margin: 0 0 4px;
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.alerta-texto small {
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+}
+
+.alerta-acao {
+    padding: 8px 14px;
+    border: 1px solid var(--serf-borda-forte);
+    border-radius: 6px;
+    color: var(--serf-azul-principal);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.alerta-acao:hover {
+    border-color: var(--cor-severidade);
+    background: var(--tint-severidade);
+}
+
+/* Estado vazio */
+
+.alertas-vazio {
+    padding: 48px 24px;
+    border: 1px dashed var(--serf-borda-forte);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+    text-align: center;
+}
+
+.alertas-vazio span {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    background: var(--serf-tint-verde);
+    color: #15803D;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.alertas-vazio h2 {
+    margin: 0 0 4px;
+    color: var(--serf-azul-principal);
+    font-size: 17px;
+}
+
+.alertas-vazio p {
+    margin: 0;
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+}
+
+.alerta-erro {
+    color: var(--alerta-urgente);
+}
+
+/* Celular */
+
+@media (max-width: 720px) {
+    .alertas-resumo {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .alerta {
+        grid-template-columns: 32px minmax(0, 1fr);
+        padding: 12px 14px;
+    }
+
+    .alerta-icone {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+
+    .alerta-acao {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .alertas-atualizacao small {
+        display: none;
+    }
+}

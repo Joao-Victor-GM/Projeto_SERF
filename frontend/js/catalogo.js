@@ -877,10 +877,16 @@
         const ambos = Boolean(comprador && fornecedor);
         modoSwitch.hidden = !ambos;
 
-        if (!ambos) {
-            const modoUnico = fornecedor ? 'vender' : 'comprar';
+        // catalogo.html?modo=vender abre direto em "Meus Produtos" (ex.: alertas de estoque)
+        const modoPedido = new URLSearchParams(window.location.search).get('modo');
+
+        let modoInicial = null;
+        if (!ambos) modoInicial = fornecedor ? 'vender' : 'comprar';
+        else if (modoPedido === 'vender' || modoPedido === 'comprar') modoInicial = modoPedido;
+
+        if (modoInicial) {
             document.querySelectorAll('.modo-btn').forEach(botao => {
-                const ativo = botao.dataset.mode === modoUnico;
+                const ativo = botao.dataset.mode === modoInicial;
                 botao.classList.toggle('active', ativo);
                 botao.setAttribute('aria-pressed', String(ativo));
             });

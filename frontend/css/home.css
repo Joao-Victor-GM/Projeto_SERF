@@ -200,6 +200,16 @@ a {
     font-weight: 700;
 }
 
+.nav-count[hidden] {
+    display: none;
+}
+
+/* Alertas com urgência (alertas-contagem.js) */
+.nav-count.urgente {
+    background: rgba(239, 68, 68, 0.24);
+    color: #FCA5A5;
+}
+
 /* Rodapé institucional do menu */
 
 .sidebar-footer {

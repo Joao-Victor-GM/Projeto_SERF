@@ -91,9 +91,10 @@ function aplicarFiltros(linhas, parametros) {
     return resultado;
 }
 
-// opcoes: { usuario: {id, email}, tabelas: {nome: linhas}, rpc: {nome: (args) => resposta} }
+// opcoes: { usuario: {id, email}, tabelas: {nome: linhas}, rpc: {nome: (args) => resposta},
+//           falhas: {tabela: "mensagem"} (responde erro 400 nessa tabela) }
 // Retorna { chamadas, errosDaPagina } para as asserções.
-export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {} }) {
+export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, falhas = {} }) {
     const chamadas = [];
     const errosDaPagina = [];
 
@@ -157,6 +158,8 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {} })
             const filtradas = aplicarFiltros(linhas, parametros);
 
             chamadas.push({ tipo: "rest", tabela, metodo, parametros, corpo });
+
+            if (falhas[tabela]) return responder(400, { message: falhas[tabela], code: "42P01" });
 
             const querObjeto = (requisicao.headers()["accept"] || "").includes("vnd.pgrst.object");
 

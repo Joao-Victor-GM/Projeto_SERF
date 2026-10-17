@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Alertas</title>
+
+    <!-- Identidade visual e estilos compartilhados -->
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/relatorios.css">
+    <link rel="stylesheet" href="../../css/alertas.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <!-- Tema claro/escuro aplicado antes da pintura -->
+    <script src="../../js/tema.js"></script>
+    <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-check.js"></script>
+</head>
+
+<body class="serf-home">
+
+    <!-- =====================================================
+         BLOCO 01 — MENU LATERAL
+    ====================================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <img
+                src="../../assets/images/serflogo.png"
+                alt="Logo SERF"
+                class="sidebar-logo"
+            >
+
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">
+            MENU PRINCIPAL
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Menu principal">
+
+            <a href="home.html#visao-geral" class="nav-item"
+               data-page="home">
+                <span class="nav-icon">▦</span>
+                <span>Home</span>
+            </a>
+
+            <a href="empresas.html" class="nav-item"
+               data-page="empresas">
+                <span class="nav-icon">▤</span>
+                <span>Empresas</span>
+            </a>
+
+            <a href="catalogo.html" class="nav-item"
+               data-page="produtos">
+                <span class="nav-icon">▣</span>
+                <span>Catálogo</span>
+            </a>
+
+            <a href="home.html#pedidos" class="nav-item"
+               data-page="pedidos">
+                <span class="nav-icon">☷</span>
+                <span>Pedidos</span>
+            </a>
+
+            <a href="home.html#mensagens" class="nav-item"
+               data-page="mensagens">
+                <span class="nav-icon">✉</span>
+                <span>Mensagens</span>
+            </a>
+
+            <a href="relatorios.html" class="nav-item"
+               data-page="relatorios">
+                <span class="nav-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a href="alertas.html" class="nav-item active" aria-current="page"
+               data-page="alertas">
+                <span class="nav-icon">⚑</span>
+                <span>Alertas</span>
+                <span class="nav-count" data-alertas-contagem hidden></span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         BLOCO 02 — ESTRUTURA PRINCIPAL
+    ====================================================== -->
+
+    <div class="app-layout">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir ou fechar menu"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                >
+                    ☰
+                </button>
+            </div>
+
+            <div class="topbar-right">
+
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <!-- Alternar modo claro/escuro (tratado pelo tema.js) -->
+                <button
+                    type="button"
+                    class="icon-button btn-tema"
+                    data-alternar-tema
+                    aria-pressed="false"
+                    aria-label="Ativar modo escuro"
+                    title="Modo escuro"
+                >
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
+                </button>
+
+                <!-- Perfil: acesso único pelo canto superior direito -->
+                <a
+                    href="perfil.html"
+                    class="profile-button"
+                    aria-label="Meu perfil"
+                    title="Meu perfil"
+                >
+                    <span class="profile-avatar">E</span>
+                </a>
+
+                <!-- Logout padronizado (tratado pelo auth-check.js) -->
+                <button
+                    type="button"
+                    class="btn-logout"
+                    data-logout
+                    title="Sair da conta"
+                >
+                    Sair
+                </button>
+
+            </div>
+        </header>
+
+
+        <!-- =====================================================
+             ALERTAS (preenchidos pelo alertas.js a partir da view
+             "alertas" — migration 015)
+        ====================================================== -->
+
+        <main class="main-content alertas-main" id="visao-alertas">
+
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">CENTRAL DE PENDÊNCIAS</span>
+                    <h1>Alertas</h1>
+                    <p>O que precisa da sua ação nos pedidos, pagamentos e estoque. Cada alerta some sozinho quando é resolvido.</p>
+                </div>
+
+                <div class="alertas-atualizacao">
+                    <small id="alertasAtualizado"></small>
+                    <button type="button" class="btn-secondary" id="btnAtualizarAlertas">
+                        Atualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="rel-filtros" role="group" aria-label="Filtros dos alertas">
+                <div class="rel-filtro" id="filtroPapelGrupo" hidden>
+                    <span class="rel-filtro-rotulo">Mostrar</span>
+                    <div class="rel-segmentado" id="filtroPapelAlertas">
+                        <button type="button" class="rel-segmento active" data-papel="todos" aria-pressed="true">Tudo</button>
+                        <button type="button" class="rel-segmento" data-papel="fornecedor" aria-pressed="false">Vendas</button>
+                        <button type="button" class="rel-segmento" data-papel="comprador" aria-pressed="false">Compras</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Totais por severidade (clique para filtrar) -->
+            <div class="alertas-resumo" id="alertasResumo" aria-label="Totais por severidade"></div>
+
+            <div class="alertas-lista" id="alertasLista" aria-live="polite"></div>
+
+        </main>
+    </div>
+
+    <script src="../../js/alertas-contagem.js" defer></script>
+    <script src="../../js/alertas.js" defer></script>
+
+</body>
+</html>

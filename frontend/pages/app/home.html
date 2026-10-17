@@ -91,10 +91,11 @@
                 <span>Relatórios</span>
             </a>
 
-            <a href="perfil.html" class="nav-item"
-               data-page="perfil">
-                <span class="nav-icon">◉</span>
-                <span>Perfil</span>
+            <a href="alertas.html" class="nav-item"
+               data-page="alertas">
+                <span class="nav-icon">⚑</span>
+                <span>Alertas</span>
+                <span class="nav-count" data-alertas-contagem hidden></span>
             </a>
 
         </nav>
@@ -513,6 +514,7 @@
                             <h2>Radar de pedidos</h2>
                             <p>Pendências que exigem atenção</p>
                         </div>
+                        <a href="alertas.html" class="btn-text">Ver todos os alertas →</a>
                     </div>
 
                     <!-- TODO: aplicar regras de prioridade,
@@ -794,6 +796,9 @@
     <script src="../../js/home/tempo-real.js" defer></script>
     <script src="../../js/home/inicializacao.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
+
+    <!-- Contador de alertas do menu lateral -->
+    <script src="../../js/alertas-contagem.js" defer></script>
 
 </body>
 </html>
