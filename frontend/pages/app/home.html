@@ -101,7 +101,7 @@
                 </button>
 
                 <!-- Campo de busca geral -->
-                <div class="global-search">
+                <div class="global-search" style="position: relative;">
                     <label for="buscaGlobal" class="sr-only">
                         Busca geral
                     </label>
@@ -110,7 +110,11 @@
                         type="search"
                         id="buscaGlobal"
                         placeholder="Buscar pedidos, produtos, empresas..."
+                        autocomplete="off"
                     >
+
+                    <!-- Sugestões de empresas (auto-complete, eventos.js) -->
+                    <ul id="resultadoBusca" style="display: none; position: absolute; top: 100%; left: 0; background: var(--serf-fundo); width: 100%; z-index: 1000; list-style: none; padding: 0; margin: 0; border: 1px solid var(--serf-borda); border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></ul>
                 </div>
             </div>
 
@@ -376,7 +380,7 @@
 
                 <div class="panel-heading">
                     <div>
-                        <h2 id="produtosTitulo">Catálogo de Produtos B2B</h2>
+                        <h2 id="produtosTitulo">Catálogo de Produtos</h2>
                         <p id="produtosSubtitulo">Explore insumos industriais e mercadorias com preço de atacado</p>
                     </div>
 

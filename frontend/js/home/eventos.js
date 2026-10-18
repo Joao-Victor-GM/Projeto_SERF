@@ -96,11 +96,82 @@ function configurarFiltros() {
 
     // Busca com debounce: uma renderização por pausa na digitação,
     // não uma por tecla. Só tabela e KPIs dependem da busca.
+    // Também mostra sugestões de empresas (auto-complete) abaixo do campo.
     let buscaAgendada = null;
-    elementos.buscaGlobal.addEventListener("input", evento => {
-        estado.busca = evento.target.value.trim().toLowerCase();
+    const resultadoBusca = document.getElementById("resultadoBusca");
+
+    elementos.buscaGlobal.addEventListener("input", async (evento) => {
+        const termo = evento.target.value.trim().toLowerCase();
+        estado.busca = termo;
+
         clearTimeout(buscaAgendada);
+
+        // Mantém o comportamento original para a tabela
         buscaAgendada = setTimeout(atualizarListagem, ATRASO_BUSCA_MS);
+
+        // Auto-complete
+        if (termo.length < 2) {
+            if (resultadoBusca) resultadoBusca.style.display = "none";
+            return;
+        }
+
+        // Cliente do Supabase: aceita o helper do projeto ou o cliente global
+        const client = typeof obterSupabase === "function"
+            ? obterSupabase()
+            : window.supabaseClient;
+
+        if (!client) {
+            console.error("[auto-complete] Cliente do Supabase não encontrado (obterSupabase / window.supabaseClient).");
+            return;
+        }
+
+        // Vírgula, parênteses e % quebram o filtro .or() do PostgREST
+        const termoSeguro = termo.replace(/[,()%*]/g, " ").trim();
+        if (termoSeguro.length < 2) return;
+
+        const { data, error } = await client
+            .from("fornecedores_vitrine")
+            .select("id_fornecedor, razao_social, nome_fantasia")
+            .or(`nome_fantasia.ilike.%${termoSeguro}%,razao_social.ilike.%${termoSeguro}%`)
+            .limit(5);
+
+        // Resposta atrasada de um termo antigo: ignora
+        if (elementos.buscaGlobal.value.trim().toLowerCase() !== termo) return;
+
+        if (error) {
+            console.error("[auto-complete] Erro na consulta:", error);
+        }
+
+        if (error || !data || data.length === 0) {
+            if (resultadoBusca) resultadoBusca.style.display = "none";
+            return;
+        }
+
+        if (resultadoBusca) {
+            resultadoBusca.innerHTML = "";
+            data.forEach(empresa => {
+                const li = document.createElement("li");
+                li.style.padding = "10px";
+                li.style.cursor = "pointer";
+                li.style.borderBottom = "1px solid var(--serf-borda)";
+                li.textContent = empresa.nome_fantasia || empresa.razao_social;
+
+                li.onclick = () => {
+                    window.location.href = `empresas.html?busca=${encodeURIComponent(li.textContent)}`;
+                };
+
+                resultadoBusca.appendChild(li);
+            });
+
+            resultadoBusca.style.display = "block";
+        }
+    });
+
+    // Fecha as sugestões ao clicar fora do campo
+    document.addEventListener("click", (e) => {
+        if (resultadoBusca && e.target !== elementos.buscaGlobal && e.target !== resultadoBusca) {
+            resultadoBusca.style.display = "none";
+        }
     });
 
     // Restaura os filtros para os valores iniciais.

@@ -97,7 +97,10 @@ const elementos = {
     menuToggle: document.getElementById("menuToggle"),
     empresaAtiva: document.getElementById("empresaAtiva"),
     modoSwitch: document.getElementById("modoSwitch"),
-    menuProdutosLabel: document.getElementById("menuProdutosLabel"),
+    // O menu mostra sempre "Catálogo" (layout.js não cria mais esse id).
+    // Elemento fora da página: quem trocava o rótulo continua funcionando
+    // sem erro, mas a troca não aparece no menu.
+    menuProdutosLabel: document.getElementById("menuProdutosLabel") || document.createElement("span"),
     btnAcaoPrincipal: document.getElementById("btnAcaoPrincipal"),
     filtroPeriodo: document.getElementById("filtroPeriodo"),
     filtroStatus: document.getElementById("filtroStatus"),
