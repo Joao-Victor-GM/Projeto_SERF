@@ -134,7 +134,7 @@
             } else {
                 const titulo = document.getElementById('produtosTitulo');
                 const subtitulo = document.getElementById('produtosSubtitulo');
-                if (titulo) titulo.textContent = 'Catálogo de Produtos B2B';
+                if (titulo) titulo.textContent = 'Catálogo de Produtos';
                 if (subtitulo) subtitulo.textContent = 'Explore insumos industriais e mercadorias com preço de atacado';
             }
 

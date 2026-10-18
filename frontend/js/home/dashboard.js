@@ -36,14 +36,10 @@ function alterarModo(novoModo) {
         botao.setAttribute("aria-pressed", String(ativo));
     });
 
-    // Personaliza a navegação e a ação principal.
-    if (novoModo === "comprar") {
-        elementos.menuProdutosLabel.textContent = "Produtos";
-        elementos.btnAcaoPrincipal.textContent = "+ Novo pedido";
-    } else {
-        elementos.menuProdutosLabel.textContent = "Meus produtos";
-        elementos.btnAcaoPrincipal.textContent = "+ Cadastrar produto";
-    }
+    // Personaliza a ação principal (o menu mostra sempre "Catálogo").
+    elementos.btnAcaoPrincipal.textContent = novoModo === "comprar"
+        ? "+ Novo pedido"
+        : "+ Cadastrar produto";
 
     // Remove o destaque de indicadores anteriores.
     document.querySelectorAll(".metric-item").forEach(item => {

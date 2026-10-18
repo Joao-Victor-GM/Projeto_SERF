@@ -96,82 +96,12 @@ function configurarFiltros() {
 
     // Busca com debounce: uma renderização por pausa na digitação,
     // não uma por tecla. Só tabela e KPIs dependem da busca.
-    // Também mostra sugestões de empresas (auto-complete) abaixo do campo.
+    // As sugestões de fornecedores ficam em configurarSugestoesFornecedores().
     let buscaAgendada = null;
-    const resultadoBusca = document.getElementById("resultadoBusca");
-
-    elementos.buscaGlobal.addEventListener("input", async (evento) => {
-        const termo = evento.target.value.trim().toLowerCase();
-        estado.busca = termo;
-
+    elementos.buscaGlobal.addEventListener("input", evento => {
+        estado.busca = evento.target.value.trim().toLowerCase();
         clearTimeout(buscaAgendada);
-
-        // Mantém o comportamento original para a tabela
         buscaAgendada = setTimeout(atualizarListagem, ATRASO_BUSCA_MS);
-
-        // Auto-complete
-        if (termo.length < 2) {
-            if (resultadoBusca) resultadoBusca.style.display = "none";
-            return;
-        }
-
-        // Cliente do Supabase: aceita o helper do projeto ou o cliente global
-        const client = typeof obterSupabase === "function"
-            ? obterSupabase()
-            : window.supabaseClient;
-
-        if (!client) {
-            console.error("[auto-complete] Cliente do Supabase não encontrado (obterSupabase / window.supabaseClient).");
-            return;
-        }
-
-        // Vírgula, parênteses e % quebram o filtro .or() do PostgREST
-        const termoSeguro = termo.replace(/[,()%*]/g, " ").trim();
-        if (termoSeguro.length < 2) return;
-
-        const { data, error } = await client
-            .from("fornecedores_vitrine")
-            .select("id_fornecedor, razao_social, nome_fantasia")
-            .or(`nome_fantasia.ilike.%${termoSeguro}%,razao_social.ilike.%${termoSeguro}%`)
-            .limit(5);
-
-        // Resposta atrasada de um termo antigo: ignora
-        if (elementos.buscaGlobal.value.trim().toLowerCase() !== termo) return;
-
-        if (error) {
-            console.error("[auto-complete] Erro na consulta:", error);
-        }
-
-        if (error || !data || data.length === 0) {
-            if (resultadoBusca) resultadoBusca.style.display = "none";
-            return;
-        }
-
-        if (resultadoBusca) {
-            resultadoBusca.innerHTML = "";
-            data.forEach(empresa => {
-                const li = document.createElement("li");
-                li.style.padding = "10px";
-                li.style.cursor = "pointer";
-                li.style.borderBottom = "1px solid var(--serf-borda)";
-                li.textContent = empresa.nome_fantasia || empresa.razao_social;
-
-                li.onclick = () => {
-                    window.location.href = `empresas.html?busca=${encodeURIComponent(li.textContent)}`;
-                };
-
-                resultadoBusca.appendChild(li);
-            });
-
-            resultadoBusca.style.display = "block";
-        }
-    });
-
-    // Fecha as sugestões ao clicar fora do campo
-    document.addEventListener("click", (e) => {
-        if (resultadoBusca && e.target !== elementos.buscaGlobal && e.target !== resultadoBusca) {
-            resultadoBusca.style.display = "none";
-        }
     });
 
     // Restaura os filtros para os valores iniciais.
@@ -193,6 +123,98 @@ function configurarFiltros() {
         });
 
         atualizarDashboard();
+    });
+
+    configurarSugestoesFornecedores();
+}
+
+
+/* ==========================================================
+   17.1 — SUGESTÕES DE FORNECEDORES (auto-complete da busca)
+   Os dados vêm de SERFDados.fornecedores (camada de dados);
+   aqui só há DOM e eventos.
+   ========================================================== */
+
+// Espera maior que a da tabela: cada pausa gera uma consulta ao servidor
+const ATRASO_SUGESTOES_MS = 300;
+
+function configurarSugestoesFornecedores() {
+
+    const campo = elementos.buscaGlobal;
+    const lista = document.getElementById("resultadoBusca");
+    const repositorio = window.SERFDados?.fornecedores;
+
+    if (!campo || !lista) return;
+
+    if (!repositorio) {
+        console.warn("[SERF:Home] SERFDados.fornecedores não carregado: busca sem sugestões.");
+        return;
+    }
+
+    let sugestaoAgendada = null;
+
+    const esconder = () => {
+        lista.style.display = "none";
+    };
+
+    const desenhar = sugestoes => {
+        lista.replaceChildren(...sugestoes.map(fornecedor => {
+            const item = document.createElement("li");
+            item.style.padding = "10px";
+            item.style.cursor = "pointer";
+            item.style.borderBottom = "1px solid var(--serf-borda)";
+            item.textContent = fornecedor.nome;
+
+            item.addEventListener("click", () => {
+                window.location.href = `empresas.html?busca=${encodeURIComponent(fornecedor.nome)}`;
+            });
+
+            return item;
+        }));
+
+        lista.style.display = "block";
+    };
+
+    campo.addEventListener("input", () => {
+        clearTimeout(sugestaoAgendada);
+
+        const termo = campo.value.trim();
+
+        if (termo.length < 2) {
+            esconder();
+            return;
+        }
+
+        sugestaoAgendada = setTimeout(async () => {
+            let sugestoes;
+
+            try {
+                sugestoes = await repositorio.sugerir(termo);
+            } catch (erro) {
+                console.error("[SERF:Home] Falha ao buscar sugestões de fornecedores:", erro);
+                esconder();
+                return;
+            }
+
+            // Resposta atrasada de um termo que já mudou: ignora
+            if (campo.value.trim() !== termo) return;
+
+            if (sugestoes.length === 0) {
+                esconder();
+                return;
+            }
+
+            desenhar(sugestoes);
+        }, ATRASO_SUGESTOES_MS);
+    });
+
+    // Fecha ao clicar fora do campo e da lista, ou com Esc
+    document.addEventListener("click", evento => {
+        if (evento.target !== campo && !lista.contains(evento.target)) esconder();
+    });
+
+    campo.addEventListener("keydown", evento => {
+        if (evento.key === "Escape") esconder();
     });
 }
 
