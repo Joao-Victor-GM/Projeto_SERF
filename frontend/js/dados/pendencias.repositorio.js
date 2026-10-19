@@ -32,7 +32,13 @@
             .limit(limite)) || [];
     }
 
+    // Checklist de primeiros passos (migration 019); null = sem cadastro de empresa
+    async function primeirosPassos() {
+        return dadosOuErro(await cliente().rpc("primeiros_passos"));
+    }
+
     window.SERFDados.pendencias = Object.freeze({
+        primeirosPassos,
         listarAlertas,
         severidadesDosAlertas,
         listarOportunidades

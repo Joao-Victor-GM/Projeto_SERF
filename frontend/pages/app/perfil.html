@@ -35,7 +35,7 @@
         <!-- Marca e identificação do sistema -->
         <div class="sidebar-brand">
             <img
-                src="../../assets/images/serflogo.png"
+                src="../../assets/icons/fivecon.png"
                 alt="Logo SERF"
                 class="sidebar-logo"
             >
@@ -264,6 +264,17 @@
                         <ul id="perfilSelos">
                             <li>Carregando...</li>
                         </ul>
+                        <!-- Verificação do CNPJ (perfil.js → Edge Function homologar-fornecedor) -->
+                        <div class="homologacao" id="homologacao" hidden></div>
+                    </section>
+
+                    <!-- Avisos por e-mail (perfil.js → preferencias_notificacao, migration 020) -->
+                    <section class="perfil-card-selos" id="notificacoes" hidden>
+                        <h3>Avisos por e-mail</h3>
+                        <label class="preferencia-email" for="prefEmail">
+                            <input type="checkbox" id="prefEmail">
+                            <span>Receber e-mails de novos pedidos, mensagens, pagamentos e mudanças de status</span>
+                        </label>
                     </section>
 
                 </aside>
@@ -478,7 +489,9 @@
     </script>
 
     <!-- Camada de dados (alertas) usada pelo contador do menu -->
+    <script src="../../js/ui/avisos.js" defer></script>
     <script src="../../js/dados/base.js" defer></script>
+    <script src="../../js/dados/empresa.repositorio.js" defer></script>
     <script src="../../js/dados/pendencias.repositorio.js" defer></script>
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>

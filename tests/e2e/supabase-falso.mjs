@@ -40,7 +40,7 @@ function sessaoFalsa(usuario) {
 // Condição PostgREST "op.valor" (eq, gte, lte, in) sobre uma coluna.
 // Operadores desconhecidos não filtram (null = ignorar).
 function atende(linha, coluna, expressao) {
-    const m = /^(eq|gte|lte|in)\.(.*)$/.exec(expressao);
+    const m = /^(eq|gte|lte|in|ilike)\.(.*)$/.exec(expressao);
     if (!m) return null;
 
     const [, operador, bruto] = m;
@@ -48,6 +48,11 @@ function atende(linha, coluna, expressao) {
     const atual = linha[coluna];
 
     if (atual === undefined || atual === null) return false;
+    if (operador === "ilike") {
+        // % e * são curingas do LIKE no PostgREST; o resto é texto literal
+        const padrao = valor.split(/[%*]/).map(parte => parte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*");
+        return new RegExp(`^${padrao}$`, "i").test(String(atual));
+    }
     if (operador === "eq") return String(atual) === valor;
     if (operador === "gte") return String(atual) >= valor;
     if (operador === "lte") return String(atual) <= valor;
@@ -91,10 +96,38 @@ function aplicarFiltros(linhas, parametros) {
     return resultado;
 }
 
+// "order=col1.desc.nullslast,col2.asc" do PostgREST. Ordena a lista
+// devolvida (os dados da tabela simulada não mudam). Nulos ao final.
+function ordenar(linhas, parametros) {
+    const ordem = parametros.filter(([chave]) => chave === "order").map(([, valor]) => valor).join(",");
+    if (!ordem) return linhas;
+
+    const criterios = ordem.split(",").filter(Boolean).map(parte => {
+        const [coluna, ...opcoes] = parte.split(".");
+        return { coluna, desc: opcoes.includes("desc") };
+    });
+
+    return [...linhas].sort((a, b) => {
+        for (const { coluna, desc } of criterios) {
+            const va = a[coluna], vb = b[coluna];
+            if (va === vb) continue;
+            if (va === null || va === undefined) return 1;
+            if (vb === null || vb === undefined) return -1;
+            const comparacao = typeof va === "number" && typeof vb === "number"
+                ? va - vb
+                : String(va).localeCompare(String(vb), "pt-BR");
+            if (comparacao !== 0) return desc ? -comparacao : comparacao;
+        }
+        return 0;
+    });
+}
+
 // opcoes: { usuario: {id, email}, tabelas: {nome: linhas}, rpc: {nome: (args) => resposta},
 //           falhas: {tabela: "mensagem"} (responde erro 400 nessa tabela) }
 // Retorna { chamadas, errosDaPagina } para as asserções.
-export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, falhas = {} }) {
+// funcoes: { nome: (corpo, tabelas) => resposta } — Edge Functions (/functions/v1/nome);
+//          lançar um erro com .status responde com esse status e { erro: mensagem }
+export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, falhas = {}, funcoes = {} }) {
     const chamadas = [];
     const errosDaPagina = [];
 
@@ -136,6 +169,18 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             return responder(200, usuario ? sessaoFalsa(usuario).user : {});
         }
 
+        const funcaoMatch = /^\/functions\/v1\/([\w-]+)/.exec(url.pathname);
+        if (funcaoMatch) {
+            const nome = funcaoMatch[1];
+            chamadas.push({ tipo: "funcao", nome, corpo });
+            if (!funcoes[nome]) return responder(404, { erro: `Função ${nome} não simulada` });
+            try {
+                return responder(200, await funcoes[nome](corpo, tabelas));
+            } catch (erro) {
+                return responder(erro.status || 500, { erro: erro.message });
+            }
+        }
+
         const rpcMatch = /^\/rest\/v1\/rpc\/(\w+)/.exec(url.pathname);
         if (rpcMatch) {
             const nome = rpcMatch[1];
@@ -146,7 +191,7 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             try {
                 return responder(200, await rpc[nome](corpo, tabelas));
             } catch (erro) {
-                return responder(400, { message: erro.message, code: "P0001" });
+                return responder(400, { message: erro.message, code: erro.code || "P0001" });
             }
         }
 
@@ -155,7 +200,7 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             const tabela = tabelaMatch[1];
             const parametros = [...url.searchParams.entries()];
             const linhas = tabelas[tabela] || [];
-            const filtradas = aplicarFiltros(linhas, parametros);
+            const filtradas = ordenar(aplicarFiltros(linhas, parametros), parametros);
 
             chamadas.push({ tipo: "rest", tabela, metodo, parametros, corpo });
 

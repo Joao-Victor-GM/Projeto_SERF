@@ -585,6 +585,13 @@
         configurarEventos();
         if (location.hash === "#parceiros") mostrarAba("parceiros");
 
+        // empresas.html?busca=Nome (sugestões da busca da Home): já abre filtrado
+        const buscaDaUrl = new URLSearchParams(location.search).get("busca");
+        if (buscaDaUrl) {
+            estado.busca = buscaDaUrl.trim();
+            el("filtroBuscaEmp").value = estado.busca;
+        }
+
         const client = obterSupabase();
 
         try {

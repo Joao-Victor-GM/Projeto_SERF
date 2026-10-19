@@ -39,16 +39,8 @@ function configurarNavegacao() {
                 ? document.querySelector(destino)
                 : null;
 
-            // Os módulos ainda não criados serão integrados depois.
-            if (!secao) {
-                evento.preventDefault();
-
-                alert(
-                    "Este módulo será disponibilizado em uma próxima etapa."
-                );
-
-                return;
-            }
+            // Âncora sem seção nesta página: deixa o navegador seguir o link
+            if (!secao) return;
 
             // Destaca o link selecionado.
             document.querySelectorAll(".nav-item").forEach(item => {
@@ -96,6 +88,7 @@ function configurarFiltros() {
 
     // Busca com debounce: uma renderização por pausa na digitação,
     // não uma por tecla. Só tabela e KPIs dependem da busca.
+    // As sugestões de fornecedores ficam em configurarSugestoesFornecedores().
     let buscaAgendada = null;
     elementos.buscaGlobal.addEventListener("input", evento => {
         estado.busca = evento.target.value.trim().toLowerCase();
@@ -123,6 +116,204 @@ function configurarFiltros() {
 
         atualizarDashboard();
     });
+
+    configurarSugestoesFornecedores();
+}
+
+
+/* ==========================================================
+   17.1 — SUGESTÕES DE FORNECEDORES (auto-complete da busca)
+   Os dados vêm de SERFDados.fornecedores (camada de dados);
+   aqui só há DOM e eventos.
+   ========================================================== */
+
+// Espera maior que a da tabela: cada pausa gera uma consulta ao servidor
+const ATRASO_SUGESTOES_MS = 300;
+
+function configurarSugestoesFornecedores() {
+
+    const campo = elementos.buscaGlobal;
+    const lista = document.getElementById("resultadoBusca");
+    const fornecedores = window.SERFDados?.fornecedores;
+    const produtos = window.SERFDados?.produtos;
+
+    if (!campo || !lista) return;
+
+    if (!fornecedores && !produtos) {
+        console.warn("[SERF:Home] Repositórios de busca não carregados: busca sem sugestões.");
+        return;
+    }
+
+    // Padrão ARIA "combobox com lista": leitores de tela anunciam as
+    // sugestões e a opção ativa; setas, Enter e Esc funcionam pelo teclado.
+    campo.setAttribute("role", "combobox");
+    campo.setAttribute("aria-autocomplete", "list");
+    campo.setAttribute("aria-controls", lista.id);
+    campo.setAttribute("aria-expanded", "false");
+    lista.setAttribute("role", "listbox");
+    lista.setAttribute("aria-label", "Sugestões de fornecedores e produtos");
+
+    let sugestaoAgendada = null;
+    let opcoes = [];   // [{ tipo: "fornecedor", nome } | { tipo: "produto", nome, produto }]
+    let ativa = -1;
+
+    const escolher = opcao => {
+        if (opcao.tipo === "fornecedor") {
+            window.location.href = `empresas.html?busca=${encodeURIComponent(opcao.nome)}`;
+            return;
+        }
+
+        esconder();
+        if (window.CatalogoModule?.abrirModalNegociacao) {
+            window.CatalogoModule.abrirModalNegociacao(opcao.produto);
+        } else {
+            window.location.href = "catalogo.html";
+        }
+    };
+
+    const marcarAtiva = indice => {
+        ativa = indice;
+        lista.querySelectorAll('[role="option"]').forEach(item =>
+            item.setAttribute("aria-selected", String(Number(item.dataset.indice) === ativa)));
+
+        if (ativa >= 0) campo.setAttribute("aria-activedescendant", `sugestao-fornecedor-${ativa}`);
+        else campo.removeAttribute("aria-activedescendant");
+    };
+
+    function esconder() {
+        lista.hidden = true;
+        campo.setAttribute("aria-expanded", "false");
+        marcarAtiva(-1);
+    }
+
+    const titulo = texto => {
+        const item = document.createElement("li");
+        item.className = "busca-grupo";
+        item.setAttribute("role", "presentation");
+        item.textContent = texto;
+        return item;
+    };
+
+    const desenhar = () => {
+        const itens = [];
+        let grupoAtual = null;
+
+        opcoes.forEach((opcao, indice) => {
+            if (opcao.tipo !== grupoAtual) {
+                grupoAtual = opcao.tipo;
+                itens.push(titulo(opcao.tipo === "fornecedor" ? "Fornecedores" : "Produtos"));
+            }
+
+            const item = document.createElement("li");
+            item.id = `sugestao-fornecedor-${indice}`;
+            item.className = `busca-sugestao busca-${opcao.tipo}`;
+            item.dataset.indice = String(indice);
+            item.setAttribute("role", "option");
+            item.setAttribute("aria-selected", "false");
+
+            if (opcao.tipo === "produto") {
+                const nome = document.createElement("span");
+                nome.textContent = opcao.nome;
+                const detalhe = document.createElement("small");
+                detalhe.textContent = `${opcao.fornecedor} · ${formatarMoeda(opcao.produto.preco_atacado)}/un.`;
+                item.append(nome, detalhe);
+            } else {
+                item.textContent = opcao.nome;
+            }
+
+            // mousedown: escolhe antes do campo perder o foco
+            item.addEventListener("mousedown", evento => {
+                evento.preventDefault();
+                escolher(opcao);
+            });
+
+            itens.push(item);
+        });
+
+        lista.replaceChildren(...itens);
+        lista.hidden = false;
+        campo.setAttribute("aria-expanded", "true");
+        marcarAtiva(-1);
+    };
+
+    // As duas buscas em paralelo; se uma falhar, mostra a outra
+    async function buscar(termo) {
+        const [resFornecedores, resProdutos] = await Promise.allSettled([
+            fornecedores ? fornecedores.sugerir(termo) : Promise.resolve([]),
+            produtos ? produtos.sugerir(termo) : Promise.resolve([])
+        ]);
+
+        if (resFornecedores.status === "rejected") console.error("[SERF:Home] Sugestões de fornecedores:", resFornecedores.reason);
+        if (resProdutos.status === "rejected") console.error("[SERF:Home] Sugestões de produtos:", resProdutos.reason);
+
+        const deFornecedores = resFornecedores.status === "fulfilled" ? resFornecedores.value : [];
+        const deProdutos = resProdutos.status === "fulfilled" ? resProdutos.value : [];
+
+        return [
+            ...deFornecedores.map(f => ({ tipo: "fornecedor", nome: f.nome })),
+            ...deProdutos.map(p => {
+                const fornecedor = Array.isArray(p.fornecedores) ? p.fornecedores[0] : p.fornecedores;
+                return {
+                    tipo: "produto",
+                    nome: p.nome_produto,
+                    fornecedor: fornecedor?.nome_fantasia || fornecedor?.razao_social || "Fornecedor",
+                    produto: p
+                };
+            })
+        ];
+    }
+
+    campo.addEventListener("input", () => {
+        clearTimeout(sugestaoAgendada);
+
+        const termo = campo.value.trim();
+
+        if (termo.length < 2) {
+            esconder();
+            return;
+        }
+
+        sugestaoAgendada = setTimeout(async () => {
+            const resultado = await buscar(termo);
+
+            // Resposta atrasada de um termo que já mudou: ignora
+            if (campo.value.trim() !== termo) return;
+
+            opcoes = resultado;
+
+            if (opcoes.length === 0) {
+                esconder();
+                return;
+            }
+
+            desenhar();
+        }, ATRASO_SUGESTOES_MS);
+    });
+
+    campo.addEventListener("keydown", evento => {
+        const aberta = !lista.hidden && opcoes.length > 0;
+
+        if (evento.key === "Escape") {
+            esconder();
+            return;
+        }
+
+        if (!aberta) return;
+
+        if (evento.key === "ArrowDown") {
+            evento.preventDefault();
+            marcarAtiva((ativa + 1) % opcoes.length);
+        } else if (evento.key === "ArrowUp") {
+            evento.preventDefault();
+            marcarAtiva(ativa <= 0 ? opcoes.length - 1 : ativa - 1);
+        } else if (evento.key === "Enter" && ativa >= 0) {
+            evento.preventDefault();
+            escolher(opcoes[ativa]);
+        }
+    });
+
+    // Fecha ao sair do campo (clique fora, Tab)
+    campo.addEventListener("blur", esconder);
 }
 
 
@@ -179,13 +370,13 @@ function configurarAcoes() {
     });
 
     // Ação contextual de comprador ou fornecedor.
+    // Comprar: vai ao catálogo (pedido unitário ou carrinho).
+    // Vender: o catalogo.js intercepta e abre o cadastro aqui mesmo; se não
+    // puder (sem cadastro de fornecedor carregado), abre no catálogo.
     elementos.btnAcaoPrincipal.addEventListener("click", () => {
-
-        const mensagem = estado.modo === "comprar"
-            ? "O cadastro de pedidos será integrado ao módulo de compras."
-            : "O cadastro de produtos será integrado ao módulo de vendas.";
-
-        alert(mensagem);
+        window.location.href = estado.modo === "comprar"
+            ? "catalogo.html"
+            : "catalogo.html?modo=vender&novo=1";
     });
 
     // Ações da tabela por delegação de eventos.
@@ -215,7 +406,7 @@ function configurarAcoes() {
         if (alvo) {
             abrirConversa(alvo.idPedido);
         } else {
-            alert("Nenhuma conversa ainda. Abra um pedido na tabela e use o chat para falar com a outra empresa.");
+            SERFAvisos.info("Nenhuma conversa ainda", "Abra um pedido na tabela e use o chat para falar com a outra empresa.");
         }
     });
 

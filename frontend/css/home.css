@@ -1860,3 +1860,230 @@ a {
     color: var(--serf-azul-interacao);
     font-weight: 700;
 }
+
+/* Sugestões de fornecedores na busca da Home (eventos.js) */
+.global-search {
+    position: relative;
+}
+
+.busca-sugestoes {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1000;
+    width: 100%;
+    margin: 0;
+    padding: 4px 0;
+    overflow: hidden;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    box-shadow: 0 8px 20px rgba(8, 43, 76, 0.12);
+    list-style: none;
+}
+
+.busca-sugestoes[hidden] {
+    display: none;
+}
+
+.busca-sugestao {
+    padding: 9px 14px;
+    color: var(--serf-texto-principal);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.busca-sugestao:hover,
+.busca-sugestao[aria-selected="true"] {
+    background: var(--serf-tint-azul);
+    color: var(--serf-azul-principal);
+}
+
+/* "Precisa da sua ação" (acoes-pendentes.js) */
+.acoes-pendentes { margin-bottom: 24px; }
+.acoes-pendentes.tudo-em-dia .panel-heading p::before { content: "✓ "; color: #15803D; font-weight: 800; }
+
+.acoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0 24px 20px;
+    list-style: none;
+}
+
+.acoes-lista[hidden] { display: none; }
+
+.acao-item {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid var(--serf-borda);
+    border-left: 4px solid var(--serf-laranja);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+}
+
+.acao-item.urgente { border-left-color: #DC2626; }
+
+.acao-icone {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--serf-tint-laranja);
+    font-size: 16px;
+}
+
+.acao-item.urgente .acao-icone { background: var(--serf-tint-vermelho); }
+
+.acao-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acao-texto strong { color: var(--serf-texto-principal); font-size: 13px; }
+.acao-texto span { overflow: hidden; color: var(--serf-texto-secundario); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+
+.acao-botao {
+    padding: 7px 12px;
+    border-radius: 6px;
+    background: var(--serf-marinho);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.acao-botao:focus-visible { outline: 2px solid var(--serf-azul-interacao); outline-offset: 2px; }
+
+@media (max-width: 720px) {
+    .acao-item { grid-template-columns: 30px minmax(0, 1fr); }
+    .acao-botao { grid-column: 2; justify-self: start; }
+    .acao-texto span { white-space: normal; }
+}
+
+/* Primeiros passos (primeiros-passos.js) */
+.primeiros-passos { margin-bottom: 24px; }
+.primeiros-passos[hidden] { display: none; }
+
+.pp-progresso {
+    height: 6px;
+    margin: 0 24px 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--serf-superficie-3);
+}
+
+.pp-progresso span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--serf-laranja);
+    transition: width 0.3s ease;
+}
+
+.pp-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0 24px 20px;
+    list-style: none;
+}
+
+.pp-passo {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 6px 10px;
+    padding: 12px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+}
+
+.pp-passo.proximo { border-color: var(--serf-laranja); background: var(--serf-tint-laranja); }
+.pp-passo.feito { opacity: 0.6; }
+
+.pp-marca {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--serf-borda-forte);
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.pp-passo.feito .pp-marca { border-color: #16A34A; background: #16A34A; }
+
+.pp-texto { display: flex; flex-direction: column; gap: 2px; }
+.pp-texto strong { color: var(--serf-texto-principal); font-size: 13px; }
+.pp-texto span { color: var(--serf-texto-secundario); font-size: 12px; }
+
+.pp-acao {
+    grid-column: 2;
+    justify-self: start;
+    color: var(--serf-azul-interacao);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Sugestões: grupos e produtos */
+.busca-grupo {
+    padding: 8px 14px 4px;
+    color: var(--serf-texto-mudo);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.busca-produto { display: flex; flex-direction: column; gap: 1px; }
+.busca-produto small { color: var(--serf-texto-mudo); font-size: 11px; }
+
+/* Celular: cada pedido vira um cartão (rótulos de data-rotulo) */
+@media (max-width: 720px) {
+    /* A tabela tem min-width para o desktop; no celular os cartões ocupam a largura da tela */
+    #pedidos .table-scroll { overflow-x: visible; }
+    #pedidos .orders-table { min-width: 0; }
+
+    #pedidos table thead { display: none; }
+
+    #pedidos table,
+    #pedidos tbody,
+    #pedidos tr,
+    #pedidos td { display: block; width: 100%; }
+
+    #pedidos tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 12px;
+        margin-bottom: 10px;
+        padding: 12px 14px;
+        border: 1px solid var(--serf-borda);
+        border-radius: 8px;
+        background: var(--serf-superficie);
+    }
+
+    #pedidos tbody td { padding: 0; border: 0; }
+
+    #pedidos tbody td[data-rotulo]:not([data-rotulo=""])::before {
+        content: attr(data-rotulo);
+        display: block;
+        color: var(--serf-texto-mudo);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    #pedidos tbody td[data-rotulo="Produto"],
+    #pedidos tbody td[data-rotulo=""] { grid-column: 1 / -1; }
+
+    #pedidos tbody td[data-rotulo=""] .table-action { width: 100%; min-height: 38px; }
+
+    #pedidos tbody td.empty-state { grid-column: 1 / -1; }
+}

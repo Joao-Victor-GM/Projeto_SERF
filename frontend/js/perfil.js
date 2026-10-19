@@ -135,7 +135,14 @@
         const lista = document.getElementById("perfilSelos");
         if (!lista) return;
 
-        const selos = [{ ok: true, texto: "CNPJ validado na Receita Federal" }];
+        // Só afirma "validado" se a Receita foi de fato consultada (homologar-fornecedor)
+        const cnpjVerificado = empresa.fornecedor?.status_cadastro === "APROVADO" ||
+            empresa.comprador?.status_cadastro === "APROVADA";
+
+        const selos = [{
+            ok: cnpjVerificado,
+            texto: cnpjVerificado ? "CNPJ validado na Receita Federal" : "CNPJ ainda não verificado na Receita Federal"
+        }];
 
         if (empresa.comprador) {
             selos.push({ ok: true, texto: "Compradora na rede S.E.R.F." });
@@ -161,6 +168,55 @@
                 ${escaparHTML(selo.texto)}
             </li>
         `).join("");
+
+        renderizarHomologacao(cnpjVerificado);
+    }
+
+    /* Verificação do CNPJ na Receita (Edge Function homologar-fornecedor) */
+    let ultimoMotivoHomologacao = null;
+
+    function renderizarHomologacao(verificado) {
+        const area = document.getElementById("homologacao");
+        if (!area) return;
+
+        if (verificado || !perfilDaEmpresa()) {
+            area.hidden = true;
+            return;
+        }
+
+        area.hidden = false;
+        area.innerHTML = `
+            <p>Confira o CNPJ na Receita Federal para ganhar o selo de empresa verificada${empresa.fornecedor ? " e de fornecedor homologado" : ""}.</p>
+            ${ultimoMotivoHomologacao ? `<p class="homologacao-motivo">${escaparHTML(ultimoMotivoHomologacao)}</p>` : ""}
+            <button type="button" class="btn-primary" id="btnVerificarCnpj">Verificar CNPJ na Receita Federal</button>`;
+
+        area.querySelector("#btnVerificarCnpj").addEventListener("click", verificarCnpj);
+    }
+
+    async function verificarCnpj() {
+        const botao = document.getElementById("btnVerificarCnpj");
+        botao.disabled = true;
+        botao.textContent = "Consultando a Receita Federal...";
+
+        try {
+            const resultado = await window.SERFDados.empresa.verificarCnpj();
+            ultimoMotivoHomologacao = resultado.status === "APROVADO" ? null : resultado.motivo;
+
+            if (resultado.status === "APROVADO") {
+                window.SERFAvisos.sucesso("CNPJ verificado", resultado.motivo);
+            } else {
+                await window.SERFAvisos.info(
+                    resultado.status === "PENDENTE" ? "Verificação em análise" : "CNPJ não homologado",
+                    resultado.motivo);
+            }
+
+            await carregarEmpresa(obterSupabase());
+            renderizarEmpresa();
+        } catch (erro) {
+            await window.SERFAvisos.erro("Não foi possível verificar o CNPJ", erro);
+            botao.disabled = false;
+            botao.textContent = "Verificar CNPJ na Receita Federal";
+        }
     }
 
     /* =========================================================================
@@ -698,6 +754,36 @@
         renderizarReputacao();
     }
 
+    /* Avisos por e-mail (migration 020). Sem a migration, a seção fica oculta. */
+    async function configurarPreferencias() {
+        const secao = document.getElementById("notificacoes");
+        const caixa = document.getElementById("prefEmail");
+        if (!secao || !caixa || !empresa.authUserId || !window.SERFDados?.empresa) return;
+
+        try {
+            const { receberEmail } = await window.SERFDados.empresa.preferencias(empresa.authUserId);
+            caixa.checked = receberEmail;
+            secao.hidden = false;
+        } catch (erro) {
+            console.warn("[SERF:Perfil] Preferências de e-mail indisponíveis:", erro.message || erro);
+            return;
+        }
+
+        caixa.addEventListener("change", async () => {
+            caixa.disabled = true;
+            try {
+                await window.SERFDados.empresa.salvarPreferencias(empresa.authUserId, { receberEmail: caixa.checked });
+                window.SERFAvisos.sucesso(caixa.checked ? "E-mails ativados" : "E-mails desativados",
+                    caixa.checked ? "Você será avisado dos eventos importantes." : "Os avisos continuam no sistema (Alertas).");
+            } catch (erro) {
+                caixa.checked = !caixa.checked;
+                await window.SERFAvisos.erro("Não foi possível salvar a preferência", erro);
+            } finally {
+                caixa.disabled = false;
+            }
+        });
+    }
+
     async function iniciarPerfil() {
         configurarAbas();
         configurarFiltros();
@@ -710,6 +796,7 @@
 
         await carregarEmpresa(client);
         renderizarEmpresa();
+        configurarPreferencias();
 
         // Empresa só fornecedora abre direto na aba de vendas
         if (empresa.fornecedor && !empresa.comprador) {

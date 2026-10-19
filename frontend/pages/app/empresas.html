@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/relatorios.css">
     <link rel="stylesheet" href="../../css/empresas.css">
+    <link rel="stylesheet" href="../../css/carrinho.css">
     <link rel="stylesheet" href="../../css/tema-escuro.css">
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
@@ -33,7 +34,7 @@
 
         <div class="sidebar-brand">
             <img
-                src="../../assets/images/serflogo.png"
+                src="../../assets/icons/fivecon.png"
                 alt="Logo SERF"
                 class="sidebar-logo"
             >
@@ -238,11 +239,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
     <!-- Reaproveita o modal "Negociar" do catálogo para fazer pedidos pela vitrine -->
+    <!-- Avisos, camada de dados, gestão de produtos e carrinho -->
+    <script src="../../js/ui/avisos.js" defer></script>
+    <script src="../../js/dados/base.js" defer></script>
+    <script src="../../js/dados/produtos.repositorio.js" defer></script>
+    <script src="../../js/dados/pedidos.repositorio.js" defer></script>
+    <script src="../../js/produtos-gestao.js" defer></script>
+    <script src="../../js/carrinho.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
     <script src="../../js/empresas.js" defer></script>
 
     <!-- Camada de dados (alertas) usada pelo contador do menu -->
-    <script src="../../js/dados/base.js" defer></script>
     <script src="../../js/dados/pendencias.repositorio.js" defer></script>
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>

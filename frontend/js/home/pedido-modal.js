@@ -219,7 +219,7 @@ async function cancelarPedidoComoComprador() {
             .catch(erro => console.warn("[SERF:Chat] Aviso de cancelamento não enviado:", erro));
     } catch (erro) {
         console.error("[SERF:Home] Falha ao cancelar pedido:", erro);
-        alert(`Não foi possível cancelar o pedido.\n\n${erro.message || erro}`);
+        SERFAvisos.erro("Não foi possível cancelar o pedido", erro);
         renderizarGestaoStatus(pedido);
     } finally {
         botao.textContent = "Cancelar pedido";
@@ -344,7 +344,12 @@ async function enviarAtualizacaoStatus(evento) {
 
     if (
         novoStatus === "CANCELADO" &&
-        !confirm(`Cancelar o pedido #${pedido.id}? Esta ação não pode ser desfeita.`)
+        !(await SERFAvisos.confirmar({
+            titulo: `Cancelar o pedido #${pedido.id}?`,
+            texto: "Esta ação não pode ser desfeita. O comprador é avisado pelo chat.",
+            botao: "Cancelar pedido",
+            perigo: true
+        }))
     ) {
         return;
     }
@@ -373,7 +378,7 @@ async function enviarAtualizacaoStatus(evento) {
             .catch(erro => console.warn("[SERF:Chat] Aviso de status não enviado:", erro));
     } catch (erro) {
         console.error("[SERF:Home] Falha ao atualizar status:", erro);
-        alert(`Não foi possível atualizar o status.\n\n${erro.message || erro}`);
+        SERFAvisos.erro("Não foi possível atualizar o status", erro);
         renderizarGestaoStatus(pedido);
     } finally {
         elementos.btnAtualizarStatus.textContent = "Atualizar";
@@ -502,7 +507,7 @@ function configurarChat() {
             }
         } catch (erro) {
             console.error("[SERF:Chat] Falha ao enviar mensagem:", erro);
-            alert(`Não foi possível enviar a mensagem.\n\n${erro.message || erro}`);
+            SERFAvisos.erro("Não foi possível enviar a mensagem", erro);
         } finally {
             elementos.btnEnviarMensagem.disabled = false;
             elementos.chatInput.focus();

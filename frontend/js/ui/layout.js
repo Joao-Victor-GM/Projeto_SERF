@@ -23,9 +23,8 @@
         { pagina: "home", icone: "▦", rotulo: "Home", href: "home.html#visao-geral", local: "#visao-geral" },
         { pagina: "empresas", icone: "▤", rotulo: "Empresas", href: "empresas.html" },
         {
-            pagina: "produtos", icone: "▣", rotulo: "Catálogo", href: "catalogo.html", local: "#produtos",
-            idRotulo: "menuProdutosLabel",
-            naHome: { href: "#produtos", rotulo: "Produtos" }
+            // Sem id no rótulo: nenhum outro script consegue trocar "Catálogo" por outro nome
+            pagina: "produtos", icone: "▣", rotulo: "Catálogo", href: "catalogo.html", local: "#produtos"
         },
         { pagina: "pedidos", icone: "☷", rotulo: "Pedidos", href: "home.html#pedidos", naHome: { href: "#pedidos" } },
         {

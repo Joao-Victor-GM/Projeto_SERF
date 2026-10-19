@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.R.F.</title>
+    <!--
+        Entrada padrão da pasta pública. Redireciona para a landing em vez de
+        copiá-la: uma cópia de 536 linhas já tinha divergido da original e usava
+        caminhos absolutos (/frontend/...) que quebram fora da raiz do servidor.
+    -->
+    <meta http-equiv="refresh" content="0; url=landing.html">
+    <link rel="canonical" href="landing.html">
+    <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
+    <script>window.location.replace("landing.html" + window.location.hash);</script>
+</head>
+<body>
+    <p><a href="landing.html">Ir para o S.E.R.F.</a></p>
+</body>
+</html>

@@ -10,8 +10,8 @@ const DE_FORA = ["home.html#visao-geral", "empresas.html", "catalogo.html", "hom
 
 const ESPERADO = {
     home: {
-        hrefs: ["#visao-geral", "empresas.html", "#produtos", "#pedidos", "#mensagens", "relatorios.html", "alertas.html", "#radar-oportunidades"],
-        ativo: "home", rotuloProdutos: "Produtos", contadorMensagens: true
+        hrefs: ["#visao-geral", "empresas.html", "catalogo.html", "#pedidos", "#mensagens", "relatorios.html", "alertas.html", "#radar-oportunidades"],
+        ativo: "home", rotuloProdutos: "Catálogo", contadorMensagens: true
     },
     catalogo: {
         hrefs: ["home.html#visao-geral", "empresas.html", "#produtos", "home.html#pedidos", "home.html#mensagens", "relatorios.html", "alertas.html", "home.html#radar-oportunidades"],
@@ -69,11 +69,20 @@ for (const [pagina, esperado] of Object.entries(ESPERADO)) {
     });
 }
 
-test("Home: o menu do modo Vender continua trocando o rótulo de Produtos", async ({ page }) => {
+// Decisão de produto (branch auto-complete-home): o item é sempre "Catálogo",
+// em qualquer página e modo; só a ação principal muda com o modo.
+test("Home: o menu mostra sempre \"Catálogo\"; o modo troca só a ação principal", async ({ page }) => {
     await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
     await page.goto("/pages/app/home.html");
     await expect(page.locator("#totalPedidos")).toHaveText("3 pedidos");
 
+    const rotulo = page.locator('#sidebar [data-page="produtos"] span:not(.nav-icon)');
+
     await page.locator('.modo-btn[data-mode="vender"]').click();
-    await expect(page.locator("#menuProdutosLabel")).toHaveText("Meus produtos");
+    await expect(rotulo).toHaveText("Catálogo");
+    await expect(page.locator("#btnAcaoPrincipal")).toHaveText("+ Cadastrar produto");
+
+    await page.locator('.modo-btn[data-mode="comprar"]').click();
+    await expect(rotulo).toHaveText("Catálogo");
+    await expect(page.locator("#btnAcaoPrincipal")).toHaveText("+ Novo pedido");
 });

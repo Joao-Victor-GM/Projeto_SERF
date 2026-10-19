@@ -205,7 +205,56 @@
         return `há ${dias} dias`;
     }
 
+    /* ------------------------------------------------------
+       MENSAGENS DE ERRO PARA O USUÁRIO
+       Erros técnicos do Supabase/Postgres viram frases que dizem
+       o que aconteceu e o que fazer. As regras de negócio do
+       banco (RAISE EXCEPTION, código P0001) já são escritas para
+       o usuário e passam direto. O detalhe técnico fica no console.
+       ------------------------------------------------------ */
+
+    const ERRO_GENERICO = "Não foi possível concluir a operação. Tente novamente em instantes.";
+
+    function mensagemDeErro(erro) {
+        if (!erro) return ERRO_GENERICO;
+        if (typeof erro === "string") return erro;
+
+        const codigo = String(erro.code || "");
+        const texto = String(erro.message || erro.error_description || "");
+        const contem = trecho => texto.toLowerCase().includes(trecho);
+
+        if (codigo === "P0001" && texto) return texto;
+
+        if (contem("failed to fetch") || contem("networkerror") || contem("load failed") || contem("network request failed")) {
+            return "Sem conexão com o servidor. Verifique sua internet e tente de novo.";
+        }
+        if (contem("jwt expired") || codigo === "PGRST301" || codigo === "PGRST303") {
+            return "Sua sessão expirou. Entre novamente para continuar.";
+        }
+        if (codigo === "42501" || contem("row-level security") || contem("permission denied")) {
+            return "Sua empresa não tem permissão para esta ação. Se acabou de mudar de perfil, saia e entre de novo.";
+        }
+        if (codigo === "23505") return "Esse registro já existe.";
+        if (codigo === "23514") return "Algum valor está fora do permitido (por exemplo, preço ou quantidade). Revise os campos.";
+        if (codigo === "23502") return "Preencha todos os campos obrigatórios.";
+        if (codigo === "22P02" || codigo === "22003") return "Algum campo tem um valor inválido. Revise e tente de novo.";
+        if (codigo === "PGRST116") return "Registro não encontrado. Ele pode ter sido removido.";
+        if (codigo === "42P01" || codigo === "PGRST205") {
+            return "Este recurso ainda não está disponível no servidor. Avise o suporte.";
+        }
+
+        // Mensagens das nossas próprias validações no front-end (new Error("...")).
+        // Pelo nome, não por instanceof: TypeError/ReferenceError internos
+        // (bugs) não podem aparecer para o usuário.
+        if (erro.name === "Error" && !codigo && texto) {
+            return texto;
+        }
+
+        return ERRO_GENERICO;
+    }
+
     window.SERFUtils = Object.freeze({
+        mensagemDeErro,
         swalConfig,
         STATUS_PEDIDO,
         TRANSICOES_STATUS,

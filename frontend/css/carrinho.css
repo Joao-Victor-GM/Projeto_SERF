@@ -1,0 +1,263 @@
+/* ==========================================================
+   SERF - CARRINHO.CSS
+   Carrinho de compras (carrinho.js) e formulário de edição de
+   produto (produtos-gestao.js). Só variáveis de global.css:
+   funciona nos dois temas.
+   ========================================================== */
+
+/* ---------------- BOTÃO FLUTUANTE ---------------- */
+
+.carrinho-botao {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--serf-laranja);
+    box-shadow: 0 10px 24px rgba(244, 122, 32, 0.35);
+    color: #FFFFFF;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.carrinho-botao strong {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #FFFFFF;
+    color: var(--serf-laranja);
+    font-size: 12px;
+}
+
+.carrinho-botao[hidden],
+.carrinho-painel[hidden] {
+    display: none;
+}
+
+.carrinho-botao:focus-visible,
+.carrinho-painel button:focus-visible,
+.carrinho-painel input:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
+
+/* ---------------- PAINEL ---------------- */
+
+.carrinho-painel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    width: min(440px, 100vw);
+    border-left: 1px solid var(--serf-borda);
+    background: var(--serf-superficie);
+    box-shadow: -12px 0 32px rgba(8, 43, 76, 0.18);
+}
+
+.carrinho-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--serf-borda);
+}
+
+.carrinho-cabecalho h2 {
+    margin: 0;
+    color: var(--serf-azul-principal);
+    font-size: 17px;
+}
+
+.carrinho-fechar {
+    border: 0;
+    background: none;
+    color: var(--serf-texto-secundario);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.carrinho-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 20px;
+}
+
+.carrinho-vazio {
+    margin-top: 40px;
+    color: var(--serf-texto-secundario);
+    text-align: center;
+}
+
+.carrinho-grupo h3 {
+    margin: 16px 0 6px;
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.carrinho-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 76px auto;
+    grid-template-areas: "info qtd subtotal" "info remover remover";
+    gap: 4px 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--serf-borda-suave);
+}
+
+.carrinho-item-info { grid-area: info; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.carrinho-item-info strong { color: var(--serf-texto-principal); font-size: 13px; }
+.carrinho-item-info small { color: var(--serf-texto-mudo); font-size: 11px; }
+
+.carrinho-quantidade { grid-area: qtd; }
+
+.carrinho-quantidade input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--serf-borda-forte);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font: inherit;
+    font-size: 13px;
+}
+
+.carrinho-subtotal { grid-area: subtotal; color: var(--serf-texto-principal); font-size: 13px; text-align: right; }
+
+.carrinho-remover {
+    grid-area: remover;
+    justify-self: end;
+    border: 0;
+    background: none;
+    color: #DC2626;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.carrinho-rodape {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 20px 20px;
+    border-top: 1px solid var(--serf-borda);
+    background: var(--serf-superficie-2);
+}
+
+.carrinho-rodape:empty { display: none; }
+
+.carrinho-observacao span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.carrinho-observacao textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--serf-borda-forte);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font: inherit;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.carrinho-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+}
+
+.carrinho-total strong { color: var(--serf-azul-principal); font-size: 20px; }
+.carrinho-enviar { width: 100%; min-height: 44px; }
+.carrinho-enviar:disabled { opacity: 0.6; cursor: wait; }
+.carrinho-nota { color: var(--serf-texto-mudo); font-size: 11px; }
+
+
+/* ---------------- CARDS DO CATÁLOGO ---------------- */
+
+.produto-card { position: relative; }
+
+.produto-card.pausado { opacity: 0.7; }
+
+.produto-selo-pausado {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--serf-superficie-4);
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.produto-card-gestao {
+    display: flex;
+    gap: 8px;
+}
+
+.produto-card-gestao button {
+    flex: 1;
+    min-height: 38px;
+    font-size: 12px;
+}
+
+.btn-adicionar-carrinho:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ---------------- EDIÇÃO DE PRODUTO (SweetAlert) ---------------- */
+
+.gestao-produto { width: min(620px, 96vw) !important; }
+
+.gestao-grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 14px;
+    text-align: left;
+}
+
+.gestao-campo { display: block; text-align: left; }
+
+.gestao-campo span {
+    display: block;
+    color: var(--serf-texto-secundario, #66788A);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gestao-campo .swal2-input,
+.gestao-campo .swal2-textarea {
+    width: 100%;
+    margin: 4px 0 10px;
+    font-size: 14px;
+}
+
+.gestao-descricao { margin-top: 4px; }
+
+@media (max-width: 720px) {
+    .carrinho-botao { right: 16px; bottom: 16px; }
+    .gestao-grade { grid-template-columns: 1fr; }
+}

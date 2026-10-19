@@ -120,6 +120,54 @@ inventado; só a apresentação é cadenciada.
 - Código: `js/radar-oportunidades.js` + `css/oportunidades.css`; testes em
   `tests/banco/oportunidades.test.mjs` e `tests/e2e/oportunidades.spec.mjs`.
 
+## Experiência do usuário (018–020)
+
+| Recurso | Onde | Como funciona |
+|---|---|---|
+| Erros legíveis | `SERFUtils.mensagemDeErro` + `js/ui/avisos.js` | Erros do Postgres/Supabase viram frases; regras do banco (`P0001`) passam direto; detalhe técnico só no console |
+| Gestão de produtos | `js/produtos-gestao.js` + `SERFDados.produtos` | Editar preço/estoque/dados; pausar e reativar vendas ("Meus produtos" mostra os pausados) |
+| Carrinho | `js/carrinho.js` + RPC `criar_compra` (018) | Vários produtos e fornecedores; um pedido por item, **tudo numa transação**, ligados por `id_compra`; o erro diz qual produto falhou. Carrinho no `localStorage` por usuário |
+| Precisa da sua ação | `js/acoes-pendentes.js` (Home) | 5 alertas urgentes/de atenção, com o botão que resolve; atualiza com o Realtime |
+| Primeiros passos | `js/primeiros-passos.js` + `primeiros_passos()` (019) | Checklist por perfil; some quando tudo está feito ou ao ocultar |
+| Homologação por CNPJ | Edge Function `homologar-fornecedor` (019) | Consulta a Receita (BrasilAPI) no servidor; grava o status com a chave de serviço (o navegador não pode) |
+| Busca | `js/home/eventos.js` | Sugere fornecedores **e produtos**; produto abre a negociação |
+| E-mails | Fila `notificacoes_email` (020) + Edge Function `enviar-emails` | Ver "E-mails" abaixo |
+
+A Home não mostra mais o catálogo (página própria); o botão principal leva ao
+catálogo (Comprar) ou abre o cadastro de produto (Vender). O radar de
+oportunidades pode ser recolhido (a animação para; a escolha fica salva).
+
+### E-mails
+
+- **Quando:** pedido recebido (fornecedor; compra do carrinho = 1 e-mail por
+  fornecedor com todos os itens), status mudou (comprador), cancelado pelo
+  comprador (fornecedor), mensagem nova (outro lado; máx. 1 a cada 30 min por
+  conversa), pagamento confirmado e prazo solicitado (fornecedor).
+- **Como:** triggers enfileiram na mesma transação (falha ao enfileirar nunca
+  desfaz o pedido); `enviar-emails` reserva (`FOR UPDATE SKIP LOCKED`), envia
+  pelo Resend e marca como enviado; até 5 tentativas.
+- **Desligar:** Perfil → "Avisos por e-mail" (`preferencias_notificacao`).
+
+Ativar em produção (uma vez):
+
+```bash
+supabase functions deploy homologar-fornecedor
+supabase functions deploy enviar-emails --no-verify-jwt
+supabase secrets set CRON_SECRET=<segredo-forte> RESEND_API_KEY=<chave> \
+  EMAIL_REMETENTE="S.E.R.F. <avisos@seudominio.com.br>" APP_URL=<url-publica-do-front>
+```
+
+```sql
+-- SQL Editor (extensões pg_cron e pg_net habilitadas em Database → Extensions)
+select cron.schedule('serf-enviar-emails', '* * * * *', $$
+  select net.http_post(
+    url := 'https://<ref-do-projeto>.supabase.co/functions/v1/enviar-emails',
+    headers := jsonb_build_object('x-cron-secret', '<segredo-forte>', 'Content-Type', 'application/json')
+  ) $$);
+```
+
+Sem a função/agendamento, os e-mails só ficam na fila (nada quebra).
+
 ## Triggers em `pedidos` — a ORDEM IMPORTA
 
 O PostgreSQL executa triggers do mesmo momento em **ordem alfabética do nome**.
@@ -172,11 +220,15 @@ layout         js/ui/layout.js          menu lateral único + botão ☰ de toda
 | Domínio (`SERFPainel`) | calcular a partir dos parâmetros | tocar DOM, rede, `estado` global, `new Date()` implícito |
 | Dados (`SERFDados.*`) | consultar, gravar e assinar Realtime | conhecer elementos da tela |
 
-Repositórios: `SERFDados.pedidos` (painel, por id, status, cancelamento,
+Repositórios: `SERFDados.fornecedores` (sugestões da busca da Home: só a view leve `fornecedores_publicos`, termo entre aspas), `SERFDados.pedidos` (painel, por id, status, cancelamento,
 Realtime), `SERFDados.mensagens` (chat), `SERFDados.financeiro` (Realtime de
 pagamento/NF-e), `SERFDados.pendencias` (alertas e oportunidades). Relatórios,
 Perfil, Empresas, Catálogo, pagamentos.js e notas.js ainda consultam o Supabase
 direto: migrar quando forem alterados.
+
+**Busca da Home:** além de filtrar a tabela, sugere fornecedores (auto-complete
+acessível: combobox ARIA, setas/Enter/Esc). A sugestão abre `empresas.html?busca=Nome`,
+que já abre filtrada.
 
 **Menu lateral:** os itens ficam em `ITENS` (js/ui/layout.js). Cada página só
 declara `<nav class="sidebar-nav" data-pagina-atual="...">` seguido do script.
@@ -223,6 +275,11 @@ Regras que mantêm esses números (não desfazer sem medir):
 | `js/dominio/painel.js` | Regras puras do painel (filtros, KPIs, gráfico, radar, conversas) |
 | `js/dados/*.js` | Repositórios: única camada que acessa o Supabase |
 | `js/ui/layout.js` | Menu lateral único e botão ☰ |
+| `js/ui/avisos.js` | Diálogos padronizados (erro, info, sucesso, confirmação) |
+| `js/dominio/alertas.js` | Texto, ação e prioridade de cada tipo de alerta (central e Home) |
+| `js/carrinho.js`, `js/produtos-gestao.js` | Carrinho de compras; edição/pausa de produtos |
+| `js/acoes-pendentes.js`, `js/primeiros-passos.js` | Blocos do topo da Home |
+| `supabase/functions/*` | Edge Functions (Deno): `homologar-fornecedor`, `enviar-emails` |
 | `js/alertas.js` | Página de alertas: textos por tipo, filtros, agrupamento |
 | `js/alertas-contagem.js` | Contador de alertas no menu lateral (todas as páginas internas) |
 | `js/radar-oportunidades.js` | Radar de Oportunidades no topo da Home |
@@ -306,7 +363,10 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
 depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (view `pedidos_painel`), 015 (view `alertas`), 016 (view `oportunidades`) e
-017 (desempenho do radar; sem ela tudo funciona, só mais lento). Publicar as páginas antes delas
+017 (desempenho do radar; sem ela tudo funciona, só mais lento), 018
+(carrinho), 019 (primeiros passos e homologação) e 020 (e-mails). Sem 018–020
+a Home continua funcionando: só o envio do carrinho, o checklist, a
+verificação de CNPJ e os e-mails ficam indisponíveis. Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
 mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
 "Radar indisponível" (o resto funciona).

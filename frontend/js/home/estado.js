@@ -97,7 +97,6 @@ const elementos = {
     menuToggle: document.getElementById("menuToggle"),
     empresaAtiva: document.getElementById("empresaAtiva"),
     modoSwitch: document.getElementById("modoSwitch"),
-    menuProdutosLabel: document.getElementById("menuProdutosLabel"),
     btnAcaoPrincipal: document.getElementById("btnAcaoPrincipal"),
     filtroPeriodo: document.getElementById("filtroPeriodo"),
     filtroStatus: document.getElementById("filtroStatus"),

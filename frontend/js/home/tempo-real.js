@@ -27,6 +27,7 @@ function assinarPagamentosTempoReal() {
 
     canalPagamentos = SERFDados.financeiro.assinarPagamentos(
             payload => {
+                window.dispatchEvent(new CustomEvent("serf:dados-alterados"));
                 const registro = payload.new;
                 if (!registro?.id_pedido) return;
 
@@ -53,6 +54,7 @@ function assinarNotasTempoReal() {
 
     canalNotas = SERFDados.financeiro.assinarNotas(
             payload => {
+                window.dispatchEvent(new CustomEvent("serf:dados-alterados"));
                 const registro = payload.new;
                 if (!registro?.id_pedido) return;
 
@@ -78,6 +80,7 @@ function assinarPedidosTempoReal() {
 
     canalPedidos = SERFDados.pedidos.assinarMudancas(
             payload => {
+                window.dispatchEvent(new CustomEvent("serf:dados-alterados"));
                 const pedido = obterPedido(payload.new?.id_pedido);
 
                 // Mudança de status de um pedido já carregado: atualiza no lugar.

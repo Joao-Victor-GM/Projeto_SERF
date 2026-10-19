@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/pagamentos.css">
     <link rel="stylesheet" href="../../css/oportunidades.css">
+    <link rel="stylesheet" href="../../css/carrinho.css">
     <link rel="stylesheet" href="../../css/tema-escuro.css">
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
@@ -28,6 +29,10 @@
     <script src="../../js/dados/pedidos.repositorio.js"></script>
     <script src="../../js/dados/mensagens.repositorio.js"></script>
     <script src="../../js/dados/pendencias.repositorio.js"></script>
+    <script src="../../js/dados/fornecedores.repositorio.js"></script>
+    <script src="../../js/dados/produtos.repositorio.js"></script>
+    <script src="../../js/dominio/alertas.js"></script>
+    <script src="../../js/ui/avisos.js"></script>
     <script src="../../js/auth-check.js"></script>
 </head>
 
@@ -110,7 +115,11 @@
                         type="search"
                         id="buscaGlobal"
                         placeholder="Buscar pedidos, produtos, empresas..."
+                        autocomplete="off"
                     >
+
+                    <!-- Sugestões de empresas (auto-complete, eventos.js) -->
+                    <ul id="resultadoBusca" class="busca-sugestoes" hidden></ul>
                 </div>
             </div>
 
@@ -226,6 +235,25 @@
                  (migration 016), anunciadas uma a uma.
             ================================================== -->
 
+            <!-- =================================================
+                 PRECISA DA SUA AÇÃO (acoes-pendentes.js)
+                 As pendências mais importantes da view "alertas",
+                 com o botão que resolve cada uma.
+            ================================================== -->
+            <section class="panel acoes-pendentes" id="acoes" aria-labelledby="acoesTitulo">
+                <div class="panel-heading">
+                    <div>
+                        <h2 id="acoesTitulo">Precisa da sua ação</h2>
+                        <p id="acoesResumo">Verificando pendências...</p>
+                    </div>
+                    <a href="alertas.html" class="btn-text" id="acoesVerTodos">Ver todos os alertas →</a>
+                </div>
+                <ul class="acoes-lista" id="acoesLista"></ul>
+            </section>
+
+            <!-- Checklist para empresas novas (primeiros-passos.js, migration 019) -->
+            <section class="panel primeiros-passos" id="primeirosPassos" aria-labelledby="ppTitulo" hidden></section>
+
             <section class="radar-oportunidades" id="radar-oportunidades" aria-labelledby="ropTitulo">
 
                 <div class="rop-visual">
@@ -246,8 +274,12 @@
                             <h2 id="ropTitulo">Radar de Oportunidades</h2>
                             <p>Produtos, preços e compradores detectados na rede S.E.R.F. para a sua empresa.</p>
                         </div>
-                        <button type="button" class="rop-pausar" id="ropPausar" aria-pressed="false"
-                                aria-controls="radar-oportunidades">❚❚ Pausar</button>
+                        <div class="rop-botoes">
+                            <button type="button" class="rop-pausar" id="ropPausar" aria-pressed="false"
+                                    aria-controls="radar-oportunidades">❚❚ Pausar</button>
+                            <button type="button" class="rop-pausar" id="ropRecolher" aria-expanded="true"
+                                    aria-controls="radar-oportunidades">▴ Recolher</button>
+                        </div>
                     </header>
 
                     <div class="rop-numeros">
@@ -366,69 +398,6 @@
 
             </section>
 
-
-            <!-- =================================================
-                 BLOCO — CATÁLOGO B2B / MEUS PRODUTOS (SCRUM 15)
-                 Apresenta o catálogo de produtos e gestão do vendedor.
-            ================================================== -->
-
-            <section class="panel" id="produtos">
-
-                <div class="panel-heading">
-                    <div>
-                        <h2 id="produtosTitulo">Catálogo de Produtos B2B</h2>
-                        <p id="produtosSubtitulo">Explore insumos industriais e mercadorias com preço de atacado</p>
-                    </div>
-
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <!-- Botão pequeno para visualizar tela exclusiva do Catálogo -->
-                        <a
-                            href="catalogo.html"
-                            class="btn-text"
-                            id="btnVerMaisCatalogo"
-                            style="font-size: 11px; font-weight: 700; color: var(--serf-azul-interacao); text-decoration: none;"
-                            title="Abrir tela cheia dedicada ao catálogo"
-                        >
-                            Ver mais →
-                        </a>
-
-                        <!-- Botão de cadastro visível apenas se o usuário for Fornecedor -->
-                        <button
-                            type="button"
-                            class="btn-primary"
-                            id="btnNovoProduto"
-                            style="display: none;"
-                        >
-                            + Novo Produto
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Grade dinâmica de cards de produtos -->
-                <div id="listaProdutos" class="produtos-grid">
-                    <p class="empty-state">
-                        Carregando produtos do catálogo...
-                    </p>
-                </div>
-
-                <!-- Rodapé da seção com link para visualizar catálogo completo -->
-                <div style="padding: 12px 20px; border-top: 1px solid var(--serf-borda); background: #FAFBFD; display: flex; justify-content: center; align-items: center;">
-                    <a
-                        href="catalogo.html"
-                        class="btn-secondary"
-                        style="font-size: 11px; padding: 7px 20px; text-decoration: none;"
-                    >
-                        Visualizar catálogo completo →
-                    </a>
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 BLOCO 06 — ACOMPANHAMENTO DE PEDIDOS
-                 Tabela central para consulta e ações por linha.
-            ================================================== -->
 
             <section class="panel" id="pedidos">
 
@@ -805,6 +774,10 @@
     <script src="../../js/home/inicializacao.js" defer></script>
     <script src="../../js/catalogo.js" defer></script>
     <script src="../../js/radar-oportunidades.js" defer></script>
+    <script src="../../js/produtos-gestao.js" defer></script>
+    <script src="../../js/carrinho.js" defer></script>
+    <script src="../../js/acoes-pendentes.js" defer></script>
+    <script src="../../js/primeiros-passos.js" defer></script>
 
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>

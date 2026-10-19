@@ -35,7 +35,8 @@
         total: el("#ropTotal"),
         chips: el("#ropChips"),
         status: el("#ropStatus"),
-        btnPausar: el("#ropPausar")
+        btnPausar: el("#ropPausar"),
+        btnRecolher: el("#ropRecolher")
     };
 
     const INTERVALO_PING_MS = 3600;      // um novo "sinal" a cada 3,6 s
@@ -94,7 +95,7 @@
         proximo: 0,
         timer: null,
         pausadoPeloUsuario: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
-        pausas: new Set(),   // "oculto" | "fora-da-tela" | "foco"
+        pausas: new Set(),   // "oculto" | "fora-da-tela" | "foco" | "recolhido"
         carregamento: "carregando"
     };
 
@@ -248,10 +249,17 @@
         return { esquerda, topo, direita: esquerda + cartao.offsetWidth, base: topo + cartao.offsetHeight };
     }
 
+    // Folga mínima entre cartões: maior que o deslocamento da animação de
+    // entrada (10 px em oportunidades.css → rop-entrar), para que nem durante
+    // a animação um cartão encoste no outro.
+    const FOLGA_ENTRE_CARTOES = 12;
+
     function seSobrepoem(a, b) {
         const ra = caixaFinal(a);
         const rb = caixaFinal(b);
-        return ra.esquerda < rb.direita && rb.esquerda < ra.direita && ra.topo < rb.base && rb.topo < ra.base;
+        const f = FOLGA_ENTRE_CARTOES;
+        return ra.esquerda < rb.direita + f && rb.esquerda < ra.direita + f &&
+               ra.topo < rb.base + f && rb.topo < ra.base + f;
     }
 
     function retirarCartao(cartao) {
@@ -455,7 +463,29 @@
         sincronizarCiclo();
     }
 
+    // Recolhido: só o cabeçalho e os números; a animação para.
+    // A escolha é do usuário e vale para as próximas visitas.
+    const CHAVE_RECOLHIDO = "serf-radar-recolhido";
+
+    function recolher(recolhido, { salvar = true } = {}) {
+        raiz.classList.toggle("recolhido", recolhido);
+        elementos.btnRecolher?.setAttribute("aria-expanded", String(!recolhido));
+        if (elementos.btnRecolher) elementos.btnRecolher.textContent = recolhido ? "▾ Expandir" : "▴ Recolher";
+
+        if (salvar) {
+            try { localStorage.setItem(CHAVE_RECOLHIDO, recolhido ? "1" : "0"); } catch { /* sem armazenamento */ }
+        }
+
+        pausa("recolhido", recolhido);
+    }
+
     function configurar() {
+        let recolhidoAntes = false;
+        try { recolhidoAntes = localStorage.getItem(CHAVE_RECOLHIDO) === "1"; } catch { /* sem armazenamento */ }
+        recolher(recolhidoAntes, { salvar: false });
+
+        elementos.btnRecolher?.addEventListener("click", () => recolher(!raiz.classList.contains("recolhido")));
+
         elementos.btnPausar.addEventListener("click", () => {
             estado.pausadoPeloUsuario = !estado.pausadoPeloUsuario;
             sincronizarCiclo();

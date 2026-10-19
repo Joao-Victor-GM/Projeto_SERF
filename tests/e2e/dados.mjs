@@ -179,7 +179,7 @@ export function criarTabelas() {
         usuarios: [{
             id_usuario: 1, auth_user_id: EMPRESA.id, nome_empresa: "Atacadão Ambos LTDA",
             cnpj: "12345678000190", email: EMPRESA.email, telefone: "41999990000",
-            nicho: "Alimentos", status_cadastro: "APROVADA", data_cadastro: atras(90)
+            nicho: "Alimentos", status_cadastro: "PENDENTE_VALIDACAO", data_cadastro: atras(90)
         }],
         fornecedores: [{
             id_fornecedor: 1, auth_user_id: EMPRESA.id, razao_social: "Atacadão Ambos LTDA",

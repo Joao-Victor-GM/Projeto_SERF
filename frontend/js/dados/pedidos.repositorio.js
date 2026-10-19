@@ -50,6 +50,15 @@
         return Array.isArray(data) ? data[0] : data;
     }
 
+    // Carrinho (migration 018): um pedido por item, tudo numa transação.
+    // itens: [{ id_produto, quantidade }]
+    async function criarCompra(itens, observacao) {
+        return dadosOuErro(await cliente().rpc("criar_compra", {
+            p_itens: itens,
+            p_observacao: observacao || null
+        })) || [];
+    }
+
     // Qualquer mudança nos pedidos da empresa (o RLS filtra no servidor)
     function assinarMudancas(aoReceber) {
         return assinar({ canal: "pedidos-painel", tabela: "pedidos", aoReceber });
@@ -60,6 +69,7 @@
         buscarPorId,
         atualizarStatus,
         cancelarComoComprador,
+        criarCompra,
         assinarMudancas
     });
 })();

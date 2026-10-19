@@ -36,14 +36,10 @@ function alterarModo(novoModo) {
         botao.setAttribute("aria-pressed", String(ativo));
     });
 
-    // Personaliza a navegação e a ação principal.
-    if (novoModo === "comprar") {
-        elementos.menuProdutosLabel.textContent = "Produtos";
-        elementos.btnAcaoPrincipal.textContent = "+ Novo pedido";
-    } else {
-        elementos.menuProdutosLabel.textContent = "Meus produtos";
-        elementos.btnAcaoPrincipal.textContent = "+ Cadastrar produto";
-    }
+    // Personaliza a ação principal (o menu mostra sempre "Catálogo").
+    elementos.btnAcaoPrincipal.textContent = novoModo === "comprar"
+        ? "+ Novo pedido"
+        : "+ Cadastrar produto";
 
     // Remove o destaque de indicadores anteriores.
     document.querySelectorAll(".metric-item").forEach(item => {
@@ -161,29 +157,29 @@ function renderizarPedidos(pedidos) {
 
         return `
             <tr>
-                <td>
+                <td data-rotulo="Pedido">
                     <strong>#${pedido.id}</strong>
                 </td>
 
-                <td>
+                <td data-rotulo="Empresa">
                     ${escaparHTML(parceiro.nome)}
                 </td>
 
-                <td>
+                <td data-rotulo="Produto">
                     ${escaparHTML(pedido.produto)}
                 </td>
 
-                <td>
+                <td data-rotulo="Status">
                     <span class="order-status ${pedido.status}">
                         ${escaparHTML(pedido.statusRotulo)}
                     </span>
                 </td>
 
-                <td>
+                <td data-rotulo="Atualização">
                     ${formatarData(pedido.atualizadoEm)}
                 </td>
 
-                <td>
+                <td data-rotulo="">
                     <button
                         type="button"
                         class="table-action"

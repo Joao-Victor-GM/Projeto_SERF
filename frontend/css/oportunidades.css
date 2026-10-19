@@ -454,3 +454,32 @@
         flex-direction: column;
     }
 }
+
+
+/* ---------------- RECOLHIDO (botão ▴ Recolher) ---------------- */
+
+.rop-botoes {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.radar-oportunidades.recolhido {
+    grid-template-columns: 1fr;
+    padding: 18px 24px;
+}
+
+.radar-oportunidades.recolhido .rop-visual,
+.radar-oportunidades.recolhido .rop-feed,
+.radar-oportunidades.recolhido .rop-painel > header p,
+.radar-oportunidades.recolhido #ropPausar {
+    display: none;
+}
+
+.radar-oportunidades.recolhido .rop-painel h2 {
+    font-size: 18px;
+}
+
+.radar-oportunidades.recolhido .rop-numeros strong {
+    font-size: 24px;
+}

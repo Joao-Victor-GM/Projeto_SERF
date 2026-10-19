@@ -79,6 +79,9 @@
         const client = obterSupabase();
         const container = document.getElementById('listaProdutos');
 
+        // Páginas sem a lista (ex.: Home usa só a negociação/cadastro): nada a buscar
+        if (!container) return [];
+
         if (!client) {
             if (container) {
                 container.innerHTML = '<p class="empty-state">Erro: Conexão com o banco de dados não estabelecida.</p>';
@@ -120,10 +123,10 @@
                         estado
                     )
                 `)
-                .eq('ativo', true)
                 .order('id_produto', { ascending: false });
 
-            // Se for fornecedor e estiver no modo "vender" (Meus Produtos), filtra pelo seu id_fornecedor
+            // Se for fornecedor e estiver no modo "vender" (Meus Produtos), filtra pelo seu id_fornecedor.
+            // Ali aparecem também os produtos pausados (ativo = false), para reativar.
             if (isModoVender && fornecedorAtual && fornecedorAtual.id_fornecedor) {
                 query = query.eq('id_fornecedor', fornecedorAtual.id_fornecedor);
 
@@ -132,9 +135,11 @@
                 if (titulo) titulo.textContent = 'Meus Produtos (Painel do Vendedor)';
                 if (subtitulo) subtitulo.textContent = `Itens cadastrados por ${fornecedorAtual.razao_social}`;
             } else {
+                query = query.eq('ativo', true);
+
                 const titulo = document.getElementById('produtosTitulo');
                 const subtitulo = document.getElementById('produtosSubtitulo');
-                if (titulo) titulo.textContent = 'Catálogo de Produtos B2B';
+                if (titulo) titulo.textContent = 'Catálogo de Produtos';
                 if (subtitulo) subtitulo.textContent = 'Explore insumos industriais e mercadorias com preço de atacado';
             }
 
@@ -154,7 +159,7 @@
                 container.innerHTML = `
                     <div class="empty-state" style="color: #dc2626;">
                         <p><strong>Não foi possível carregar os produtos.</strong></p>
-                        <small>${escaparHTML(error.message || 'Erro de comunicação com o Supabase')}</small>
+                        <small>${escaparHTML(window.SERFUtils.mensagemDeErro(error))}</small>
                     </div>
                 `;
             }
@@ -167,6 +172,60 @@
        Renderiza: Marca, Categoria, Nome, Descrição, Preço formatado (R$),
        Qtd Mínima, Estoque, Fornecedor e o botão 'Iniciar Negociação'.
        ========================================================================= */
+    // Card do PRÓPRIO produto (modo Vender): editar e pausar/reativar.
+    // Card de outro fornecedor: detalhes, carrinho e negociação.
+    function rodapeDoCard(prod, nomeFornecedor) {
+        const meu = isModoVenderAtivo() && fornecedorAtual && prod.id_fornecedor === fornecedorAtual.id_fornecedor;
+
+        if (meu) {
+            const pausado = prod.ativo === false;
+            return `
+                    <div class="produto-card-footer produto-card-gestao">
+                        <button type="button" class="btn-secondary btn-editar-produto" data-id="${prod.id_produto}">
+                            ✎ Editar preço e estoque
+                        </button>
+                        <button type="button" class="btn-secondary btn-alternar-produto" data-id="${prod.id_produto}">
+                            ${pausado ? '▶ Reativar' : '❚❚ Pausar vendas'}
+                        </button>
+                    </div>`;
+        }
+
+        const semEstoque = (Number(prod.quantidade_estoque) || 0) < (Number(prod.quantidade_minima) || 1);
+
+        return `
+                    <div class="produto-card-footer" style="display: flex; gap: 8px;">
+                        <button
+                            type="button"
+                            class="btn-secondary btn-ver-detalhes"
+                            data-id="${prod.id_produto}"
+                            title="Visualizar todos os detalhes deste produto"
+                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
+                        >
+                            Ver mais
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-secondary btn-adicionar-carrinho"
+                            data-id="${prod.id_produto}"
+                            ${semEstoque ? 'disabled title="Sem estoque para o pedido mínimo"' : 'title="Adicionar ao carrinho"'}
+                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
+                        >
+                            🛒 Adicionar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-iniciar-negociacao"
+                            data-id="${prod.id_produto}"
+                            data-preco="${prod.preco_atacado}"
+                            data-nome="${escaparHTML(prod.nome_produto)}"
+                            data-fornecedor="${escaparHTML(nomeFornecedor)}"
+                            style="flex: 1;"
+                        >
+                            <span>🤝 Negociar</span>
+                        </button>
+                    </div>`;
+    }
+
     function renderizarProdutos(produtos) {
         const container = document.getElementById('listaProdutos');
         if (!container) return;
@@ -195,12 +254,15 @@
             const statusEstoqueClass = estoque > 0 ? 'em-estoque' : 'sem-estoque';
             const statusEstoqueTexto = estoque > 0 ? `${estoque} em estoque` : 'Sem estoque';
 
+            const pausado = prod.ativo === false;
+
             return `
-                <article class="produto-card" data-id="${prod.id_produto}">
+                <article class="produto-card${pausado ? ' pausado' : ''}" data-id="${prod.id_produto}">
                     <div class="produto-card-header">
                         <div class="produto-tags">
                             <span class="produto-badge categoria">${escaparHTML(prod.categoria || 'Geral')}</span>
                             <span class="produto-badge marca">${escaparHTML(prod.marca || 'Original')}</span>
+                            ${pausado ? '<span class="produto-selo-pausado">Vendas pausadas</span>' : ''}
                         </div>
                         <div class="produto-fornecedor" title="${escaparHTML(nomeFornecedor)}">
                             <span class="fornecedor-icone">🏭</span>
@@ -229,31 +291,35 @@
                         </div>
                     </div>
 
-                    <div class="produto-card-footer" style="display: flex; gap: 8px;">
-                        <button
-                            type="button"
-                            class="btn-secondary btn-ver-detalhes"
-                            data-id="${prod.id_produto}"
-                            title="Visualizar todos os detalhes deste produto"
-                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
-                        >
-                            Ver mais
-                        </button>
-                        <button
-                            type="button"
-                            class="btn-iniciar-negociacao"
-                            data-id="${prod.id_produto}"
-                            data-preco="${prod.preco_atacado}"
-                            data-nome="${escaparHTML(prod.nome_produto)}"
-                            data-fornecedor="${escaparHTML(nomeFornecedor)}"
-                            style="flex: 1;"
-                        >
-                            <span>🤝 Negociar</span>
-                        </button>
-                    </div>
+                    ${rodapeDoCard(prod, nomeFornecedor)}
                 </article>
             `;
         }).join('');
+
+        const produtoDo = botao => listaProdutosCache.find(p => p.id_produto === Number(botao.dataset.id));
+
+        // Gestão do próprio produto (produtos-gestao.js)
+        container.querySelectorAll('.btn-editar-produto').forEach(botao => {
+            botao.addEventListener('click', () => {
+                const prod = produtoDo(botao);
+                if (prod) window.SERFGestaoProdutos.editar(prod, () => buscarProdutos());
+            });
+        });
+
+        container.querySelectorAll('.btn-alternar-produto').forEach(botao => {
+            botao.addEventListener('click', () => {
+                const prod = produtoDo(botao);
+                if (prod) window.SERFGestaoProdutos.alternarAtivo(prod, () => buscarProdutos());
+            });
+        });
+
+        // Carrinho (carrinho.js)
+        container.querySelectorAll('.btn-adicionar-carrinho').forEach(botao => {
+            botao.addEventListener('click', () => {
+                const prod = produtoDo(botao);
+                if (prod && window.SERFCarrinho) window.SERFCarrinho.adicionar(prod);
+            });
+        });
 
         // Vincula o evento de 'Ver mais' (detalhes do produto)
         container.querySelectorAll('.btn-ver-detalhes').forEach(botao => {
@@ -611,6 +677,8 @@
        Insere nome_produto, descricao, categoria, marca, preco_atacado,
        quantidade_minima, quantidade_estoque e id_fornecedor diretamente na tabela.
        ========================================================================= */
+    let abrirCadastro = () => {};
+
     function configurarModalNovoProduto() {
         const modal = document.getElementById('modalNovoProduto');
         const btnAbrir = document.getElementById('btnNovoProduto');
@@ -655,6 +723,8 @@
                 form.reset();
             }
         }
+
+        abrirCadastro = abrirModal;
 
         // Abre o modal ao clicar no botão #btnNovoProduto
         if (btnAbrir) {
@@ -820,7 +890,7 @@
             Swal.fire({
                 ...swalConfig,
                 title: 'Erro ao Cadastrar',
-                text: 'Falha técnica ao gravar no Supabase: ' + (error.message || error.details || 'Verifique as permissões de acesso.'),
+                text: window.SERFUtils.mensagemDeErro(error),
                 icon: 'error',
                 confirmButtonColor: '#d33'
             });
@@ -901,6 +971,11 @@
         configurarObservadorDeModo();
         atualizarVisibilidadeBotaoCadastro();
         await buscarProdutos();
+
+        // catalogo.html?modo=vender&novo=1 → já abre o cadastro de produto
+        if (new URLSearchParams(window.location.search).get('novo') === '1' && isModoVenderAtivo()) {
+            abrirCadastro();
+        }
     }
 
     // Exporta API pública do catálogo para o escopo global
@@ -911,6 +986,7 @@
         atualizarVisibilidadeBotaoCadastro,
         isModoVenderAtivo,
         abrirModalNegociacao,
+        abrirCadastroProduto: () => abrirCadastro(),
         getFornecedorAtual: () => fornecedorAtual
     };
 

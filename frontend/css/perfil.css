@@ -821,3 +821,49 @@
         width: 100%;
     }
 }
+
+
+/* Verificação do CNPJ (perfil.js → homologar-fornecedor) */
+.homologacao {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px dashed var(--serf-borda-forte);
+    border-radius: 8px;
+}
+
+.homologacao[hidden] { display: none; }
+
+.homologacao p {
+    margin: 0;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+}
+
+.homologacao .homologacao-motivo {
+    color: var(--serf-texto-principal);
+    font-weight: 600;
+}
+
+.homologacao .btn-primary:disabled { opacity: 0.6; cursor: wait; }
+
+/* Avisos por e-mail */
+#notificacoes[hidden] { display: none; }
+
+.preferencia-email {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--serf-texto-principal);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.preferencia-email input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--serf-laranja);
+}
