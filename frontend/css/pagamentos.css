@@ -380,3 +380,48 @@
 :root[data-theme="dark"] .pag-selo.analise,
 :root[data-theme="dark"] .pag-selo.faturado { color: #F7B57A; }
 :root[data-theme="dark"] .pag-selo.vencido { color: #F49494; }
+
+/* Pix real (Mercado Pago, migration 026) */
+.pag-aviso-teste.real {
+    border-style: solid;
+    border-color: var(--serf-azul-interacao);
+    background: var(--serf-tint-azul);
+}
+
+.pag-qrcode img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.pag-metodo[hidden] {
+    display: none;
+}
+
+.pag-aguardando {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 24px 0;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.pag-girando {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--serf-borda-forte);
+    border-top-color: var(--serf-azul-interacao);
+    border-radius: 50%;
+    animation: pag-girar 0.9s linear infinite;
+}
+
+@keyframes pag-girar {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pag-girando { animation: none; }
+}

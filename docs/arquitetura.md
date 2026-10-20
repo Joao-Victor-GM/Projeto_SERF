@@ -163,6 +163,45 @@ propostas). Tabelas só de leitura para o navegador; escrita pelas RPCs.
 `pedidos_validar` também congela, depois de criado, comprador, produto,
 quantidade, preço e proposta do pedido (segunda camada além do GRANT da 003).
 
+## Pix real — Mercado Pago (migration 026)
+
+Desligado por padrão: `configuracao_pagamentos.modo = 'SIMULADO'` mantém o
+fluxo da 009 (nenhum dinheiro circula). Com `'REAL'`:
+
+- O checkout mostra só **Pix** e **faturamento a prazo**; boleto, cartão e o
+  botão "Simular pagamento" somem — e o **banco** também recusa (trigger
+  `pagamentos_exigir_provedor`: no modo REAL, só o caminho do provedor grava
+  PAGO).
+- **pix-criar** (Edge Function, com a sessão do comprador): `preparar_pix`
+  confere o pedido; reaproveita o QR Code ainda válido (`pix_expira_em`) ou
+  cria a cobrança no Mercado Pago (chave de idempotência por pedido/minuto) e
+  grava com `registrar_cobranca_pix` (valor tem de bater com o pedido).
+- **pix-webhook** (sem JWT): confere a assinatura `x-signature`
+  (HMAC-SHA256 com `MP_WEBHOOK_SECRET`), **consulta o pagamento na API**
+  (o corpo da notificação não vale nada) e chama
+  `confirmar_pagamento_provedor` (idempotente; valor divergente é recusado;
+  Pix que compensa depois do cancelamento fica marcado para estorno manual).
+- A tela acompanha sozinha (consulta a cada 4 s + Realtime) e fecha ao
+  confirmar. Fatura a prazo aprovada é paga pelo mesmo Pix e continua "a
+  prazo" (o vencimento da fatura não muda).
+
+Ativar (comece com as **credenciais de teste** do Mercado Pago):
+
+1. Mercado Pago → Suas integrações → criar aplicação → copiar o *Access
+   Token*; em Webhooks, URL
+   `https://<ref-do-projeto>.supabase.co/functions/v1/pix-webhook`, evento
+   **Pagamentos**, e copiar a *assinatura secreta*.
+2. ```bash
+   supabase functions deploy pix-criar
+   supabase functions deploy pix-webhook --no-verify-jwt
+   supabase secrets set MP_ACCESS_TOKEN=<access-token> MP_WEBHOOK_SECRET=<assinatura-secreta>
+   ```
+3. SQL Editor: `UPDATE public.configuracao_pagamentos SET modo = 'REAL';`
+   (voltar: `'SIMULADO'`).
+
+Estorno de Pix pago (pedido cancelado depois do pagamento) é feito no painel
+do Mercado Pago; o S.E.R.F. marca `ESTORNADO`/`motivo_recusa` para lembrar.
+
 ## LGPD: exportar dados e excluir a conta (migration 025)
 
 Perfil → **Privacidade e dados**.
@@ -461,7 +500,7 @@ depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
 (segmentos do radar), 022 (categorias oficiais; converte categorias antigas
 fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
-024 (cotações) e 025 (LGPD). Sem 018–025
+024 (cotações), 025 (LGPD) e 026 (Pix real, desligado por padrão). Sem 018–026
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas

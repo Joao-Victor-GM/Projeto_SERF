@@ -1,9 +1,15 @@
 /* =========================================================================
-   S.E.R.F. — PAGAMENTOS (pagamentos.js)  ·  AMBIENTE SIMULADO
+   S.E.R.F. — PAGAMENTOS (pagamentos.js)
 
    Pix (QR Code + copia e cola), cartão de crédito (parcelado), boleto e
    faturamento a prazo (28/30/60 dias, sujeito à aprovação do fornecedor).
-   Nenhum dinheiro circula: a "confirmação" simula o retorno de um gateway.
+
+   Dois modos (configuracao_pagamentos.modo, migration 026):
+   - SIMULADO (padrão): nenhum dinheiro circula; a "confirmação" simula o
+     retorno de um gateway.
+   - REAL: Pix pelo Mercado Pago (Edge Function pix-criar). A confirmação
+     chega sozinha pelo webhook do banco; a tela só acompanha. Boleto e
+     cartão simulados somem; o prazo continua (a fatura é paga pelo Pix).
 
    Segurança:
    - O navegador não grava na tabela pagamentos; usa as funções RPC da
@@ -68,6 +74,31 @@
         p_cartao_final: cartao.final ?? null,
         p_cartao_bandeira: cartao.bandeira ?? null
     });
+
+    // Modo de pagamento (026). Sem a migration: SIMULADO.
+    let modoEmCache = null;
+    async function modoPagamentos() {
+        if (modoEmCache) return modoEmCache;
+        try {
+            const { data, error } = await obterSupabase().from("configuracao_pagamentos").select("modo").maybeSingle();
+            if (error) throw error;
+            modoEmCache = data?.modo === "REAL" ? "REAL" : "SIMULADO";
+        } catch {
+            modoEmCache = "SIMULADO";
+        }
+        return modoEmCache;
+    }
+    const modoReal = () => modoEmCache === "REAL";
+
+    // Pix real: a Edge Function cria (ou reaproveita) a cobrança no Mercado Pago
+    async function criarPixReal(idPedido) {
+        const { data, error } = await obterSupabase().functions.invoke("pix-criar", { body: { id_pedido: idPedido } });
+        if (!error) return data.pagamento;
+
+        let corpo = null;
+        try { corpo = await error.context?.json?.(); } catch { /* corpo não é JSON */ }
+        throw new Error(corpo?.erro || "Não foi possível gerar o Pix agora. Tente novamente.");
+    }
 
     const responderPrazo = (idPedido, aprovar, motivo) => chamarRPC("responder_pagamento_prazo", {
         p_id_pedido: idPedido,
@@ -154,6 +185,7 @@
 
     function renderizar(container, contexto) {
         if (!container) return;
+        modoPagamentos();     // já busca o modo para o checkout abrir certo
 
         const { papel, pagamento, statusPedido } = contexto;
         const comprador = papel === "comprador";
@@ -244,6 +276,8 @@
         if (acao === "comprovante") return abrirComprovante(contexto);
 
         if (acao === "pagar-fatura") {
+            if (await modoPagamentos() === "REAL") return abrirCheckout(contexto, { metodoInicial: "PIX", apenasPix: true });
+
             const ok = await Swal.fire({
                 ...swalConfig,
                 title: "Pagar fatura?",
@@ -341,7 +375,7 @@
                     <button type="button" class="btn-fechar-modal" data-pag-fechar aria-label="Fechar">&times;</button>
                 </div>
 
-                <div class="pag-aviso-teste" role="note">
+                <div class="pag-aviso-teste" id="pagAviso" role="note">
                     <strong>Ambiente de testes:</strong> nenhuma cobrança real é feita.
                 </div>
 
@@ -376,15 +410,29 @@
         });
     }
 
-    function abrirCheckout(contexto, { metodoInicial = "PIX", forcarNovo = false } = {}) {
+    async function abrirCheckout(contexto, { metodoInicial = "PIX", forcarNovo = false, apenasPix = false } = {}) {
+        await modoPagamentos();
         garantirModal();
 
         checkout = {
             contexto,
             pagamento: forcarNovo ? null : contexto.pagamento,
             metodo: null,
-            cronometro: null
+            cronometro: null,
+            espera: null
         };
+
+        // REAL: só Pix (e o pedido de prazo); a fatura a prazo aprovada, só Pix
+        const disponiveis = apenasPix ? ["PIX"] : modoReal() ? ["PIX", "PRAZO"] : Object.keys(METODOS);
+        document.querySelectorAll("#modalPagamento .pag-metodo").forEach(botao => {
+            botao.hidden = !disponiveis.includes(botao.dataset.metodo);
+        });
+        if (!disponiveis.includes(metodoInicial)) metodoInicial = "PIX";
+
+        document.getElementById("pagAviso").innerHTML = modoReal()
+            ? "<strong>Pagamento real</strong> via Pix (Mercado Pago). A confirmação chega sozinha quando o banco aprovar."
+            : "<strong>Ambiente de testes:</strong> nenhuma cobrança real é feita.";
+        document.getElementById("pagAviso").classList.toggle("real", modoReal());
 
         document.getElementById("pagTitulo").textContent = `Pagamento do pedido #${contexto.pedidoId}`;
         document.getElementById("pagSubtitulo").textContent = `${contexto.produto} · ${contexto.parceiroNome}`;
@@ -398,6 +446,7 @@
         const modal = document.getElementById("modalPagamento");
         if (modal) modal.style.display = "none";
         clearInterval(checkout?.cronometro);
+        clearInterval(checkout?.espera);
         checkout = null;
     }
 
@@ -405,6 +454,7 @@
         if (!checkout) return;
 
         clearInterval(checkout.cronometro);
+        clearInterval(checkout.espera);
         checkout.metodo = metodo;
 
         document.querySelectorAll("#modalPagamento .pag-metodo").forEach(botao => {
@@ -414,7 +464,9 @@
         });
 
         // Reaproveita a cobrança em aberto do mesmo método (não gera outra)
-        const existente = checkout.pagamento &&
+        const existente = modoReal() && metodo === "PIX"
+            ? (pixRealVigente(checkout.pagamento) ? checkout.pagamento : null)
+            : checkout.pagamento &&
             checkout.pagamento.metodo === metodo &&
             checkout.pagamento.status === "AGUARDANDO_PAGAMENTO" &&
             !vencido(checkout.pagamento)
@@ -500,8 +552,86 @@
         }
     }
 
+    // ---------- PIX REAL (Mercado Pago) ----------
+    function pixRealVigente(pagamento) {
+        return Boolean(pagamento && pagamento.provedor === "MERCADO_PAGO" &&
+            pagamento.status === "AGUARDANDO_PAGAMENTO" && pagamento.pix_expira_em &&
+            new Date(pagamento.pix_expira_em) > new Date());
+    }
+
+    // Acompanha até o webhook marcar PAGO (o Realtime também avisa a tela do pedido)
+    function aguardarConfirmacao() {
+        const idPedido = checkout.contexto.pedidoId;
+        clearInterval(checkout.espera);
+        checkout.espera = setInterval(async () => {
+            if (!checkout) return;
+            try {
+                const atual = await buscar(idPedido);
+                if (atual?.status !== "PAGO" || !checkout) return;
+                clearInterval(checkout.espera);
+                concluir(atual, `💳 Pix confirmado pelo banco: ${formatarMoeda(atual.valor)}.`);
+                fecharCheckout();
+                sucesso("Pagamento confirmado!", atual);
+            } catch (erro) {
+                console.warn("[SERF:Pagamentos] Consulta do Pix:", erro.message || erro);
+            }
+        }, 4000);
+    }
+
+    function painelPixReal(painel, pagamento) {
+        if (!pagamento) {
+            painel.innerHTML = `
+                <p class="pag-explicacao">Gere o QR Code e pague pelo app do seu banco. A confirmação chega sozinha.</p>
+                <button type="button" class="btn-primary pag-botao-largo" id="btnGerarPix">Gerar QR Code Pix</button>
+            `;
+            document.getElementById("btnGerarPix").onclick = async evento => {
+                const botao = evento.currentTarget;
+                botao.disabled = true;
+                try {
+                    const gerado = await criarPixReal(checkout.contexto.pedidoId);
+                    checkout.pagamento = gerado;
+                    checkout.contexto.aoAtualizar(gerado, null);
+                    painelPixReal(painel, gerado);
+                } catch (erro) {
+                    console.error("[SERF:Pagamentos] Pix real:", erro);
+                    Swal.fire({ ...swalConfig, title: "Não foi possível gerar o Pix", text: erro.message, icon: "error" });
+                    botao.disabled = false;
+                }
+            };
+            return;
+        }
+
+        painel.innerHTML = `
+            <div class="pag-pix">
+                <div class="pag-qrcode" id="pagQrcode"></div>
+                <div class="pag-pix-info">
+                    <span class="pag-rotulo">Pix copia e cola <small id="pagExpira"></small></span>
+                    <textarea class="pag-codigo" readonly rows="4" id="pagCodigoPix">${escaparHTML(pagamento.codigo_pix)}</textarea>
+                    <button type="button" class="btn-secondary" id="btnCopiarPix">Copiar código</button>
+                </div>
+            </div>
+            <p class="pag-aguardando" role="status"><span class="pag-girando" aria-hidden="true"></span> Aguardando o pagamento. Pode fechar esta janela: o pedido é atualizado quando o banco aprovar.</p>
+        `;
+
+        const qr = document.getElementById("pagQrcode");
+        if (pagamento.qr_code_base64) {
+            const imagem = document.createElement("img");
+            imagem.src = `data:image/png;base64,${pagamento.qr_code_base64}`;
+            imagem.alt = "QR Code do Pix";
+            qr.appendChild(imagem);
+        } else {
+            desenharQRCode(qr, pagamento.codigo_pix);
+        }
+
+        iniciarCronometro(document.getElementById("pagExpira"), pagamento.pix_expira_em);
+        document.getElementById("btnCopiarPix").onclick = e => copiar(pagamento.codigo_pix, e.currentTarget);
+        aguardarConfirmacao();
+    }
+
     // ---------- PIX ----------
     function painelPix(painel, pagamento) {
+        if (modoReal()) return painelPixReal(painel, pagamento);
+
         if (!pagamento) {
             painel.innerHTML = `
                 <p class="pag-explicacao">Gere um QR Code Pix. A confirmação é imediata após o pagamento.</p>
