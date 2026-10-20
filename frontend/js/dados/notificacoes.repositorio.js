@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / NOTIFICACOES.REPOSITORIO.JS
    Central de notificações do app (migration 023). O RLS devolve só as

@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / PRODUTOS.REPOSITORIO.JS
    Gestão dos produtos do próprio fornecedor (o RLS da 007 só
@@ -15,6 +16,7 @@
 
     // Atualiza só as colunas editáveis; devolve a linha gravada
     async function atualizar(idProduto, campos) {
+        /** @type {import("../../types/globais").Atualizacao<"produtos">} */
         const permitidos = Object.fromEntries(
             Object.entries(campos).filter(([coluna]) => EDITAVEIS.includes(coluna)));
 

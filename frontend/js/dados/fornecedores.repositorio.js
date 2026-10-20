@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / FORNECEDORES.REPOSITORIO.JS
    Busca de fornecedores para as sugestões da busca da Home.

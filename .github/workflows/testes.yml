@@ -23,8 +23,11 @@ jobs:
       - name: Banco (migrations + RLS + regras de negócio)
         run: npm run test:banco
 
-      - name: Unitários (utils.js)
+      - name: Unitários (front-end puro e Edge Functions)
         run: npm run test:unit
+
+      - name: Tipos (banco gerado das migrations + tsc nas Edge Functions e na camada de dados)
+        run: npm run tipos:checar
 
       - name: Instalar navegador
         run: npx playwright install --with-deps chromium
@@ -45,3 +48,34 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # As migrations no Postgres do Supabase DE VERDADE (extensões, papéis e
+  # esquemas reais), além do banco em memória dos testes acima.
+  supabase-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+
+      - name: Subir o Postgres do Supabase e aplicar todas as migrations
+        run: supabase db start
+
+      - name: Lint do PL/pgSQL (plpgsql_check)
+        run: supabase db lint --local --level warning --fail-on error
+
+      - name: Invariantes de segurança (RLS, search_path, funções só-servidor)
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f tests/banco/invariantes.sql
+
+      - name: Migrations idempotentes (aplicar de novo, da 002 em diante, não pode quebrar)
+        run: |
+          for arquivo in $(ls supabase/migrations/*.sql | grep -v '/001_'); do
+            psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -q -f "$arquivo" > /dev/null
+          done
+
+      - name: Gerador oficial de tipos do Supabase aceita o schema
+        run: supabase gen types typescript --local > /dev/null

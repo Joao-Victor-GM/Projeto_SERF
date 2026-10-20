@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DOMÍNIO / NOTIFICACOES.JS
    Como cada notificação (tabela notificacoes, migration 023) aparece no

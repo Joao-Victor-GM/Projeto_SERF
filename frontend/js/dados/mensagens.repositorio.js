@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / MENSAGENS.REPOSITORIO.JS
    Chat dos pedidos (mensagens_pedidos) e tempo real dos

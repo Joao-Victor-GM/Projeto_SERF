@@ -1,0 +1,12 @@
+# Configuração mínima do Supabase CLI: usada pela CI (job "supabase-real",
+# que aplica as migrations no Postgres do Supabase de verdade) e por quem
+# quiser rodar localmente com Docker:
+#   supabase db start        # Postgres + migrations
+#   supabase db lint --local # checa o PL/pgSQL (plpgsql_check)
+# O projeto de produção continua configurado no painel do Supabase.
+
+project_id = "serf"
+
+[db]
+port = 54322
+major_version = 15

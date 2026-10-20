@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / COTACOES.REPOSITORIO.JS
    Cotação reversa (migration 024). Leitura pelas tabelas (o RLS

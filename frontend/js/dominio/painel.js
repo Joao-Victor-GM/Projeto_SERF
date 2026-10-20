@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DOMÍNIO / PAINEL.JS
    Regras do painel da Home como funções PURAS: sem DOM, sem
@@ -183,7 +184,7 @@
             if (pedido?.modos.includes(modo)) lista.push({ ...conversa, pedido });
         }
 
-        return lista.sort((a, b) => new Date(b.ultimaData) - new Date(a.ultimaData));
+        return lista.sort((a, b) => new Date(b.ultimaData).getTime() - new Date(a.ultimaData).getTime());
     }
 
     const totalNaoLidas = conversas => conversas.reduce((total, c) => total + c.naoLidas, 0);

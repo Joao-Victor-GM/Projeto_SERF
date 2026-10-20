@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / PEDIDOS.REPOSITORIO.JS
    Pedidos: leitura pela view pedidos_painel (via SERFPedidos),

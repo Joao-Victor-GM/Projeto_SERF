@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / EMPRESA.REPOSITORIO.JS
    Verificação do CNPJ na Receita (Edge Function), preferências

@@ -17,7 +17,14 @@
 -- (fornecedores_publicos expõe só dados comerciais, como antes.)
 
 
-CREATE OR REPLACE VIEW public.pedidos_painel
+-- Só cria se ainda não existe: a 018 acrescentou colunas (id_compra) e
+-- reexecutar esta definição antiga depois dela falharia ("cannot drop
+-- columns from view"). A definição vigente é sempre a da migration mais nova.
+DO $migracao$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'pedidos_painel') THEN
+        EXECUTE $view$
+CREATE VIEW public.pedidos_painel
 WITH (security_invoker = true) AS
 SELECT pe.id_pedido,
        pe.id_usuario,
@@ -52,7 +59,10 @@ SELECT pe.id_pedido,
   FROM public.pedidos pe
   LEFT JOIN public.produtos pr             ON pr.id_produto = pe.id_produto
   LEFT JOIN public.fornecedores_publicos fp ON fp.id_fornecedor = pr.id_fornecedor
-  LEFT JOIN public.usuarios us             ON us.id_usuario = pe.id_usuario;
+  LEFT JOIN public.usuarios us             ON us.id_usuario = pe.id_usuario
+        $view$;
+    END IF;
+END $migracao$;
 
 REVOKE ALL ON public.pedidos_painel FROM PUBLIC, anon;
 GRANT SELECT ON public.pedidos_painel TO authenticated;

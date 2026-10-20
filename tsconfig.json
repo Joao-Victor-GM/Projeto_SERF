@@ -1,0 +1,29 @@
+{
+    // Checagem de tipos SEM build (npm run tipos:checar):
+    //   - Edge Functions (.ts): checagem completa.
+    //   - Front-end (.js): arquivos com "// @ts-check" no topo, usando JSDoc.
+    //     A camada de dados (js/dados) usa SupabaseClient<Database>: nome de
+    //     tabela/RPC errado e coluna inexistente em insert/update viram erro.
+    // Os tipos do banco vêm das migrations: frontend/types/banco.d.ts (npm run tipos).
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "types": [],
+        "allowJs": true,
+        "checkJs": false,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "strict": true,
+        "noImplicitAny": false,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": [
+        "frontend/types/**/*.d.ts",
+        "frontend/js/**/*.js",
+        "supabase/functions/**/*.ts",
+        "tests/tipos/**/*.ts"
+    ]
+}

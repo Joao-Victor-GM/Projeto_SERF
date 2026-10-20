@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DOMÍNIO / ALERTAS.JS
    Como cada alerta (view "alertas", migration 015) é apresentado:

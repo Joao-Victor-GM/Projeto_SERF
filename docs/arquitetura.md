@@ -529,7 +529,9 @@ npm install                      # uma vez
 npx playwright install chromium  # uma vez (navegador dos testes de interface)
 npm test                         # tudo
 npm run test:banco               # migrations + RLS + regras (PostgreSQL em memória)
-npm run test:unit                # utils.js e pedidos.js
+npm run test:unit                # front-end puro e regras das Edge Functions
+npm run tipos                    # regera frontend/types/banco.d.ts das migrations
+npm run tipos:checar             # tipos em dia + tsc (Edge Functions e camada de dados)
 npm run test:e2e                 # páginas no navegador com Supabase simulado
 npm run test:desempenho          # benchmark da Home (fora do CI: mede tempo)
 npm run servidor                 # abre o front-end em http://localhost:4173
@@ -541,7 +543,26 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 - **Interface** (`tests/e2e/`): Playwright abre as páginas com sessão e API do
   Supabase simuladas (`supabase-falso.mjs`, dados em `dados.mjs`). Nenhuma
   requisição chega ao projeto real.
-- O GitHub Actions (`.github/workflows/testes.yml`) roda tudo a cada push.
+- **Invariantes** (`tests/banco/invariantes.sql`): toda tabela com RLS, toda
+  função `SECURITY DEFINER` com `search_path` fixo, funções só-servidor fora
+  do alcance do navegador, nenhuma política de escrita para visitante. E as
+  migrations da 002 em diante podem ser reaplicadas.
+- **Tipos** (sem build): `scripts/gerar-tipos.mjs` sobe o banco em memória,
+  aplica as migrations e escreve `frontend/types/banco.d.ts` no formato do
+  `supabase gen types`. O `tsc` (TypeScript 6, `tsconfig.json`) checa as
+  Edge Functions em modo estrito e os arquivos do front com `// @ts-check`
+  (hoje `js/dados/` e `js/dominio/`): na camada de dados, tabela/RPC
+  inexistente, argumento errado e coluna inexistente em insert/update viram
+  erro. `tests/tipos/camada-de-dados.ts` garante que esses erros continuem
+  sendo pegos. **Migration nova → `npm run tipos`** (a CI recusa tipos
+  desatualizados).
+- **CI** (`.github/workflows/testes.yml`), a cada push:
+  - job `testes`: banco em memória, unitários, tipos e interface; testes
+    instáveis viram aviso no PR, com o trace guardado;
+  - job `supabase-real`: o Postgres **do Supabase** (`supabase db start`,
+    CLI fixado) aplica as migrations, `supabase db lint` checa o PL/pgSQL,
+    roda os mesmos invariantes, reaplica as migrations (idempotência) e o
+    gerador oficial de tipos lê o schema.
 
 ## Deploy
 

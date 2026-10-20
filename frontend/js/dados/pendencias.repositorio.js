@@ -1,3 +1,4 @@
+// @ts-check
 /* ==========================================================
    S.E.R.F. — DADOS / PENDENCIAS.REPOSITORIO.JS
    Views derivadas do estado: alertas (015) e oportunidades (016/017),
