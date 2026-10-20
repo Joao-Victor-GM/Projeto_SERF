@@ -805,6 +805,7 @@
         const precoAtacado = parseFloat(document.getElementById('prodPreco')?.value);
         const qtdMinima = parseInt(document.getElementById('prodQtdMinima')?.value, 10);
         const estoque = parseInt(document.getElementById('prodEstoque')?.value, 10) || 0;
+        const ncm = (document.getElementById('prodNcm')?.value || '').replace(/\D/g, '');
 
         // Validações de integridade conforme banco de dados
         if (!nomeProduto) {
@@ -825,6 +826,10 @@
         }
         if (isNaN(qtdMinima) || qtdMinima <= 0) {
             Swal.fire({ ...swalConfig, title: 'Quantidade Inválida', text: 'A quantidade mínima de pedido deve ser de no mínimo 1.', icon: 'warning' });
+            return;
+        }
+        if (ncm && ncm.length !== 8) {
+            Swal.fire({ ...swalConfig, title: 'NCM Inválido', text: 'O NCM tem 8 números (ex.: 7208.51.00).', icon: 'warning' });
             return;
         }
 
@@ -854,7 +859,9 @@
                 preco_atacado: precoAtacado,
                 quantidade_minima: qtdMinima,
                 quantidade_estoque: estoque,
-                ativo: true
+                ativo: true,
+                // Só com valor: sem a migration 027 a coluna não existe
+                ...(ncm && { ncm })
             };
 
             const { data, error } = await client

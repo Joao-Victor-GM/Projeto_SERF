@@ -63,12 +63,12 @@
         const [comprador, fornecedor] = await Promise.all([
             client
                 .from("usuarios")
-                .select("id_usuario, nome_empresa, cnpj, email, telefone, nicho, status_cadastro, data_cadastro")
+                .select("*")
                 .eq("auth_user_id", user.id)
                 .maybeSingle(),
             client
                 .from("fornecedores")
-                .select("id_fornecedor, razao_social, nome_fantasia, cnpj, email, telefone, cidade, estado, nicho, status_cadastro, data_cadastro")
+                .select("*")
                 .eq("auth_user_id", user.id)
                 .maybeSingle()
         ]);
@@ -127,6 +127,22 @@
 
         const camposFornecedor = document.getElementById("camposFornecedor");
         if (camposFornecedor) camposFornecedor.hidden = !f;
+
+        // Dados fiscais (027): só aparecem se as colunas existem
+        const fiscaisFornecedor = document.getElementById("camposFiscaisFornecedor");
+        if (fiscaisFornecedor) fiscaisFornecedor.hidden = !(f && "regime_tributario" in f);
+        if (f?.regime_tributario) document.getElementById("cadRegime").value = f.regime_tributario;
+
+        const endereco = document.getElementById("camposEndereco");
+        if (endereco) endereco.hidden = !(c && "cep" in c);
+        if (c && "cep" in c) {
+            const valores = {
+                cadCep: c.cep ? c.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2") : "",
+                cadLogradouro: c.logradouro, cadNumero: c.numero_endereco, cadComplemento: c.complemento,
+                cadBairro: c.bairro, cadMunicipio: c.municipio, cadUfEndereco: c.uf, cadIe: c.inscricao_estadual
+            };
+            Object.entries(valores).forEach(([id, valor]) => { document.getElementById(id).value = valor || ""; });
+        }
 
         renderizarSelos();
     }
@@ -611,9 +627,67 @@
        8. EDIÇÃO DOS DADOS CADASTRAIS
        Apenas campos não sensíveis (o banco limita as colunas: migration 006).
        ========================================================================= */
+    // Dados fiscais do formulário (027). { comprador, fornecedor } prontos para
+    // o update, ou { erro } com a frase para o usuário.
+    function lerDadosFiscais() {
+        const valor = id => document.getElementById(id)?.value.trim() || "";
+        const resultado = { comprador: {}, fornecedor: {} };
+
+        if (!document.getElementById("camposFiscaisFornecedor")?.hidden) {
+            resultado.fornecedor.regime_tributario = valor("cadRegime") || "SIMPLES";
+        }
+
+        if (document.getElementById("camposEndereco")?.hidden !== false) return resultado;
+
+        const cep = valor("cadCep").replace(/\D/g, "");
+        const uf = valor("cadUfEndereco").toUpperCase();
+        const ie = valor("cadIe").toUpperCase().replace(/[.\-/\s]/g, "");
+
+        if (cep && cep.length !== 8) return { erro: "O CEP tem 8 números." };
+        if (uf && !/^[A-Z]{2}$/.test(uf)) return { erro: "Informe a UF do endereço com 2 letras (ex.: SP)." };
+        if (ie && !/^([0-9]{2,14}|ISENTO)$/.test(ie)) return { erro: "Inscrição estadual: só números, ou ISENTO." };
+
+        resultado.comprador = {
+            cep: cep || null, logradouro: valor("cadLogradouro") || null, numero_endereco: valor("cadNumero") || null,
+            complemento: valor("cadComplemento") || null, bairro: valor("cadBairro") || null,
+            municipio: valor("cadMunicipio") || null, uf: uf || null, inscricao_estadual: ie || null
+        };
+        return resultado;
+    }
+
+    // CEP completo → preenche o resto pelo ViaCEP (sem sobrescrever o que já foi digitado)
+    function configurarBuscaCep() {
+        const campo = document.getElementById("cadCep");
+        if (!campo) return;
+
+        campo.addEventListener("input", async () => {
+            const cep = campo.value.replace(/\D/g, "");
+            if (cep.length !== 8) return;
+
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await resposta.json();
+                if (dados.erro) return;
+
+                const preencher = (id, valor) => {
+                    const alvo = document.getElementById(id);
+                    if (alvo && !alvo.value.trim() && valor) alvo.value = valor;
+                };
+                preencher("cadLogradouro", dados.logradouro);
+                preencher("cadBairro", dados.bairro);
+                preencher("cadMunicipio", dados.localidade);
+                preencher("cadUfEndereco", dados.uf);
+                document.getElementById("cadNumero")?.focus();
+            } catch {
+                /* sem internet ou ViaCEP fora: o usuário digita */
+            }
+        });
+    }
+
     function configurarFormularioCadastro() {
         const form = document.getElementById("formDadosEmpresa");
         if (!form) return;
+        configurarBuscaCep();
 
         form.addEventListener("submit", async evento => {
             evento.preventDefault();
@@ -630,6 +704,12 @@
                 return;
             }
 
+            const fiscal = lerDadosFiscais();
+            if (fiscal.erro) {
+                Swal.fire({ ...swalConfig, title: "Endereço para nota fiscal", text: fiscal.erro, icon: "warning" });
+                return;
+            }
+
             const botao = form.querySelector("button[type='submit']");
             botao.disabled = true;
 
@@ -639,7 +719,7 @@
                 if (empresa.comprador) {
                     atualizacoes.push(
                         client.from("usuarios")
-                            .update({ telefone, nicho })
+                            .update({ telefone, nicho, ...fiscal.comprador })
                             .eq("id_usuario", empresa.comprador.id_usuario)
                     );
                 }
@@ -647,7 +727,7 @@
                 if (empresa.fornecedor) {
                     atualizacoes.push(
                         client.from("fornecedores")
-                            .update({ telefone, nicho, nome_fantasia: nomeFantasia, cidade, estado })
+                            .update({ telefone, nicho, nome_fantasia: nomeFantasia, cidade, estado, ...fiscal.fornecedor })
                             .eq("id_fornecedor", empresa.fornecedor.id_fornecedor)
                     );
                 }

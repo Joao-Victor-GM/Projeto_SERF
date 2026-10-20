@@ -11,7 +11,7 @@
     const { cliente, dadosOuErro } = window.SERFDados.base;
 
     const EDITAVEIS = ["nome_produto", "descricao", "categoria", "marca",
-        "preco_atacado", "quantidade_minima", "quantidade_estoque", "ativo"];
+        "preco_atacado", "quantidade_minima", "quantidade_estoque", "ativo", "ncm"];
 
     // Atualiza só as colunas editáveis; devolve a linha gravada
     async function atualizar(idProduto, campos) {
@@ -22,7 +22,7 @@
             .from("produtos")
             .update(permitidos)
             .eq("id_produto", idProduto)
-            .select("id_produto, nome_produto, descricao, categoria, marca, preco_atacado, quantidade_minima, quantidade_estoque, ativo")
+            .select("*")
             .maybeSingle());
 
         // UPDATE bloqueado pelo RLS não gera erro: só não altera linhas

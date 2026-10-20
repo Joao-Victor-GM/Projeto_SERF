@@ -1,9 +1,11 @@
 /* =========================================================================
-   S.E.R.F. — NOTA FISCAL ELETRÔNICA (notas.js)  ·  DOCUMENTO SIMULADO
+   S.E.R.F. — NOTA FISCAL ELETRÔNICA (notas.js)
 
    O fornecedor emite a NF-e após o pagamento; comprador e fornecedor veem
-   o DANFE (imprimir / salvar em PDF). Tudo com a tarja SEM VALOR FISCAL:
-   não há comunicação com a SEFAZ nem certificado digital.
+   o DANFE. Dois modos (configuracao_nfe.modo, migration 027):
+   - SIMULADA (padrão): DANFE com a tarja SEM VALOR FISCAL, sem SEFAZ.
+   - REAL: emissão pela Focus NFe (Edge Function nfe): PROCESSANDO →
+     AUTORIZADA (DANFE/XML oficiais) ou REJEITADA (motivo da SEFAZ).
 
    As regras ficam no banco (migration 010): emissão só após pagamento,
    numeração sequencial, envio exige nota autorizada, cancelamento em até
@@ -32,7 +34,7 @@
             .from("notas_fiscais")
             .select("*")
             .eq("id_pedido", idPedido)
-            .order("data_emissao", { ascending: false })
+            .order("id_nota", { ascending: false })
             .limit(1)
             .maybeSingle();
 
@@ -47,6 +49,32 @@
     }
 
     const emitir = idPedido => chamarRPC("emitir_nota_fiscal", { p_id_pedido: idPedido });
+
+    // Modo da NF-e (027). Sem a migration: SIMULADA.
+    let modoEmCache = null;
+    async function modoNfe() {
+        if (modoEmCache) return modoEmCache;
+        try {
+            const { data, error } = await obterSupabase().from("configuracao_nfe").select("modo").maybeSingle();
+            if (error) throw error;
+            modoEmCache = data?.modo === "REAL" ? "REAL" : "SIMULADA";
+        } catch {
+            modoEmCache = "SIMULADA";
+        }
+        return modoEmCache;
+    }
+
+    // NF-e real: Edge Function nfe (emitir | consultar | cancelar)
+    async function nfeReal(acao, idPedido, extras = {}) {
+        const { data, error } = await obterSupabase().functions.invoke("nfe", { body: { acao, id_pedido: idPedido, ...extras } });
+        if (!error) return data;
+
+        let corpo = null;
+        try { corpo = await error.context?.json?.(); } catch { /* corpo não é JSON */ }
+        throw new Error(corpo?.erro || "O emissor de NF-e não respondeu. Tente novamente em instantes.");
+    }
+
+    const real = nota => nota?.provedor === "FOCUS_NFE";
     const cancelar = (idPedido, motivo) => chamarRPC("cancelar_nota_fiscal", { p_id_pedido: idPedido, p_motivo: motivo });
 
     function autorizada(nota) {
@@ -82,6 +110,8 @@
 
     function renderizar(container, contexto) {
         if (!container) return;
+        modoNfe();     // já busca o modo para o botão "Emitir" agir certo
+        if (contexto.nota?.status !== "PROCESSANDO") pararAcompanhamento();
 
         const { papel, nota, statusPedido, pagamentoLiberado } = contexto;
         const fornecedor = papel === "fornecedor";
@@ -89,10 +119,19 @@
         let corpo;
         let acoes = "";
 
-        if (autorizada(nota)) {
+        if (nota?.status === "PROCESSANDO") {
+            selo = `<span class="pag-selo analise">Na SEFAZ</span>`;
+            corpo = "A NF-e foi enviada e está sendo autorizada pela SEFAZ. Esta seção atualiza sozinha.";
+            acoes = `<button type="button" class="btn-secondary" data-nf-acao="consultar">Consultar agora</button>`;
+            acompanharProcessamento(contexto);
+
+        } else if (autorizada(nota)) {
             selo = `<span class="pag-selo pago">NF-e autorizada</span>`;
             corpo = `Nº ${numeroFormatado(nota)} · série ${nota.serie} · emitida em ${dataHora(nota.data_emissao)}`;
-            acoes = `<button type="button" class="btn-secondary" data-nf-acao="danfe">Ver DANFE</button>`;
+            acoes = real(nota) && nota.url_danfe
+                ? `<a class="btn-secondary" href="${escaparHTML(nota.url_danfe)}" target="_blank" rel="noopener">Ver DANFE (PDF)</a>` +
+                  (nota.url_xml ? `<a class="btn-text" href="${escaparHTML(nota.url_xml)}" target="_blank" rel="noopener">XML</a>` : "")
+                : `<button type="button" class="btn-secondary" data-nf-acao="danfe">Ver DANFE</button>`;
 
             if (fornecedor && podeCancelar(nota, statusPedido)) {
                 acoes = `<button type="button" class="btn-text" data-nf-acao="cancelar">Cancelar NF-e</button>` + acoes;
@@ -103,6 +142,11 @@
                 ? `NF-e nº ${numeroFormatado(nota)} cancelada: ${escaparHTML(nota.motivo_cancelamento || "")}`
                 : statusPedido === "CANCELADO" ? "Pedido cancelado." : "A nota fiscal é emitida após a confirmação e o pagamento.";
             if (nota) selo = `<span class="pag-selo neutro">Cancelada</span>`;
+
+        } else if (fornecedor && nota?.status === "REJEITADA") {
+            selo = `<span class="pag-selo vencido">NF-e rejeitada</span>`;
+            corpo = `A SEFAZ recusou a nota: “${escaparHTML(nota.mensagem_sefaz || "sem detalhes")}”. Corrija o cadastro e emita de novo.`;
+            acoes = `<button type="button" class="btn-primary" data-nf-acao="emitir">Emitir de novo</button>`;
 
         } else if (fornecedor) {
             const cancelada = nota?.status === "CANCELADA";
@@ -135,8 +179,77 @@
         };
     }
 
+    // PROCESSANDO: consulta a SEFAZ (via Focus) a cada 5 s, até 2 min
+    let acompanhamento = null;
+    function acompanharProcessamento(contexto) {
+        if (acompanhamento?.pedidoId === contexto.pedidoId) return;
+        clearInterval(acompanhamento?.timer);
+
+        let tentativas = 0;
+        acompanhamento = {
+            pedidoId: contexto.pedidoId,
+            timer: setInterval(async () => {
+                tentativas += 1;
+                try {
+                    const { nota } = await nfeReal("consultar", contexto.pedidoId);
+                    if (nota && nota.status !== "PROCESSANDO") {
+                        pararAcompanhamento();
+                        // Só quem emitiu anuncia no chat (a tela do comprador também acompanha)
+                        contexto.aoAtualizar(nota, contexto.papel === "fornecedor" ? mensagemDoResultado(nota) : null);
+                    }
+                } catch (erro) {
+                    console.warn("[SERF:NF-e] Consulta:", erro.message || erro);
+                }
+                if (tentativas >= 24) pararAcompanhamento();
+            }, 5000)
+        };
+    }
+
+    function pararAcompanhamento() {
+        clearInterval(acompanhamento?.timer);
+        acompanhamento = null;
+    }
+
+    function mensagemDoResultado(nota) {
+        return nota?.status === "AUTORIZADA" ? `🧾 NF-e nº ${numeroFormatado(nota)} autorizada pela SEFAZ.` : null;
+    }
+
+    async function emitirReal(contexto, botao) {
+        const ok = await Swal.fire({
+            ...swalConfig,
+            title: "Emitir NF-e na SEFAZ?",
+            html: "A nota terá <strong>valor fiscal</strong>. Confira os dados do pedido antes.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Emitir",
+            cancelButtonText: "Voltar"
+        });
+        if (!ok.isConfirmed) return;
+
+        return comFeedback(botao, "Enviando à SEFAZ...", async () => {
+            const resposta = await nfeReal("emitir", contexto.pedidoId);
+            const nota = resposta.nota || await buscar(contexto.pedidoId);
+            contexto.aoAtualizar(nota, mensagemDoResultado(nota));
+
+            if (nota?.status === "REJEITADA") {
+                Swal.fire({ ...swalConfig, title: "NF-e rejeitada", text: nota.mensagem_sefaz || "A SEFAZ recusou a nota.", icon: "error" });
+            } else if (nota?.status === "AUTORIZADA") {
+                Swal.fire({ ...swalConfig, title: "NF-e autorizada", html: `Nº <strong>${numeroFormatado(nota)}</strong> · série ${nota.serie}`, icon: "success" });
+            }
+        });
+    }
+
     async function executarAcao(acao, contexto, botao) {
         if (acao === "danfe") return abrirDanfe(contexto.nota);
+
+        if (acao === "consultar") {
+            return comFeedback(botao, "Consultando...", async () => {
+                const { nota } = await nfeReal("consultar", contexto.pedidoId);
+                if (nota) contexto.aoAtualizar(nota, contexto.papel === "fornecedor" ? mensagemDoResultado(nota) : null);
+            });
+        }
+
+        if (acao === "emitir" && await modoNfe() === "REAL") return emitirReal(contexto, botao);
 
         if (acao === "emitir") {
             const ok = await Swal.fire({
@@ -186,7 +299,9 @@
             if (!isConfirmed) return;
 
             return comFeedback(botao, "Cancelando...", async () => {
-                const nota = await cancelar(contexto.pedidoId, motivo.trim());
+                const nota = real(contexto.nota)
+                    ? (await nfeReal("cancelar", contexto.pedidoId, { justificativa: motivo.trim() })).nota
+                    : await cancelar(contexto.pedidoId, motivo.trim());
                 contexto.aoAtualizar(nota, `🧾 NF-e nº ${numeroFormatado(nota)} cancelada: ${nota.motivo_cancelamento}`);
             });
         }

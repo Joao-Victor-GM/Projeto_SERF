@@ -202,6 +202,58 @@ Ativar (comece com as **credenciais de teste** do Mercado Pago):
 Estorno de Pix pago (pedido cancelado depois do pagamento) é feito no painel
 do Mercado Pago; o S.E.R.F. marca `ESTORNADO`/`motivo_recusa` para lembrar.
 
+## NF-e real — Focus NFe (migration 027)
+
+Desligada por padrão (`configuracao_nfe.modo = 'SIMULADA'`: a NF-e da 010,
+sem valor fiscal). Com `'REAL'`, a emissão passa pela **Focus NFe**, que fala
+com a SEFAZ usando o certificado A1 do fornecedor (cadastrado no painel dela).
+
+**Dados fiscais novos** (cada empresa preenche os seus):
+
+| Onde | Campo | Tela |
+|---|---|---|
+| `produtos` | `ncm` (8 dígitos), `unidade_fiscal` | Catálogo (novo produto / editar) |
+| `usuarios` (destinatário) | CEP, logradouro, número, complemento, bairro, município, UF, inscrição estadual | Perfil → "Endereço para nota fiscal" (CEP preenche o resto via ViaCEP) |
+| `fornecedores` (emitente) | `regime_tributario` | Perfil |
+
+Só **Simples Nacional** é suportado (CSOSN 102, PIS/COFINS 07, CFOP 5102
+no mesmo estado e 6102 entre estados). Regime normal exige configurar ICMS
+com o contador; `preparar_nfe` recusa com essa explicação.
+
+Fluxo (Edge Function `nfe`, ações `emitir` / `consultar` / `cancelar`):
+
+1. `preparar_nfe` (sessão do fornecedor) confere pedido, pagamento e lista
+   **de uma vez** tudo o que falta, dizendo onde corrigir.
+2. A nota é registrada como **PROCESSANDO antes** do envio
+   (`registrar_nfe_enviada`). Recusa de validação da Focus → REJEITADA com o
+   motivo; rede caiu → continua PROCESSANDO e `consultar` resolve (se a Focus
+   nunca recebeu, vira REJEITADA e pode emitir de novo). Nunca fica nota no
+   emissor sem registro no S.E.R.F.
+3. A tela acompanha (consulta a cada 5 s, até 2 min) e o webhook
+   `nfe-webhook` também avisa; em ambos o estado é **consultado** na Focus.
+   AUTORIZADA traz número, chave, protocolo, DANFE (PDF) e XML oficiais.
+4. Cancelar (`preparar_cancelamento_nfe`: 24 h, 15+ caracteres, mercadoria
+   não enviada) só grava CANCELADA se a SEFAZ cancelou.
+
+Segunda camada: no modo REAL, nota só vira AUTORIZADA/CANCELADA pelo caminho
+do emissor (trigger `notas_exigir_provedor`); pedido com NF-e real
+autorizada não se cancela sem antes cancelar a nota.
+
+Ativar (sempre comece em **homologação**):
+
+1. Conta na Focus NFe; cadastre cada empresa emitente com o certificado A1;
+   copie o token. Gatilho (webhook) do evento **nfe** com a URL
+   `https://<ref-do-projeto>.supabase.co/functions/v1/nfe-webhook?token=<FOCUS_WEBHOOK_TOKEN>`.
+2. ```bash
+   supabase functions deploy nfe
+   supabase functions deploy nfe-webhook --no-verify-jwt
+   supabase secrets set FOCUS_TOKEN=<token> FOCUS_AMBIENTE=HOMOLOGACAO FOCUS_WEBHOOK_TOKEN=<segredo-forte>
+   ```
+3. Preencha NCM dos produtos e endereço/IE dos compradores.
+4. SQL Editor: `UPDATE public.configuracao_nfe SET modo = 'REAL';`
+5. Valide com o contador as notas de homologação; só então
+   `FOCUS_AMBIENTE=PRODUCAO`.
+
 ## LGPD: exportar dados e excluir a conta (migration 025)
 
 Perfil → **Privacidade e dados**.
@@ -500,7 +552,7 @@ depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
 (segmentos do radar), 022 (categorias oficiais; converte categorias antigas
 fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
-024 (cotações), 025 (LGPD) e 026 (Pix real, desligado por padrão). Sem 018–026
+024 (cotações), 025 (LGPD) e 026 (Pix real) e 027 (NF-e real; ambos desligados por padrão). Sem 018–027
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas

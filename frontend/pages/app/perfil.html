@@ -417,6 +417,64 @@
                                 </div>
                             </div>
 
+                            <!-- Emitente da NF-e real (migration 027) -->
+                            <div class="form-two-cols" id="camposFiscaisFornecedor" hidden>
+                                <div class="campo-form">
+                                    <label for="cadRegime">Regime tributário</label>
+                                    <select id="cadRegime">
+                                        <option value="SIMPLES">Simples Nacional</option>
+                                        <option value="NORMAL">Regime normal (Lucro Presumido ou Real)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Destinatário da NF-e real (migration 027): o fornecedor precisa disto para emitir -->
+                            <fieldset class="campos-endereco" id="camposEndereco" hidden>
+                                <legend class="form-section-title">Endereço para nota fiscal</legend>
+                                <p class="form-dica">O fornecedor usa estes dados para emitir a NF-e das suas compras.</p>
+
+                                <div class="form-three-cols">
+                                    <div class="campo-form">
+                                        <label for="cadCep">CEP</label>
+                                        <input type="text" id="cadCep" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code">
+                                    </div>
+                                    <div class="campo-form campo-form-duplo">
+                                        <label for="cadLogradouro">Logradouro</label>
+                                        <input type="text" id="cadLogradouro" maxlength="120" autocomplete="address-line1">
+                                    </div>
+                                </div>
+
+                                <div class="form-three-cols">
+                                    <div class="campo-form">
+                                        <label for="cadNumero">Número</label>
+                                        <input type="text" id="cadNumero" maxlength="10">
+                                    </div>
+                                    <div class="campo-form">
+                                        <label for="cadComplemento">Complemento</label>
+                                        <input type="text" id="cadComplemento" maxlength="60" autocomplete="address-line2">
+                                    </div>
+                                    <div class="campo-form">
+                                        <label for="cadBairro">Bairro</label>
+                                        <input type="text" id="cadBairro" maxlength="60">
+                                    </div>
+                                </div>
+
+                                <div class="form-three-cols">
+                                    <div class="campo-form">
+                                        <label for="cadMunicipio">Município</label>
+                                        <input type="text" id="cadMunicipio" maxlength="60" autocomplete="address-level2">
+                                    </div>
+                                    <div class="campo-form">
+                                        <label for="cadUfEndereco">UF</label>
+                                        <input type="text" id="cadUfEndereco" maxlength="2" placeholder="SP" autocomplete="address-level1">
+                                    </div>
+                                    <div class="campo-form">
+                                        <label for="cadIe">Inscrição estadual</label>
+                                        <input type="text" id="cadIe" maxlength="14" placeholder="Só números ou ISENTO">
+                                    </div>
+                                </div>
+                            </fieldset>
+
                             <div class="form-actions">
                                 <button type="submit" class="btn-primary">Salvar alterações</button>
                             </div>

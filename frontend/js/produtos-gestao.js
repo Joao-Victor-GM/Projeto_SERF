@@ -46,12 +46,15 @@
             categoria: valor("gpCategoria") || null,
             marca: valor("gpMarca") || null,
             descricao: valor("gpDescricao") || null,
+            // NCM só existe com a migration 027 (campo só aparece nesse caso)
+            ...(document.getElementById("gpNcm") && { ncm: valor("gpNcm").replace(/\D/g, "") || null }),
             preco_atacado: numero("gpPreco"),
             quantidade_minima: numero("gpMinimo"),
             quantidade_estoque: numero("gpEstoque")
         };
 
         if (!dados.nome_produto) return Swal.showValidationMessage("Informe o nome do produto."), null;
+        if (dados.ncm && dados.ncm.length !== 8) return Swal.showValidationMessage("O NCM tem 8 números (ex.: 7208.51.00)."), null;
         if (!(dados.preco_atacado > 0)) return Swal.showValidationMessage("O preço deve ser maior que zero."), null;
         if (!Number.isInteger(dados.quantidade_minima) || dados.quantidade_minima < 1) {
             return Swal.showValidationMessage("O pedido mínimo deve ser um número inteiro a partir de 1."), null;
@@ -74,6 +77,7 @@
                     ${campo("gpNome", "Nome", produto.nome_produto, 'maxlength="150" required')}
                     ${campoCategoria(produto.categoria)}
                     ${campo("gpMarca", "Marca", produto.marca, 'maxlength="100"')}
+                    ${"ncm" in produto ? campo("gpNcm", "NCM (para NF-e real)", produto.ncm, 'inputmode="numeric" maxlength="10" placeholder="8 números"') : ""}
                     ${campo("gpPreco", "Preço de atacado (R$)", produto.preco_atacado, 'inputmode="decimal"')}
                     ${campo("gpMinimo", "Pedido mínimo (un.)", produto.quantidade_minima, 'type="number" min="1" step="1"')}
                     ${campo("gpEstoque", "Estoque (un.)", produto.quantidade_estoque, 'type="number" min="0" step="1"')}
