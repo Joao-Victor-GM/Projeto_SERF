@@ -32,8 +32,14 @@ jobs:
       - name: Interface (páginas com Supabase simulado)
         run: npm run test:e2e
 
+      - name: Testes instáveis (aviso no PR, não reprova)
+        if: ${{ !cancelled() }}
+        run: node tests/e2e/resumo-instaveis.mjs playwright-report/resultados.json
+
+      # Também quando passou: um teste instável deixa o job verde, mas o
+      # rastro (trace) da tentativa que falhou fica guardado aqui
       - name: Relatório da interface
-        if: failure()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
