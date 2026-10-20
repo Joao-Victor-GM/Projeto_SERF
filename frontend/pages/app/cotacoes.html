@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>S.E.R.F. | Cotações</title>
+
+    <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/home.css">
+    <link rel="stylesheet" href="../../css/relatorios.css">
+    <link rel="stylesheet" href="../../css/cotacoes.css">
+    <link rel="stylesheet" href="../../css/notificacoes.css">
+    <link rel="stylesheet" href="../../css/tema-escuro.css">
+    <script src="../../js/tema.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-check.js"></script>
+</head>
+
+<body class="serf-home">
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <img src="../../assets/icons/fivecon.png" alt="Logo SERF" class="sidebar-logo">
+            <div class="brand-info">
+                <strong>S.E.R.F.</strong>
+                <span>Gestão B2B</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">MENU PRINCIPAL</div>
+
+        <nav class="sidebar-nav" aria-label="Menu principal" data-pagina-atual="cotacoes"></nav>
+        <script src="../../js/ui/layout.js"></script>
+
+        <div class="sidebar-footer">
+            <span>S.E.R.F. • 2026</span>
+            <small>Projeto Aplicado II / ACEx</small>
+        </div>
+
+    </aside>
+
+    <div class="app-layout">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <button type="button" class="menu-toggle" id="menuToggle" aria-label="Abrir ou fechar menu"
+                        aria-controls="sidebar" aria-expanded="false">☰</button>
+            </div>
+
+            <div class="topbar-right">
+                <div class="empresa-ativa">
+                    <small>Empresa ativa</small>
+                    <strong id="empresaAtiva">Carregando...</strong>
+                </div>
+
+                <button type="button" class="icon-button btn-tema" data-alternar-tema aria-pressed="false"
+                        aria-label="Ativar modo escuro" title="Modo escuro">
+                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
+                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
+                </button>
+
+                <a href="perfil.html" class="profile-button" aria-label="Meu perfil" title="Meu perfil">
+                    <span class="profile-avatar">E</span>
+                </a>
+
+                <button type="button" class="btn-logout" data-logout title="Sair da conta">Sair</button>
+            </div>
+        </header>
+
+        <!-- =====================================================
+             COTAÇÃO REVERSA (js/cotacoes.js — migration 024)
+        ====================================================== -->
+
+        <main class="main-content cot-main">
+
+            <div class="page-heading">
+                <div>
+                    <span class="page-eyebrow">COTAÇÃO REVERSA</span>
+                    <h1>Cotações</h1>
+                    <p>Não achou no catálogo? Diga o que precisa e receba propostas dos fornecedores do segmento.
+                       Fornecedor: responda os pedidos de cotação do que você vende.</p>
+                </div>
+            </div>
+
+            <div class="rel-segmentado cot-abas" id="cotAbas" role="tablist" aria-label="Tipo de cotação" hidden>
+                <button type="button" class="rel-segmento active" role="tab" id="abaComprar" aria-selected="true"
+                        aria-controls="painelComprar" data-aba="comprar">Pedir cotação</button>
+                <button type="button" class="rel-segmento" role="tab" id="abaVender" aria-selected="false"
+                        aria-controls="painelVender" data-aba="vender">Responder cotações</button>
+            </div>
+
+            <p class="cot-status" id="cotStatus" role="status">Carregando...</p>
+
+            <!-- ============ COMPRADOR ============ -->
+            <section class="cot-painel" id="painelComprar" role="tabpanel" aria-labelledby="abaComprar" hidden>
+
+                <form class="cot-cartao cot-form" id="formCotacao" novalidate>
+                    <h2>Publicar cotação</h2>
+
+                    <div class="cot-grade">
+                        <label class="cot-campo cot-campo-largo">
+                            <span>O que você precisa? *</span>
+                            <input id="cotTitulo" name="titulo" maxlength="150" required
+                                   placeholder="Ex.: Chapa de aço 2mm galvanizada">
+                        </label>
+
+                        <label class="cot-campo">
+                            <span>Segmento *</span>
+                            <select id="cotCategoria" name="categoria" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </label>
+
+                        <div class="cot-campo cot-quantidade">
+                            <label for="cotQuantidade">Quantidade *</label>
+                            <div>
+                                <input id="cotQuantidade" name="quantidade" type="number" min="1" step="1" required>
+                                <select id="cotUnidade" name="unidade" aria-label="Unidade">
+                                    <option value="un.">un.</option>
+                                    <option value="kg">kg</option>
+                                    <option value="t">t</option>
+                                    <option value="L">L</option>
+                                    <option value="m">m</option>
+                                    <option value="m²">m²</option>
+                                    <option value="m³">m³</option>
+                                    <option value="cx">cx</option>
+                                    <option value="pct">pct</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label class="cot-campo">
+                            <span>Preço-alvo por unidade (opcional)</span>
+                            <input id="cotPrecoAlvo" name="precoAlvo" inputmode="decimal" placeholder="R$">
+                        </label>
+
+                        <label class="cot-campo">
+                            <span>Receber propostas por</span>
+                            <select id="cotDias" name="dias">
+                                <option value="3">3 dias</option>
+                                <option value="7" selected>7 dias</option>
+                                <option value="15">15 dias</option>
+                                <option value="30">30 dias</option>
+                            </select>
+                        </label>
+
+                        <label class="cot-campo cot-campo-largo">
+                            <span>Detalhes (opcional)</span>
+                            <textarea id="cotDescricao" name="descricao" maxlength="1000" rows="3"
+                                      placeholder="Especificação, marca aceita, local e prazo de entrega..."></textarea>
+                        </label>
+                    </div>
+
+                    <p class="cot-erro" id="cotErroForm" role="alert"></p>
+
+                    <div class="cot-acoes">
+                        <small>Os fornecedores do segmento são avisados no app e por e-mail.</small>
+                        <button type="submit" class="btn-primary" id="btnPublicar">Publicar cotação</button>
+                    </div>
+                </form>
+
+                <h2 class="cot-subtitulo">Minhas cotações</h2>
+                <div class="cot-lista" id="listaMinhas" aria-live="polite"></div>
+            </section>
+
+            <!-- ============ FORNECEDOR ============ -->
+            <section class="cot-painel" id="painelVender" role="tabpanel" aria-labelledby="abaVender" hidden>
+
+                <div class="cot-filtro">
+                    <label for="cotFiltroSegmento">Segmento</label>
+                    <select id="cotFiltroSegmento">
+                        <option value="">Todos os segmentos</option>
+                    </select>
+                </div>
+
+                <div class="cot-lista" id="listaAbertas" aria-live="polite"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
+    <script src="../../js/ui/avisos.js" defer></script>
+    <script src="../../js/dados/base.js" defer></script>
+    <script src="../../js/dados/pendencias.repositorio.js" defer></script>
+    <script src="../../js/dados/cotacoes.repositorio.js" defer></script>
+    <script src="../../js/alertas-contagem.js" defer></script>
+    <script src="../../js/dominio/notificacoes.js" defer></script>
+    <script src="../../js/dados/notificacoes.repositorio.js" defer></script>
+    <script src="../../js/notificacoes.js" defer></script>
+    <script src="../../js/cotacoes.js" defer></script>
+
+</body>
+</html>

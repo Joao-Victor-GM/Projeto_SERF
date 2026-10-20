@@ -6,25 +6,26 @@ import { simularSupabase, errosRelevantes } from "./supabase-falso.mjs";
 import { EMPRESA, criarTabelas } from "./dados.mjs";
 
 const DE_FORA = ["home.html#visao-geral", "empresas.html", "catalogo.html", "home.html#pedidos",
-    "home.html#mensagens", "relatorios.html", "alertas.html", "home.html#radar-oportunidades"];
+    "home.html#mensagens", "cotacoes.html", "relatorios.html", "alertas.html", "home.html#radar-oportunidades"];
 
 const ESPERADO = {
     home: {
-        hrefs: ["#visao-geral", "empresas.html", "catalogo.html", "#pedidos", "#mensagens", "relatorios.html", "alertas.html", "#radar-oportunidades"],
+        hrefs: ["#visao-geral", "empresas.html", "catalogo.html", "#pedidos", "#mensagens", "cotacoes.html", "relatorios.html", "alertas.html", "#radar-oportunidades"],
         ativo: "home", rotuloProdutos: "Catálogo", contadorMensagens: true
     },
     catalogo: {
-        hrefs: ["home.html#visao-geral", "empresas.html", "#produtos", "home.html#pedidos", "home.html#mensagens", "relatorios.html", "alertas.html", "home.html#radar-oportunidades"],
+        hrefs: ["home.html#visao-geral", "empresas.html", "#produtos", "home.html#pedidos", "home.html#mensagens", "cotacoes.html", "relatorios.html", "alertas.html", "home.html#radar-oportunidades"],
         ativo: "produtos", rotuloProdutos: "Catálogo", contadorMensagens: true
     },
     empresas: { hrefs: DE_FORA, ativo: "empresas", rotuloProdutos: "Catálogo", contadorMensagens: false },
     relatorios: { hrefs: DE_FORA, ativo: "relatorios", rotuloProdutos: "Catálogo", contadorMensagens: false },
     perfil: { hrefs: DE_FORA, ativo: null, rotuloProdutos: "Catálogo", contadorMensagens: false },
-    alertas: { hrefs: DE_FORA, ativo: "alertas", rotuloProdutos: "Catálogo", contadorMensagens: false }
+    alertas: { hrefs: DE_FORA, ativo: "alertas", rotuloProdutos: "Catálogo", contadorMensagens: false },
+    cotacoes: { hrefs: DE_FORA, ativo: "cotacoes", rotuloProdutos: "Catálogo", contadorMensagens: false }
 };
 
 for (const [pagina, esperado] of Object.entries(ESPERADO)) {
-    test(`${pagina}: menu igual ao original, item ativo e botão ☰`, async ({ page }) => {
+    test(`${pagina}: menu único em todas as páginas, item ativo e botão ☰`, async ({ page }) => {
         const { errosDaPagina } = await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
         await page.setViewportSize({ width: 390, height: 800 }); // celular: menu recolhido
         await page.goto(`/pages/app/${pagina}.html`);
@@ -32,7 +33,7 @@ for (const [pagina, esperado] of Object.entries(ESPERADO)) {
         const itens = page.locator("#sidebar .sidebar-nav .nav-item");
         expect(await itens.evaluateAll(links => links.map(a => a.getAttribute("href")))).toEqual(esperado.hrefs);
         expect(await itens.evaluateAll(links => links.map(a => a.dataset.page)))
-            .toEqual(["home", "empresas", "produtos", "pedidos", "mensagens", "relatorios", "alertas", "oportunidades"]);
+            .toEqual(["home", "empresas", "produtos", "pedidos", "mensagens", "cotacoes", "relatorios", "alertas", "oportunidades"]);
 
         const ativos = page.locator("#sidebar .nav-item.active");
         if (esperado.ativo) {

@@ -31,6 +31,7 @@
             pagina: "mensagens", icone: "✉", rotulo: "Mensagens", href: "home.html#mensagens", naHome: { href: "#mensagens" },
             contadorEm: ["home", "produtos"]
         },
+        { pagina: "cotacoes", icone: "⇄", rotulo: "Cotações", href: "cotacoes.html" },
         { pagina: "relatorios", icone: "▥", rotulo: "Relatórios", href: "relatorios.html" },
         { pagina: "alertas", icone: "⚑", rotulo: "Alertas", href: "alertas.html", contadorAlertas: true },
         {

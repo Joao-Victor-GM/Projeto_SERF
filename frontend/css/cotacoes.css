@@ -1,0 +1,317 @@
+/* ==========================================================
+   S.E.R.F. — Cotações (js/cotacoes.js)
+   ========================================================== */
+
+.cot-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cot-main [hidden] {
+    display: none !important;
+}
+
+.cot-abas {
+    align-self: flex-start;
+}
+
+.cot-status {
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+}
+
+.cot-cartao {
+    padding: 20px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+    box-shadow: var(--serf-sombra-cartao);
+}
+
+.cot-cartao h2,
+.cot-subtitulo {
+    margin: 0 0 14px;
+    color: var(--serf-azul-principal);
+    font-size: 16px;
+}
+
+.cot-subtitulo {
+    margin: 10px 0 0;
+}
+
+/* ---------------- FORMULÁRIOS ---------------- */
+
+.cot-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px 16px;
+}
+
+.cot-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cot-campo-largo {
+    grid-column: 1 / -1;
+}
+
+.cot-campo input,
+.cot-campo select,
+.cot-campo textarea,
+.cot-filtro select {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.cot-campo textarea {
+    resize: vertical;
+}
+
+.cot-campo input:focus-visible,
+.cot-campo select:focus-visible,
+.cot-campo textarea:focus-visible,
+.cot-filtro select:focus-visible,
+.cot-main button:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 1px;
+}
+
+.cot-quantidade > div {
+    display: flex;
+    gap: 6px;
+}
+
+.cot-quantidade select {
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.cot-erro {
+    margin: 10px 0 0;
+    color: #DC2626;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cot-erro:empty {
+    display: none;
+}
+
+.cot-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.cot-acoes small {
+    margin-right: auto;
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+}
+
+.cot-main button {
+    cursor: pointer;
+}
+
+.cot-main button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.cot-filtro {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 420px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ---------------- LISTAS ---------------- */
+
+.cot-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cot-item.destaque {
+    border-color: var(--serf-laranja);
+    box-shadow: 0 0 0 3px var(--serf-tint-laranja);
+}
+
+.cot-item-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cot-item-topo h3 {
+    margin: 4px 0;
+    color: var(--serf-azul-principal);
+    font-size: 16px;
+}
+
+.cot-categoria {
+    color: var(--serf-laranja);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.cot-resumo,
+.cot-descricao,
+.cot-minha,
+.cot-dica,
+.cot-vazio {
+    margin: 0;
+    color: var(--serf-texto-secundario);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.cot-descricao {
+    margin-top: 10px;
+    white-space: pre-line;
+}
+
+.cot-minha {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--serf-tint-azul);
+    color: var(--serf-texto-principal);
+}
+
+.cot-dica {
+    margin-top: 12px;
+}
+
+.cot-item h4 {
+    margin: 16px 0 8px;
+    color: var(--serf-texto-principal);
+    font-size: 13px;
+}
+
+.cot-selo {
+    display: inline-block;
+    flex-shrink: 0;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.cot-selo.aberta { background: var(--serf-tint-azul); color: var(--serf-azul-interacao); }
+.cot-selo.escolher { background: var(--serf-tint-laranja); color: #B45309; }
+.cot-selo.fechada { background: var(--serf-tint-verde); color: #15803D; }
+.cot-selo.cancelada { background: var(--serf-superficie-3); color: var(--serf-texto-secundario); }
+.cot-selo.melhor { background: var(--serf-tint-verde); color: #15803D; }
+
+:root[data-theme="dark"] .cot-selo.escolher { color: #FDBA74; }
+:root[data-theme="dark"] .cot-selo.fechada,
+:root[data-theme="dark"] .cot-selo.melhor { color: #86EFAC; }
+
+.cot-propostas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cot-proposta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 6px;
+    background: var(--serf-superficie-2);
+}
+
+.cot-proposta.apagada {
+    opacity: 0.6;
+}
+
+.cot-proposta p {
+    margin: 3px 0 0;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+}
+
+.cot-proposta .cot-obs {
+    font-style: italic;
+}
+
+.cot-preco {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-end;
+    gap: 4px;
+    text-align: right;
+}
+
+.cot-preco strong {
+    color: var(--serf-azul-principal);
+    font-size: 15px;
+}
+
+.cot-preco small {
+    color: var(--serf-texto-mudo);
+    font-size: 11px;
+}
+
+.cot-rodape {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.cot-form-proposta {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--serf-borda);
+}
+
+@media (max-width: 600px) {
+    .cot-cartao {
+        padding: 16px;
+    }
+
+    .cot-item-topo,
+    .cot-proposta {
+        flex-direction: column;
+    }
+
+    .cot-preco {
+        align-items: flex-start;
+        text-align: left;
+    }
+}

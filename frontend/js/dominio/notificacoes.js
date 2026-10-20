@@ -95,13 +95,9 @@
                 : `Proposta de ${d.fornecedor} para “${d.titulo}”`,
             texto: `${moeda(d.preco_unitario)}/un. · entrega em ${plural(d.prazo_entrega_dias, "dia", "dias")}`,
             link: `cotacoes.html?cotacao=${encodeURIComponent(d.id_cotacao)}`
-        }),
-        PROPOSTA_ACEITA: d => ({
-            icone: "★",
-            titulo: `${d.comprador} aceitou sua proposta`,
-            texto: `“${d.titulo}” virou o pedido #${d.id_pedido}.`,
-            link: linkPedido(d.id_pedido)
         })
+        // Proposta aceita não tem aviso próprio: vira pedido, e o fornecedor
+        // recebe o PEDIDO_RECEBIDO (observação "Cotação #N aceita")
     };
 
     function descrever(notificacao) {

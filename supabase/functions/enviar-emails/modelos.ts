@@ -127,6 +127,34 @@ function conteudo(tipo: string, d: Record<string, any>): Conteudo {
                 caminho: "catalogo.html"
             };
         }
+        case "COTACAO_NOVA": {
+            const itens: Record<string, any>[] = d.itens || [];
+            return {
+                assunto: itens.length > 1
+                    ? `${itens.length} cotações novas em ${d.categoria}`
+                    : `Cotação nova em ${d.categoria}: ${itens[0]?.titulo ?? ""}`,
+                titulo: "Compradores procurando o que você vende",
+                paragrafos: [
+                    `Pedidos de cotação no segmento ${d.categoria}:`,
+                    ...itens.map(i => `• ${i.comprador} quer ${i.quantidade} ${i.unidade ?? "un."} de ${i.titulo}` +
+                        (i.preco_alvo ? ` (preço-alvo ${moeda(i.preco_alvo)})` : "")),
+                    "Envie sua proposta antes do prazo: o comprador escolhe entre as recebidas."
+                ],
+                acao: itens.length > 1 ? "Ver cotações" : "Enviar proposta",
+                caminho: itens.length === 1 ? `cotacoes.html?cotacao=${itens[0].id_cotacao}` : "cotacoes.html"
+            };
+        }
+        case "PROPOSTA_RECEBIDA":
+            return {
+                assunto: `Proposta recebida: ${d.titulo}`,
+                titulo: "Você recebeu uma proposta",
+                paragrafos: [
+                    `${d.fornecedor} ofereceu ${d.produto} por ${moeda(d.preco_unitario)}/un., entrega em ${d.prazo_entrega_dias} dia(s).`,
+                    "Compare as propostas e aceite a melhor: ela vira um pedido."
+                ],
+                acao: "Comparar propostas",
+                caminho: `cotacoes.html?cotacao=${d.id_cotacao}`
+            };
         default:
             return { assunto: "Atualização no S.E.R.F.", titulo: "Você tem uma atualização", paragrafos: [], acao: "Abrir o S.E.R.F.", caminho: "home.html" };
     }

@@ -83,3 +83,18 @@ test("com link de descadastro, o rodapé oferece parar em um clique", () => {
     assert.match(email.html, /href="https:\/\/serf\.exemplo\.com\/frontend\/pages\/public\/descadastro\.html\?t=u\.x&amp;y"/);
     assert.doesNotMatch(email.texto, /desative os e-mails no seu Perfil/);
 });
+
+test("cotação nova (fornecedor) e proposta recebida (comprador)", () => {
+    const item = { id_cotacao: 3, comprador: "Oficina X", titulo: "Chapa de aço", quantidade: 200, unidade: "kg", preco_alvo: 40 };
+    const uma = montarEmail("COTACAO_NOVA", { categoria: "Metalurgia & Usinagem", itens: [item] }, APP);
+    assert.equal(uma.assunto, "Cotação nova em Metalurgia & Usinagem: Chapa de aço");
+    assert.match(uma.texto, /Oficina X quer 200 kg de Chapa de aço \(preço-alvo R\$\s40,00\)/);
+    assert.match(uma.texto, /cotacoes\.html\?cotacao=3/);
+
+    const duas = montarEmail("COTACAO_NOVA", { categoria: "Metalurgia & Usinagem", itens: [item, { ...item, id_cotacao: 4 }] }, APP);
+    assert.equal(duas.assunto, "2 cotações novas em Metalurgia & Usinagem");
+
+    const proposta = montarEmail("PROPOSTA_RECEBIDA", { id_cotacao: 3, titulo: "Chapa de aço", fornecedor: "Aços Sul",
+        produto: "Chapa 2mm", preco_unitario: 38.5, prazo_entrega_dias: 3 }, APP);
+    assert.match(proposta.texto, /Aços Sul ofereceu Chapa 2mm por R\$\s38,50\/un\., entrega em 3 dia\(s\)/);
+});

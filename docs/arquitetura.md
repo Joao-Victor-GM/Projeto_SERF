@@ -137,6 +137,43 @@ inventado; só a apresentação é cadenciada.
   `tests/banco/oportunidades.test.mjs`, `tests/banco/segmentos.test.mjs` e
   `tests/e2e/oportunidades.spec.mjs`.
 
+## Cotação reversa (migration 024)
+
+Página `cotacoes.html` (menu **Cotações**; também "Não achou? Peça uma
+cotação" no Catálogo).
+
+1. **Comprador publica** (`publicar_cotacao`): o que precisa, segmento
+   (lista oficial), quantidade e unidade, preço-alvo opcional, prazo para
+   receber propostas (1–30 dias). Máximo de 20 abertas por empresa.
+2. **Fornecedores do segmento são avisados** (`COTACAO_NOVA`, app + e-mail,
+   agrupado por segmento e dia): quem tem produto ativo da categoria ou marcou
+   o segmento no radar.
+3. **Fornecedor propõe** (`enviar_proposta`): uma proposta por cotação,
+   ligada a um produto dele, ativo e com estoque para a quantidade; pode
+   atualizar ou retirar (`retirar_proposta`) enquanto estiver aberta.
+   **Sigilo:** o RLS só mostra ao fornecedor a própria proposta.
+4. **Comprador aceita** (`aceitar_proposta`): cotação FECHADA, as demais
+   propostas RECUSADA e nasce um **pedido normal** (PENDENTE) com
+   `pedidos.id_proposta`. `pedidos_validar` confere a proposta (aceita, mesmo
+   comprador, produto e quantidade) e usa o preço dela; o mínimo do catálogo
+   não se aplica. Daí em diante: confirmação, pagamento, NF-e, envio.
+
+Aceitar continua possível depois do prazo (o prazo é para *receber*
+propostas). Tabelas só de leitura para o navegador; escrita pelas RPCs.
+`pedidos_validar` também congela, depois de criado, comprador, produto,
+quantidade, preço e proposta do pedido (segunda camada além do GRANT da 003).
+
+## Central de notificações (migration 023)
+
+Sino no topo das páginas internas (`js/notificacoes.js`, regras de texto em
+`js/dominio/notificacoes.js`). Todo evento que gera e-mail também gera
+notificação no app, **mesmo para quem desligou os e-mails**:
+`enfileirar_email()` virou apelido de `notificar()` (app + e-mail), então os
+triggers da 020/021/024 não mudaram. Eventos com a mesma chave agrupam
+(quantidade + 1, volta a "não lida"). Tempo real pelo Realtime; o usuário só
+altera `lida_em`. `limpar_notificacoes_antigas()` apaga as lidas com mais de
+90 dias (agendar no pg_cron, ver "E-mails").
+
 ## Experiência do usuário (018–020)
 
 | Recurso | Onde | Como funciona |
@@ -191,6 +228,12 @@ select cron.schedule('serf-enviar-emails', '* * * * *', $$
     url := 'https://<ref-do-projeto>.supabase.co/functions/v1/enviar-emails',
     headers := jsonb_build_object('x-cron-secret', '<segredo-forte>', 'Content-Type', 'application/json')
   ) $$);
+```
+
+Limpeza diária das notificações lidas antigas (023):
+
+```sql
+select cron.schedule('serf-limpar-notificacoes', '0 4 * * *', $$ select public.limpar_notificacoes_antigas() $$);
 ```
 
 Sem a função/agendamento, os e-mails só ficam na fila (nada quebra).
@@ -392,10 +435,12 @@ depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (view `pedidos_painel`), 015 (view `alertas`), 016 (view `oportunidades`) e
 017 (desempenho do radar; sem ela tudo funciona, só mais lento), 018
 (carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
-(segmentos do radar) e 022 (categorias oficiais; converte categorias antigas
-fora da lista — veja o cabeçalho da migration). Sem 018–022
+(segmentos do radar), 022 (categorias oficiais; converte categorias antigas
+fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
+024 (cotações). Sem 018–024
 a Home continua funcionando: só o envio do carrinho, o checklist, a
-verificação de CNPJ, os e-mails e o filtro por segmento ficam indisponíveis. Publicar as páginas antes delas
+verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
+indisponíveis; a página de cotações mostra o erro. Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
 mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
 "Radar indisponível" (o resto funciona).

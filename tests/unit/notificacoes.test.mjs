@@ -36,8 +36,6 @@ test("segmento, cotação e propostas", () => {
 
     assert.equal(descrever({ tipo: "PROPOSTA_RECEBIDA", quantidade: 2, dados: { id_cotacao: 3, titulo: "Chapa" } }).titulo,
         "2 propostas para “Chapa”");
-    assert.equal(descrever({ tipo: "PROPOSTA_ACEITA", dados: { id_pedido: 9, comprador: "Oficina X", titulo: "Chapa" } }).link,
-        "home.html?pedido=9");
 });
 
 test("tipo desconhecido não quebra o sino", () => {

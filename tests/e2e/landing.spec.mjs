@@ -29,7 +29,8 @@ test("conteúdo honesto: nada 'ao vivo' inventado; o exemplo é rotulado; simula
     await page.goto(INICIO);
 
     await expect(page.locator("body")).not.toContainText(/ao vivo/i);
-    await expect(page.locator("body")).not.toContainText(/publique (sua|uma) necessidade/i);
+    // Só recursos que existem: a cotação reversa entrou com a migration 024
+    await expect(page.locator(".lp-recursos")).toContainText("Cotação reversa");
     await expect(page.locator(".lp-demo figcaption")).toHaveText("Exemplo ilustrativo da tela de pedido");
     await expect(page.locator(".lp-rodape")).toContainText("pagamentos e notas fiscais são simulados");
 });
