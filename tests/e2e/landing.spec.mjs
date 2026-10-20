@@ -88,6 +88,75 @@ test("teclado: 'Pular para o conteúdo' é o primeiro foco", async ({ page }) =>
     await expect(page.locator(".lp-pular")).toBeInViewport();
 });
 
+// Pixels laranja (conexões e pontos) desenhados no canvas do mapa
+const pixelsLaranjaNoMapa = page => page.evaluate(() => {
+    const canvas = document.getElementById("brasil-particles");
+    const { data } = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+    let laranja = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 40 && data[i] > 200 && data[i + 1] > 80 && data[i + 1] < 170 && data[i + 2] < 90) laranja += 1;
+    }
+    return laranja;
+});
+
+for (const [nome, largura] of [["desktop", 1440], ["celular", 390]]) {
+    test(`mapa (${nome}): canvas quadrado sobre o mapa e a rede se conectando`, async ({ page }) => {
+        await page.setViewportSize({ width: largura, height: 900 });
+
+        // Rede real: a imagem do mapa chega depois do script. Antes da correção,
+        // o canvas era medido com altura 0 nesse caso e a rede não aparecia.
+        await page.route("**/mapa-brasil.svg", async rota => {
+            await new Promise(resolver => setTimeout(resolver, 1500));
+            await rota.continue();
+        });
+
+        await page.goto(INICIO);
+
+        const mapa = page.locator(".lp-mapa");
+        await mapa.scrollIntoViewIfNeeded();
+
+        // O canvas cobre exatamente a área do mapa (nunca com altura 0)
+        const tamanho = await page.locator("#brasil-particles").evaluate(c => ({
+            largura: c.offsetWidth, altura: c.offsetHeight
+        }));
+        const area = await mapa.boundingBox();
+        expect(tamanho.altura).toBeGreaterThan(200);
+        expect(tamanho.altura).toBe(tamanho.largura);
+        expect(Math.abs(area.height - tamanho.altura)).toBeLessThanOrEqual(1);
+
+        // Começa com poucos pontos e a rede cresce: mais laranja com o tempo
+        await page.waitForTimeout(300);
+        const inicio = await pixelsLaranjaNoMapa(page);
+        await page.waitForTimeout(3500);
+        const depois = await pixelsLaranjaNoMapa(page);
+
+        expect(inicio).toBeGreaterThan(0);
+        expect(depois).toBeGreaterThan(inicio);
+    });
+}
+
+test("'reduzir movimento': o mapa mostra a rede COMPLETA, parada (não só o primeiro ponto)", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.route("**/mapa-brasil.svg", async rota => {
+        await new Promise(resolver => setTimeout(resolver, 1500));
+        await rota.continue();
+    });
+    await page.goto(INICIO);
+    await page.locator(".lp-mapa").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(2000);
+
+    const parado = await pixelsLaranjaNoMapa(page);
+    await page.waitForTimeout(1500);
+
+    expect(parado).toBeGreaterThan(1500);                       // rede inteira, não um ponto
+    expect(await pixelsLaranjaNoMapa(page)).toBe(parado);       // e sem animar
+
+    // Preferência desligada com a página aberta: volta a animar do começo
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.waitForTimeout(300);
+    expect(await pixelsLaranjaNoMapa(page)).toBeLessThan(parado);
+});
+
 // Conta quantos quadros de animação são pedidos ao navegador em ~1 s
 async function quadrosPorSegundo(page) {
     await page.addInitScript(() => {

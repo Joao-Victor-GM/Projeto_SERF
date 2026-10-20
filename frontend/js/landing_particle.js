@@ -204,11 +204,20 @@ function ajustarCanvasBrasil() {
         canvasBrasil.offsetHeight;
 
 
+    // Telas de alta densidade (retina): desenha em resolução real,
+    // mas continua trabalhando em pixels CSS (larguraBrasil/alturaBrasil).
+    const densidade =
+        window.devicePixelRatio || 1;
+
     canvasBrasil.width =
-        larguraBrasil;
+        Math.round(larguraBrasil * densidade);
 
     canvasBrasil.height =
-        alturaBrasil;
+        Math.round(alturaBrasil * densidade);
+
+    ctxBrasil.setTransform(
+        densidade, 0, 0, densidade, 0, 0
+    );
 }
 
 // =========================================================
@@ -725,7 +734,8 @@ function animarRedeBrasil() {
     // =====================================================
 
     else if (
-        !aguardandoReinicioBrasil
+        !aguardandoReinicioBrasil &&
+        !movimentoReduzidoBrasil
     ) {
 
         aguardandoReinicioBrasil =
@@ -750,8 +760,50 @@ function animarRedeBrasil() {
 // longa e o mapa fica a maior parte do tempo fora de vista.
 // =========================================================
 
-const movimentoReduzidoBrasil =
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const preferenciaMovimentoBrasil =
+    window.matchMedia("(prefers-reduced-motion: reduce)");
+
+let movimentoReduzidoBrasil =
+    preferenciaMovimentoBrasil.matches;
+
+
+// "Reduzir movimento": em vez do primeiro quadro (só SP aceso, que
+// parece quebrado), mostra a rede COMPLETA, parada — a mesma mensagem
+// ("o Brasil todo conectado"), sem animação.
+function completarRedeBrasil() {
+
+    conexoesConcluidasBrasil =
+        etapasBrasil.flat();
+
+    pontosAtivosBrasil =
+        new Set(Object.keys(pontosBrasil));
+
+    etapaAtualBrasil =
+        etapasBrasil.length;
+
+    progressoEtapaBrasil = 0;
+
+    aguardandoReinicioBrasil = false;
+}
+
+
+// A preferência pode mudar com a página aberta (Configurações do sistema)
+preferenciaMovimentoBrasil.addEventListener(
+    "change",
+    (evento) => {
+
+        movimentoReduzidoBrasil =
+            evento.matches;
+
+        if (movimentoReduzidoBrasil) {
+            completarRedeBrasil();
+            animarRedeBrasil();         // desenha o quadro estático
+        } else {
+            reiniciarRedeBrasil();
+            agendarRedeBrasil();        // volta a animar do começo
+        }
+    }
+);
 
 let mapaVisivelBrasil = true;
 let quadroAgendadoBrasil = false;
@@ -782,10 +834,20 @@ if ("IntersectionObserver" in window) {
 // RESPONSIVIDADE
 // =========================================================
 
-window.addEventListener(
-    "resize",
-    ajustarCanvasBrasil
-);
+// Remede sempre que a área do mapa mudar de tamanho (layout inicial,
+// rotação do celular, redimensionamento) — não só no resize da janela.
+// Com animação parada ("reduzir movimento"), redesenha o quadro estático.
+if ("ResizeObserver" in window) {
+    new ResizeObserver(() => {
+        ajustarCanvasBrasil();
+        if (movimentoReduzidoBrasil) animarRedeBrasil();
+    }).observe(canvasBrasil);
+} else {
+    window.addEventListener(
+        "resize",
+        ajustarCanvasBrasil
+    );
+}
 
 
 // =========================================================
@@ -793,5 +855,9 @@ window.addEventListener(
 // =========================================================
 
 ajustarCanvasBrasil();
+
+if (movimentoReduzidoBrasil) {
+    completarRedeBrasil();
+}
 
 animarRedeBrasil();

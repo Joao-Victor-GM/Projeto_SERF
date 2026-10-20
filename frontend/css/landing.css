@@ -541,17 +541,44 @@ html:has(body.lp) {
 .lp-rede-texto h2 { margin-bottom: 18px; font-size: clamp(28px, 3.6vw, 40px); }
 .lp-rede-texto p { max-width: 480px; margin: 0; color: var(--lp-texto-2); font-size: 16px; }
 
+/* Quadrado de tamanho fixo: os pontos de landing_particle.js são frações
+   da largura/altura desta área, calibradas para o SVG (quadrado) inteiro.
+   Não depender da altura da imagem: antes dela carregar, o canvas seria
+   medido com altura 0 e a rede não apareceria. */
 .lp-mapa {
     position: relative;
-    width: min(420px, 100%);
+    width: min(430px, 100%);
+    aspect-ratio: 1 / 1;
     margin-inline: auto;
 }
 
-.lp-mapa .mapa-brasil { display: block; width: 100%; height: auto; opacity: 0.55; }
+/* Silhueta escura do Brasil (mesmo SVG como máscara) */
+.lp-mapa::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: #164563;
+    -webkit-mask: url("../assets/images/mapa-brasil.svg") center / contain no-repeat;
+    mask: url("../assets/images/mapa-brasil.svg") center / contain no-repeat;
+}
+
+/* Contorno sutil por cima da silhueta */
+.lp-mapa .mapa-brasil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.28;
+    filter: brightness(1.25) contrast(1.05);
+}
 
 #brasil-particles {
     position: absolute;
     inset: 0;
+    z-index: 2;
     width: 100%;
     height: 100%;
     pointer-events: none;
