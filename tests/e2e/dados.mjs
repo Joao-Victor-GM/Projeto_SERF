@@ -197,6 +197,7 @@ export function criarTabelas() {
         alertas: copia(ALERTAS),
         oportunidades: copia(OPORTUNIDADES),
         segmentos_interesse: [],
+        notificacoes: [],
         fornecedores_publicos: [FORN_MINHA, FORN_PARCEIRO],
         fornecedores_vitrine: [FORN_MINHA, FORN_PARCEIRO].map(f => ({
             ...f, homologado: false, data_cadastro: atras(90), produtos_ativos: 2,
