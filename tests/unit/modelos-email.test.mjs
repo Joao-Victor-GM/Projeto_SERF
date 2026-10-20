@@ -74,3 +74,12 @@ test("produto novo no segmento: um ou vários produtos, leva ao catálogo", () =
     assert.equal(varios.assunto, "2 produtos novos em Metalurgia & Usinagem");
     assert.match(varios.texto, /botão Segmentos/);
 });
+
+test("com link de descadastro, o rodapé oferece parar em um clique", () => {
+    const link = "https://serf.exemplo.com/frontend/pages/public/descadastro.html?t=u.x&y";
+    const email = montarEmail("MENSAGEM_NOVA", { id_pedido: 1, remetente: "A", trecho: "Oi" }, APP, link);
+
+    assert.match(email.texto, /Parar de receber: https:\/\/serf\.exemplo\.com\/frontend\/pages\/public\/descadastro\.html\?t=u\.x&y/);
+    assert.match(email.html, /href="https:\/\/serf\.exemplo\.com\/frontend\/pages\/public\/descadastro\.html\?t=u\.x&amp;y"/);
+    assert.doesNotMatch(email.texto, /desative os e-mails no seu Perfil/);
+});

@@ -11,9 +11,13 @@
 //   RESEND_API_KEY  chave da API do Resend (https://resend.com)
 //   EMAIL_REMETENTE ex.: "S.E.R.F. <avisos@seudominio.com.br>"
 //   APP_URL         endereço público do front-end (ex.: https://usuario.github.io/SERF-PROJETO-ACEX)
+//   DESCADASTRO_SECRET  (opcional, recomendado) assina o link "parar de receber";
+//                   com ele, cada e-mail leva List-Unsubscribe em um clique (exigido
+//                   por Gmail/Yahoo para envio em volume). Mesmo valor na função descadastrar.
 // SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já existem nas funções.
 
 import { montarEmail } from "./modelos.ts";
+import { gerarToken, linksDeDescadastro } from "../_shared/descadastro.ts";
 
 const json = (status: number, corpo: unknown) =>
     new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json" } });
@@ -29,6 +33,7 @@ Deno.serve(async (req: Request) => {
     const resendKey = Deno.env.get("RESEND_API_KEY");
     const remetente = Deno.env.get("EMAIL_REMETENTE");
     const urlApp = Deno.env.get("APP_URL") || "";
+    const segredoDescadastro = Deno.env.get("DESCADASTRO_SECRET");
 
     if (!resendKey || !remetente) return json(500, { erro: "Configure RESEND_API_KEY e EMAIL_REMETENTE." });
 
@@ -46,14 +51,26 @@ Deno.serve(async (req: Request) => {
 
     // 2. Envia um a um (o volume por minuto é pequeno)
     for (const n of pendentes) {
-        const email = montarEmail(n.tipo, n.dados, urlApp);
         let atualizacao: Record<string, unknown>;
 
         try {
+            const links = segredoDescadastro
+                ? linksDeDescadastro(await gerarToken(n.auth_user_id, segredoDescadastro), urlApp, url)
+                : null;
+            const email = montarEmail(n.tipo, n.dados, urlApp, links?.pagina);
+
             const resposta = await fetch("https://api.resend.com/emails", {
                 method: "POST",
                 headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ from: remetente, to: [n.email], subject: email.assunto, html: email.html, text: email.texto })
+                body: JSON.stringify({
+                    from: remetente, to: [n.email], subject: email.assunto, html: email.html, text: email.texto,
+                    ...(links && {
+                        headers: {
+                            "List-Unsubscribe": `<${links.umClique}>`,
+                            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+                        }
+                    })
+                })
             });
 
             if (!resposta.ok) throw new Error(`Resend ${resposta.status}: ${(await resposta.text()).slice(0, 300)}`);

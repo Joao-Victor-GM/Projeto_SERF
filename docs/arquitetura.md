@@ -117,8 +117,25 @@ inventado; só a apresentação é cadenciada.
   sobre os cartões; com "reduzir movimento" no sistema, começa parado. As
   notificações flutuantes ficam sempre dentro do radar e nunca se sobrepõem;
   no celular aparecem só na lista.
+- **Segmentos (migration 021):** o botão "◎ Segmentos" filtra o radar por
+  categoria (ex.: só Alimentos & Bebidas). A escolha fica em
+  `segmentos_interesse` (RLS: cada um só a sua), é trocada de uma vez pela RPC
+  `definir_segmentos` e o filtro roda **no servidor** (`categoria IN (...)`).
+  Nenhum marcado = tudo. Produto novo (ou reativado) com estoque num segmento
+  acompanhado gera e-mail `NOVO_PRODUTO_SEGMENTO` para os compradores
+  interessados (nunca para o dono): no máximo 1 por segmento por dia, com os
+  produtos do dia agrupados. Sem a 021, o botão some e o radar mostra tudo.
+- **Lista única de segmentos (022):** a tabela `categorias` é a lista oficial;
+  `produtos.categoria` e `segmentos_interesse.categoria` têm FK para ela (texto
+  livre como "alimentos" é recusado pelo banco; renomear propaga). No front, a
+  mesma lista está em `SERFUtils.CATEGORIAS_PRODUTO` (sem consulta extra) e é
+  usada no cadastro, na edição e no radar. Os testes garantem que banco, JS e
+  `<select id="prodCategoria">` nunca divergem (`tests/banco/categorias.test.mjs`
+  e `tests/unit/categorias.test.mjs`). Para criar uma categoria: migration com o
+  INSERT + a constante no JS + as opções do HTML.
 - Código: `js/radar-oportunidades.js` + `css/oportunidades.css`; testes em
-  `tests/banco/oportunidades.test.mjs` e `tests/e2e/oportunidades.spec.mjs`.
+  `tests/banco/oportunidades.test.mjs`, `tests/banco/segmentos.test.mjs` e
+  `tests/e2e/oportunidades.spec.mjs`.
 
 ## Experiência do usuário (018–020)
 
@@ -142,19 +159,29 @@ oportunidades pode ser recolhido (a animação para; a escolha fica salva).
 - **Quando:** pedido recebido (fornecedor; compra do carrinho = 1 e-mail por
   fornecedor com todos os itens), status mudou (comprador), cancelado pelo
   comprador (fornecedor), mensagem nova (outro lado; máx. 1 a cada 30 min por
-  conversa), pagamento confirmado e prazo solicitado (fornecedor).
+  conversa), pagamento confirmado e prazo solicitado (fornecedor), produto
+  novo num segmento acompanhado (comprador; máx. 1 por segmento por dia, 021).
 - **Como:** triggers enfileiram na mesma transação (falha ao enfileirar nunca
   desfaz o pedido); `enviar-emails` reserva (`FOR UPDATE SKIP LOCKED`), envia
   pelo Resend e marca como enviado; até 5 tentativas.
-- **Desligar:** Perfil → "Avisos por e-mail" (`preferencias_notificacao`).
+- **Desligar:** Perfil → "Avisos por e-mail" (`preferencias_notificacao`), ou
+  **em um clique pelo próprio e-mail** (com `DESCADASTRO_SECRET` configurado):
+  cada e-mail leva o cabeçalho `List-Unsubscribe` + `List-Unsubscribe-Post`
+  (RFC 8058, exigido por Gmail/Yahoo para envio em volume) e o link "Parar de
+  receber" no rodapé. O link tem um token assinado (HMAC do `auth_user_id`) que
+  só serve para desligar; abrir o link (GET) só mostra a página
+  `public/descadastro.html`, que pede confirmação. Código:
+  `functions/_shared/descadastro.ts` + função `descadastrar`.
 
 Ativar em produção (uma vez):
 
 ```bash
 supabase functions deploy homologar-fornecedor
 supabase functions deploy enviar-emails --no-verify-jwt
+supabase functions deploy descadastrar --no-verify-jwt
 supabase secrets set CRON_SECRET=<segredo-forte> RESEND_API_KEY=<chave> \
-  EMAIL_REMETENTE="S.E.R.F. <avisos@seudominio.com.br>" APP_URL=<url-publica-do-front>
+  EMAIL_REMETENTE="S.E.R.F. <avisos@seudominio.com.br>" APP_URL=<url-publica-do-front> \
+  DESCADASTRO_SECRET=<outro-segredo-forte>
 ```
 
 ```sql
@@ -364,9 +391,11 @@ Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
 depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (view `pedidos_painel`), 015 (view `alertas`), 016 (view `oportunidades`) e
 017 (desempenho do radar; sem ela tudo funciona, só mais lento), 018
-(carrinho), 019 (primeiros passos e homologação) e 020 (e-mails). Sem 018–020
+(carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
+(segmentos do radar) e 022 (categorias oficiais; converte categorias antigas
+fora da lista — veja o cabeçalho da migration). Sem 018–022
 a Home continua funcionando: só o envio do carrinho, o checklist, a
-verificação de CNPJ e os e-mails ficam indisponíveis. Publicar as páginas antes delas
+verificação de CNPJ, os e-mails e o filtro por segmento ficam indisponíveis. Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
 mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
 "Radar indisponível" (o resto funciona).

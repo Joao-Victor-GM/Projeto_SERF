@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>S.E.R.F. - Parar de receber e-mails</title>
+    <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            background: #061E36;
+            color: #172536;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .cartao {
+            width: 100%;
+            max-width: 440px;
+            padding: 32px 28px;
+            border-radius: 14px;
+            background: #FFFFFF;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .marca { color: #F47A20; font-weight: 800; letter-spacing: 0.12em; font-size: 13px; }
+        h1 { margin: 10px 0 12px; color: #082B4C; font-size: 22px; }
+        p { color: #4A5B6E; font-size: 15px; line-height: 1.55; }
+        p + p { margin-top: 10px; }
+
+        button {
+            margin-top: 22px;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 8px;
+            background: #F47A20;
+            color: #FFFFFF;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.6; cursor: progress; }
+        button:focus-visible, a:focus-visible { outline: 3px solid #1268B3; outline-offset: 2px; }
+        a { color: #1268B3; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <main class="cartao">
+        <span class="marca">S.E.R.F.</span>
+
+        <section id="confirmar">
+            <h1>Parar de receber e-mails?</h1>
+            <p>Você deixa de receber todos os avisos por e-mail do S.E.R.F. (pedidos, mensagens,
+               pagamentos e produtos novos nos seus segmentos).</p>
+            <p>Os avisos continuam aparecendo dentro do sistema.</p>
+            <button type="button" id="botaoConfirmar">Parar de receber</button>
+        </section>
+
+        <section id="feito" hidden>
+            <h1 tabindex="-1">Pronto</h1>
+            <p>Você não vai mais receber e-mails do S.E.R.F.</p>
+            <p>Mudou de ideia? Entre no sistema e ative em <strong>Perfil → Avisos por e-mail</strong>.</p>
+            <p><a href="login-cadastro.html">Entrar no S.E.R.F.</a></p>
+        </section>
+
+        <p id="erro" role="alert" hidden></p>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script>
+        "use strict";
+
+        (function () {
+            const token = new URLSearchParams(location.search).get("t");
+            const confirmar = document.getElementById("confirmar");
+            const feito = document.getElementById("feito");
+            const erro = document.getElementById("erro");
+            const botao = document.getElementById("botaoConfirmar");
+
+            function mostrarErro(texto) {
+                erro.textContent = texto;
+                erro.hidden = false;
+            }
+
+            if (!token) {
+                confirmar.hidden = true;
+                mostrarErro("Link incompleto. Use o link “Parar de receber” do próprio e-mail, ou desative em Perfil → Avisos por e-mail.");
+                return;
+            }
+
+            // Só descadastra com o clique: pré-visualizações de link não fazem isso
+            botao.addEventListener("click", async () => {
+                const cliente = window.obterSupabase?.();
+                if (!cliente) return mostrarErro("Não foi possível conectar. Tente novamente em instantes.");
+
+                botao.disabled = true;
+                erro.hidden = true;
+
+                const { error } = await cliente.functions.invoke("descadastrar", { body: { t: token } });
+
+                if (error) {
+                    botao.disabled = false;
+                    const status = error.context?.status;
+                    mostrarErro(status === 400
+                        ? "Este link de descadastro é inválido. Desative em Perfil → Avisos por e-mail."
+                        : "Não foi possível concluir agora. Tente novamente em instantes.");
+                    return;
+                }
+
+                confirmar.hidden = true;
+                feito.hidden = false;
+                feito.querySelector("h1").focus?.();
+            });
+        })();
+    </script>
+</body>
+</html>

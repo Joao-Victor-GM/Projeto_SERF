@@ -133,12 +133,22 @@ function conteudo(tipo: string, d: Record<string, any>): Conteudo {
 }
 
 const RODAPE = "Você recebe estes avisos porque sua empresa usa o S.E.R.F. Para parar, desative os e-mails no seu Perfil.";
+const RODAPE_DESCADASTRO = "Você recebe estes avisos porque sua empresa usa o S.E.R.F.";
 
-export function montarEmail(tipo: string, dados: Record<string, any>, urlApp: string): Email {
+// linkDescadastro: página de descadastro em um clique (../_shared/descadastro.ts);
+// sem ele (segredo não configurado), o rodapé indica o Perfil.
+export function montarEmail(tipo: string, dados: Record<string, any>, urlApp: string, linkDescadastro?: string): Email {
     const c = conteudo(tipo, dados || {});
     const link = `${urlApp.replace(/\/$/, "")}/frontend/pages/app/${c.caminho}`;
 
-    const texto = [c.titulo, "", ...c.paragrafos, "", `${c.acao}: ${link}`, "", RODAPE].join("\n");
+    const rodapeTexto = linkDescadastro
+        ? `${RODAPE_DESCADASTRO} Parar de receber: ${linkDescadastro}`
+        : RODAPE;
+    const rodapeHtml = linkDescadastro
+        ? `${escapar(RODAPE_DESCADASTRO)} <a href="${escapar(linkDescadastro)}" style="color:#66788A">Parar de receber estes e-mails</a>`
+        : escapar(RODAPE);
+
+    const texto = [c.titulo, "", ...c.paragrafos, "", `${c.acao}: ${link}`, "", rodapeTexto].join("\n");
 
     const html = `<!doctype html>
 <html lang="pt-BR"><body style="margin:0;background:#F7F9FC;font-family:Arial,Helvetica,sans-serif;color:#172536">
@@ -151,7 +161,7 @@ export function montarEmail(tipo: string, dados: Record<string, any>, urlApp: st
           ${c.paragrafos.map(p => `<p style="margin:0 0 10px;font-size:14px;line-height:1.5">${escapar(p)}</p>`).join("\n          ")}
           <p style="margin:20px 0 0"><a href="${escapar(link)}" style="display:inline-block;background:#F47A20;color:#FFFFFF;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${escapar(c.acao)}</a></p>
         </td></tr>
-        <tr><td style="padding:16px 24px;background:#F8FAFC;color:#66788A;font-size:11px">${escapar(RODAPE)}</td></tr>
+        <tr><td style="padding:16px 24px;background:#F8FAFC;color:#66788A;font-size:11px">${rodapeHtml}</td></tr>
       </table>
     </td></tr>
   </table>
