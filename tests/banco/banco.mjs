@@ -124,7 +124,7 @@ export async function criarProduto(db, fornecedor, dados = {}) {
 
     const [linha] = await como(db, fornecedor, `
         INSERT INTO public.produtos (id_fornecedor, nome_produto, preco_atacado, quantidade_minima, quantidade_estoque, categoria)
-        VALUES ($1, $2, $3, $4, $5, 'Grãos')
+        VALUES ($1, $2, $3, $4, $5, 'Alimentos & Bebidas')
         RETURNING id_produto`,
         [fornecedor.idFornecedor, p.nome, p.preco, p.minimo, p.estoque]);
 

@@ -12,13 +12,29 @@
 
 (function () {
 
-    const { escaparHTML } = window.SERFUtils;
+    const { escaparHTML, CATEGORIAS_PRODUTO } = window.SERFUtils;
 
     const campo = (id, rotulo, valor, atributos = "") => `
         <label class="gestao-campo" for="${id}">
             <span>${rotulo}</span>
             <input id="${id}" class="swal2-input" value="${escaparHTML(valor ?? "")}" ${atributos}>
         </label>`;
+
+    // Lista fechada (a mesma do cadastro e do filtro do Radar). Uma categoria
+    // antiga fora da lista continua como opção, para não ser perdida.
+    function campoCategoria(atual) {
+        const opcoes = [...CATEGORIAS_PRODUTO];
+        if (atual && !opcoes.includes(atual)) opcoes.unshift(atual);
+
+        return `
+        <label class="gestao-campo" for="gpCategoria">
+            <span>Categoria</span>
+            <select id="gpCategoria" class="swal2-input">
+                <option value="">Sem categoria</option>
+                ${opcoes.map(c => `<option value="${escaparHTML(c)}"${c === atual ? " selected" : ""}>${escaparHTML(c)}</option>`).join("")}
+            </select>
+        </label>`;
+    }
 
     // Lê e valida o formulário; null = inválido (mensagem já exibida)
     function lerFormulario() {
@@ -56,7 +72,7 @@
             html: `
                 <div class="gestao-grade">
                     ${campo("gpNome", "Nome", produto.nome_produto, 'maxlength="150" required')}
-                    ${campo("gpCategoria", "Categoria", produto.categoria, 'maxlength="100"')}
+                    ${campoCategoria(produto.categoria)}
                     ${campo("gpMarca", "Marca", produto.marca, 'maxlength="100"')}
                     ${campo("gpPreco", "Preço de atacado (R$)", produto.preco_atacado, 'inputmode="decimal"')}
                     ${campo("gpMinimo", "Pedido mínimo (un.)", produto.quantidade_minima, 'type="number" min="1" step="1"')}

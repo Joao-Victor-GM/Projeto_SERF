@@ -108,6 +108,25 @@ function conteudo(tipo: string, d: Record<string, any>): Conteudo {
                 acao: "Analisar prazo",
                 caminho: linkPedido
             };
+        case "NOVO_PRODUTO_SEGMENTO": {
+            const itens: Record<string, any>[] = d.itens || [];
+            const primeiro = itens[0] ?? {};
+            return {
+                assunto: itens.length > 1
+                    ? `${itens.length} produtos novos em ${d.categoria}`
+                    : `Novo em ${d.categoria}: ${primeiro.produto ?? ""}`,
+                titulo: `Novidade no segmento ${d.categoria}`,
+                paragrafos: [
+                    itens.length > 1
+                        ? "Fornecedores cadastraram produtos no segmento que você acompanha:"
+                        : "Um fornecedor cadastrou um produto no segmento que você acompanha:",
+                    ...itens.map(i => `• ${i.produto} — ${i.fornecedor ?? "fornecedor"} · ${moeda(i.preco)}/un. · mín. ${i.quantidade_minima ?? 1} un.`),
+                    "Para mudar os segmentos acompanhados, use o botão Segmentos no Radar de Oportunidades."
+                ],
+                acao: itens.length > 1 ? "Ver no catálogo" : "Ver produto",
+                caminho: "catalogo.html"
+            };
+        }
         default:
             return { assunto: "Atualização no S.E.R.F.", titulo: "Você tem uma atualização", paragrafos: [], acao: "Abrir o S.E.R.F.", caminho: "home.html" };
     }

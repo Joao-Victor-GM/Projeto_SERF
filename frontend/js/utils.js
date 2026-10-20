@@ -253,7 +253,21 @@
         return ERRO_GENERICO;
     }
 
+    // Segmentos (categorias) de produto: a MESMA lista no cadastro de produto,
+    // na edição e no filtro do Radar. Os <select id="prodCategoria"> do HTML
+    // seguem esta lista (conferido em tests/unit/categorias.test.mjs).
+    const CATEGORIAS_PRODUTO = Object.freeze([
+        "Metalurgia & Usinagem",
+        "Alimentos & Bebidas",
+        "Construção Civil",
+        "Automotivo & Peças",
+        "Embalagens & Logística",
+        "Tecnologia & Insumos",
+        "Outros"
+    ]);
+
     window.SERFUtils = Object.freeze({
+        CATEGORIAS_PRODUTO,
         mensagemDeErro,
         swalConfig,
         STATUS_PEDIDO,

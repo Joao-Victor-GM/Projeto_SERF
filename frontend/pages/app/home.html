@@ -275,12 +275,29 @@
                             <p>Produtos, preços e compradores detectados na rede S.E.R.F. para a sua empresa.</p>
                         </div>
                         <div class="rop-botoes">
+                            <button type="button" class="rop-pausar" id="ropSegmentos" aria-expanded="false"
+                                    aria-controls="ropPainelSegmentos" hidden>◎ Segmentos</button>
                             <button type="button" class="rop-pausar" id="ropPausar" aria-pressed="false"
                                     aria-controls="radar-oportunidades">❚❚ Pausar</button>
                             <button type="button" class="rop-pausar" id="ropRecolher" aria-expanded="true"
                                     aria-controls="radar-oportunidades">▴ Recolher</button>
                         </div>
                     </header>
+
+                    <!-- Filtro por segmento (migration 021): opções vindas de SERFUtils.CATEGORIAS_PRODUTO -->
+                    <form class="rop-segmentos" id="ropPainelSegmentos" hidden>
+                        <fieldset>
+                            <legend>Mostrar oportunidades de:</legend>
+                            <div class="rop-segmentos-opcoes" id="ropOpcoesSegmentos"></div>
+                        </fieldset>
+                        <p class="rop-segmentos-dica">Sem nenhum marcado, o radar mostra todos. Quando um fornecedor
+                            cadastrar um produto num segmento marcado, você recebe um e-mail (no máximo 1 por segmento por dia).</p>
+                        <p class="rop-segmentos-erro" id="ropErroSegmentos" role="alert"></p>
+                        <div class="rop-segmentos-acoes">
+                            <button type="button" class="rop-pausar" id="ropTodosSegmentos">Ver todos</button>
+                            <button type="submit" class="rop-aplicar">Aplicar</button>
+                        </div>
+                    </form>
 
                     <div class="rop-numeros">
                         <strong id="ropTotal">0</strong>

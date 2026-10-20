@@ -5,7 +5,8 @@
 
    O conteúdo é REAL (view "oportunidades", migration 016): produtos novos,
    menor preço, recompra, fornecedores do nicho e novas demandas. Só a
-   apresentação é cadenciada. Sem dados, o radar segue "escaneando" — nunca
+   apresentação é cadenciada. O botão "Segmentos" filtra por categoria
+   (ex.: só Alimentos & Bebidas); a escolha fica no banco (migration 021). Sem dados, o radar segue "escaneando" — nunca
    exibe negócios inventados.
 
    Movimento sob controle do usuário (WCAG 2.2.2): botão Pausar, pausa
@@ -20,7 +21,7 @@
 
 (function () {
 
-    const { formatarMoeda, tempoRelativo } = window.SERFUtils;
+    const { formatarMoeda, tempoRelativo, CATEGORIAS_PRODUTO } = window.SERFUtils;
 
     const raiz = document.getElementById("radar-oportunidades");
     if (!raiz) return;
@@ -36,7 +37,12 @@
         chips: el("#ropChips"),
         status: el("#ropStatus"),
         btnPausar: el("#ropPausar"),
-        btnRecolher: el("#ropRecolher")
+        btnRecolher: el("#ropRecolher"),
+        btnSegmentos: el("#ropSegmentos"),
+        painelSegmentos: el("#ropPainelSegmentos"),
+        opcoesSegmentos: el("#ropOpcoesSegmentos"),
+        erroSegmentos: el("#ropErroSegmentos"),
+        btnTodosSegmentos: el("#ropTodosSegmentos")
     };
 
     const INTERVALO_PING_MS = 3600;      // um novo "sinal" a cada 3,6 s
@@ -96,7 +102,8 @@
         timer: null,
         pausadoPeloUsuario: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
         pausas: new Set(),   // "oculto" | "fora-da-tela" | "foco" | "recolhido"
-        carregamento: "carregando"
+        carregamento: "carregando",
+        segmentos: []        // categorias escolhidas (vazio = todas)
     };
 
 
@@ -125,7 +132,7 @@
     }
 
     async function carregar() {
-        const lista = await window.SERFDados.pendencias.listarOportunidades(40);
+        const lista = await window.SERFDados.pendencias.listarOportunidades(40, estado.segmentos);
 
         estado.oportunidades = semRepeticao(lista.filter(o => TIPOS[o.tipo]));
         estado.proximo = 0;
@@ -316,15 +323,119 @@
         elementos.chips.replaceChildren(...Object.entries(contagem).map(([rotulo, total]) =>
             criar("li", "rop-chip", `${total} · ${rotulo}`)));
 
+        const filtro = descreverSegmentos(estado.segmentos);
+
         if (estado.carregamento === "erro") {
             elementos.status.textContent = "Radar indisponível no momento.";
         } else if (n === 0) {
-            elementos.status.textContent = "Nenhuma oportunidade agora. O radar continua escaneando.";
+            elementos.status.textContent = filtro
+                ? `Nenhuma oportunidade em ${filtro} agora. Você recebe um e-mail quando surgir um produto novo.`
+                : "Nenhuma oportunidade agora. O radar continua escaneando.";
         } else {
-            elementos.status.textContent = `${n} oportunidade${n === 1 ? "" : "s"} detectada${n === 1 ? "" : "s"} para a sua empresa.`;
+            elementos.status.textContent = `${n} oportunidade${n === 1 ? "" : "s"} detectada${n === 1 ? "" : "s"} ${filtro ? `em ${filtro}` : "para a sua empresa"}.`;
         }
 
         raiz.classList.toggle("vazio", n === 0);
+    }
+
+
+    /* =====================================================================
+       3b. SEGMENTOS (filtro por categoria, migration 021)
+       A escolha fica no banco: vale em qualquer aparelho e também decide
+       quais produtos novos geram e-mail para a empresa.
+       ===================================================================== */
+
+    // "Alimentos & Bebidas" | "Alimentos & Bebidas e Construção Civil" | "3 segmentos"
+    function descreverSegmentos(lista) {
+        if (lista.length === 0) return "";
+        if (lista.length <= 2) return lista.join(" e ");
+        return `${lista.length} segmentos`;
+    }
+
+    function atualizarBotaoSegmentos() {
+        const n = estado.segmentos.length;
+        elementos.btnSegmentos.textContent = n ? `◎ Segmentos (${n})` : "◎ Segmentos";
+        elementos.btnSegmentos.classList.toggle("ativo", n > 0);
+        elementos.btnSegmentos.title = n ? `Filtrando: ${estado.segmentos.join(", ")}` : "Filtrar por segmento";
+    }
+
+    function desenharOpcoesSegmentos() {
+        // Segmento salvo que saiu da lista oficial continua visível (e desmarcável)
+        const opcoes = [...CATEGORIAS_PRODUTO, ...estado.segmentos.filter(s => !CATEGORIAS_PRODUTO.includes(s))];
+
+        elementos.opcoesSegmentos.replaceChildren(...opcoes.map(categoria => {
+            const rotulo = criar("label", "rop-segmento");
+            const caixa = criar("input");
+            caixa.type = "checkbox";
+            caixa.name = "segmento";
+            caixa.value = categoria;
+            caixa.checked = estado.segmentos.includes(categoria);
+            rotulo.append(caixa, criar("span", null, categoria));
+            return rotulo;
+        }));
+    }
+
+    function abrirSegmentos(aberto) {
+        elementos.painelSegmentos.hidden = !aberto;
+        elementos.btnSegmentos.setAttribute("aria-expanded", String(aberto));
+        elementos.erroSegmentos.textContent = "";
+
+        if (aberto) {
+            desenharOpcoesSegmentos();
+            elementos.opcoesSegmentos.querySelector("input")?.focus();
+        }
+    }
+
+    async function aplicarSegmentos(categorias) {
+        const botoes = elementos.painelSegmentos.querySelectorAll("button");
+        botoes.forEach(b => { b.disabled = true; });
+        elementos.erroSegmentos.textContent = "";
+
+        try {
+            estado.segmentos = await window.SERFDados.pendencias.definirSegmentos(categorias);
+        } catch (erro) {
+            elementos.erroSegmentos.textContent = window.SERFUtils.mensagemDeErro(erro);
+            return;
+        } finally {
+            botoes.forEach(b => { b.disabled = false; });
+        }
+
+        atualizarBotaoSegmentos();
+        abrirSegmentos(false);
+        elementos.btnSegmentos.focus();
+        await recarregar();
+    }
+
+    // Sem a migration 021 o botão nem aparece: o radar segue mostrando tudo.
+    async function carregarSegmentos() {
+        try {
+            estado.segmentos = await window.SERFDados.pendencias.meusSegmentos();
+        } catch (erro) {
+            console.warn("[SERF:Radar] Segmentos indisponíveis:", erro.message || erro);
+            estado.segmentos = [];
+            return;
+        }
+
+        elementos.btnSegmentos.hidden = false;
+        atualizarBotaoSegmentos();
+    }
+
+    function configurarSegmentos() {
+        elementos.btnSegmentos.addEventListener("click", () => abrirSegmentos(elementos.painelSegmentos.hidden));
+
+        elementos.painelSegmentos.addEventListener("submit", evento => {
+            evento.preventDefault();
+            const marcados = [...elementos.opcoesSegmentos.querySelectorAll("input:checked")].map(c => c.value);
+            aplicarSegmentos(marcados);
+        });
+
+        elementos.btnTodosSegmentos.addEventListener("click", () => aplicarSegmentos([]));
+
+        elementos.painelSegmentos.addEventListener("keydown", evento => {
+            if (evento.key !== "Escape") return;
+            abrirSegmentos(false);
+            elementos.btnSegmentos.focus();
+        });
     }
 
 
@@ -431,7 +542,7 @@
        ===================================================================== */
 
     // Identidade do conteúdo: se a recarga trouxer o mesmo, nada é redesenhado
-    const assinatura = () => `${estado.carregamento}|${estado.oportunidades
+    const assinatura = () => `${estado.carregamento}|${estado.segmentos.join("+")}|${estado.oportunidades
         .map(o => `${chaveDe(o)}:${o.tipo}:${o.relevancia}:${o.preco}:${o.quantidade}:${o.referencia}:${o.detalhe}`).join(",")}`;
 
     let ultimaAssinatura = null;
@@ -469,6 +580,7 @@
 
     function recolher(recolhido, { salvar = true } = {}) {
         raiz.classList.toggle("recolhido", recolhido);
+        if (recolhido && !elementos.painelSegmentos.hidden) abrirSegmentos(false);
         elementos.btnRecolher?.setAttribute("aria-expanded", String(!recolhido));
         if (elementos.btnRecolher) elementos.btnRecolher.textContent = recolhido ? "▾ Expandir" : "▴ Recolher";
 
@@ -515,9 +627,11 @@
 
     async function iniciar() {
         configurar();
+        configurarSegmentos();
         sincronizarCiclo();
 
         if (!(await window.serfSessao)) return;
+        await carregarSegmentos();
         await recarregar();
     }
 
@@ -526,6 +640,7 @@
         pingar,
         recarregar,
         quantidade: () => estado.oportunidades.length,
+        segmentos: () => [...estado.segmentos],
         emMovimento
     });
 

@@ -483,3 +483,122 @@
 .radar-oportunidades.recolhido .rop-numeros strong {
     font-size: 24px;
 }
+
+
+/* ---------------- SEGMENTOS (botão ◎ Segmentos) ---------------- */
+
+.rop-botoes {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.rop-pausar.ativo {
+    border-color: var(--rop-laranja);
+    color: var(--rop-laranja);
+}
+
+.rop-segmentos {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.rop-segmentos[hidden],
+.radar-oportunidades.recolhido .rop-segmentos {
+    display: none;
+}
+
+.rop-segmentos fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.rop-segmentos legend {
+    margin-bottom: 8px;
+    color: var(--rop-texto);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.rop-segmentos-opcoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 6px;
+}
+
+.rop-segmento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--rop-texto);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.rop-segmento:hover,
+.rop-segmento:has(input:checked) {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.rop-segmento input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--rop-laranja);
+}
+
+.rop-segmentos-dica,
+.rop-segmentos-erro {
+    margin: 0;
+    color: var(--rop-texto-2);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.rop-segmentos-erro {
+    color: #FFB4A8;
+}
+
+.rop-segmentos-erro:empty {
+    display: none;
+}
+
+.rop-segmentos-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.rop-aplicar {
+    padding: 6px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--rop-laranja);
+    color: #FFFFFF;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rop-aplicar:hover {
+    filter: brightness(1.08);
+}
+
+.rop-aplicar:focus-visible,
+.rop-segmento:has(input:focus-visible) {
+    outline: 2px solid #FFFFFF;
+    outline-offset: 2px;
+}
+
+.rop-segmentos button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}

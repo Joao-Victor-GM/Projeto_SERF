@@ -56,7 +56,9 @@ function atende(linha, coluna, expressao) {
     if (operador === "eq") return String(atual) === valor;
     if (operador === "gte") return String(atual) >= valor;
     if (operador === "lte") return String(atual) <= valor;
-    return valor.replace(/^\((.*)\)$/, "$1").split(",").includes(String(atual));
+    // in.(a,"b, c") → itens podem vir entre aspas (valores com vírgula/parênteses)
+    const itens = partesDoOr(bruto).map(item => item.replace(/^"(.*)"$/, "$1"));
+    return itens.includes(String(atual));
 }
 
 // "or=(a.gte.x,b.in.(1,2))" → ["a.gte.x", "b.in.(1,2)"] (respeita parênteses)

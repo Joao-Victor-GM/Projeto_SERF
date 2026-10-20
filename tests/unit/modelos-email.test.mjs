@@ -59,3 +59,18 @@ test("todo e-mail explica como parar de receber", () => {
         assert.match(email.texto, /desative os e-mails no seu Perfil/, tipo);
     }
 });
+
+test("produto novo no segmento: um ou vários produtos, leva ao catálogo", () => {
+    const item = (produto, preco) => ({ id_produto: 1, produto, fornecedor: "Distribuidora Sul", preco, quantidade_minima: 10 });
+
+    const um = montarEmail("NOVO_PRODUTO_SEGMENTO", { categoria: "Alimentos & Bebidas", itens: [item("Arroz", 25.5)] }, APP);
+    assert.equal(um.assunto, "Novo em Alimentos & Bebidas: Arroz");
+    assert.match(um.texto, /Arroz — Distribuidora Sul · R\$\s25,50\/un\. · mín\. 10 un\./);
+    assert.match(um.texto, /catalogo\.html/);
+    assert.match(um.html, /Alimentos &amp; Bebidas/);
+
+    const varios = montarEmail("NOVO_PRODUTO_SEGMENTO",
+        { categoria: "Metalurgia & Usinagem", itens: [item("Chapa", 90), item("Barra", 40)] }, APP);
+    assert.equal(varios.assunto, "2 produtos novos em Metalurgia & Usinagem");
+    assert.match(varios.texto, /botão Segmentos/);
+});

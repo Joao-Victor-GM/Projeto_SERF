@@ -26,7 +26,7 @@ function produto(id, fornecedor, nome, extras = {}) {
         id_fornecedor: fornecedor.id_fornecedor,
         nome_produto: nome,
         descricao: `${nome} — embalagem atacado`,
-        categoria: "Grãos",
+        categoria: "Alimentos & Bebidas",
         marca: "Marca Boa",
         preco_atacado: 25.5,
         quantidade_minima: 10,
@@ -159,7 +159,7 @@ const oportunidadeProduto = (tipo, relevancia, prod, extras = {}) => ({
 
 export const OPORTUNIDADES = [
     { tipo: "NOVA_DEMANDA", relevancia: 4, id_pedido: 201, id_produto: 10, id_fornecedor: 1,
-      produto_nome: "Arroz Tipo 1 5kg", categoria: "Grãos", preco: 25.5, quantidade_minima: null,
+      produto_nome: "Arroz Tipo 1 5kg", categoria: "Alimentos & Bebidas", preco: 25.5, quantidade_minima: null,
       quantidade_estoque: null, fornecedor_nome: null, cidade: null, estado: null,
       parceiro_nome: "Mercado Bom Preço", valor: 510, quantidade: 20, referencia: atras(2), detalhe: null },
     oportunidadeProduto("NOVO_PRODUTO", 3, PRODUTOS[3], { detalhe: "seu nicho", referencia: atras(1) }),
@@ -196,10 +196,11 @@ export function criarTabelas() {
         favoritos_fornecedores: [],
         alertas: copia(ALERTAS),
         oportunidades: copia(OPORTUNIDADES),
+        segmentos_interesse: [],
         fornecedores_publicos: [FORN_MINHA, FORN_PARCEIRO],
         fornecedores_vitrine: [FORN_MINHA, FORN_PARCEIRO].map(f => ({
             ...f, homologado: false, data_cadastro: atras(90), produtos_ativos: 2,
-            categorias: ["Grãos"], menor_preco: 25.5, pedidos_entregues: 1, pedidos_cancelados: 0,
+            categorias: ["Alimentos & Bebidas"], menor_preco: 25.5, pedidos_entregues: 1, pedidos_cancelados: 0,
             clientes_atendidos: 1, taxa_entrega: 1, tempo_resposta_horas: 2, prazo_entrega_dias: 3
         }))
     };

@@ -1,6 +1,7 @@
 /* ==========================================================
    S.E.R.F. — DADOS / PENDENCIAS.REPOSITORIO.JS
-   Views derivadas do estado: alertas (015) e oportunidades (016/017).
+   Views derivadas do estado: alertas (015) e oportunidades (016/017),
+   e os segmentos que filtram o radar (021).
    ========================================================== */
 
 "use strict";
@@ -23,13 +24,29 @@
             .in("severidade", severidades)) || [];
     }
 
-    async function listarOportunidades(limite) {
-        return dadosOuErro(await cliente()
+    // segmentos: categorias escolhidas; vazio = todas. O filtro roda no
+    // servidor (o limite vale para o segmento, não para a rede inteira).
+    async function listarOportunidades(limite, segmentos = []) {
+        let consulta = cliente()
             .from("oportunidades")
-            .select("*")
+            .select("*");
+
+        if (segmentos.length) consulta = consulta.in("categoria", segmentos);
+
+        return dadosOuErro(await consulta
             .order("relevancia", { ascending: false })
             .order("referencia", { ascending: false, nullsFirst: false })
             .limit(limite)) || [];
+    }
+
+    async function meusSegmentos() {
+        const linhas = dadosOuErro(await cliente().from("segmentos_interesse").select("categoria")) || [];
+        return linhas.map(l => l.categoria);
+    }
+
+    // Troca a seleção inteira de uma vez (RPC transacional); devolve a salva
+    async function definirSegmentos(categorias) {
+        return dadosOuErro(await cliente().rpc("definir_segmentos", { p_categorias: categorias })) || [];
     }
 
     // Checklist de primeiros passos (migration 019); null = sem cadastro de empresa
@@ -41,6 +58,8 @@
         primeirosPassos,
         listarAlertas,
         severidadesDosAlertas,
-        listarOportunidades
+        listarOportunidades,
+        meusSegmentos,
+        definirSegmentos
     });
 })();

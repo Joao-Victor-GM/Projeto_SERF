@@ -200,3 +200,123 @@ test.describe("menu lateral", () => {
         await expect(page.locator("#radar-oportunidades")).toBeInViewport();
     });
 });
+
+test.describe("Radar: filtro por segmento", () => {
+    const METAIS = "Metalurgia & Usinagem";
+    const ALIMENTOS = "Alimentos & Bebidas";
+
+    // Uma oportunidade de metais na rede; o resto é de alimentos
+    function tabelasComMetais() {
+        const tabelas = criarTabelas();
+        tabelas.oportunidades.push({
+            ...tabelas.oportunidades[1], id_produto: 99, produto_nome: "Chapa de aço 2mm",
+            categoria: METAIS, fornecedor_nome: "Metalúrgica Vale", detalhe: null
+        });
+        return tabelas;
+    }
+
+    // RPC definir_segmentos simulada: grava na tabela como o banco faria
+    const rpc = {
+        definir_segmentos: ({ p_categorias }, tabelas) => {
+            tabelas.segmentos_interesse = p_categorias.map(categoria => ({ categoria }));
+            return p_categorias;
+        }
+    };
+
+    async function abrir(page, tabelas = tabelasComMetais()) {
+        const mock = await simularSupabase(page, { usuario: EMPRESA, tabelas, rpc });
+        await page.goto("/pages/app/home.html");
+        await expect(radar(page).locator("#ropSegmentos")).toBeVisible();
+        return mock;
+    }
+
+    test("escolher 'só metais' filtra no servidor e salva a escolha", async ({ page }) => {
+        const { chamadas, errosDaPagina } = await abrir(page);
+        await expect(radar(page).locator("#ropTotal")).toHaveText("5");
+
+        const botao = radar(page).locator("#ropSegmentos");
+        await botao.click();
+        await expect(botao).toHaveAttribute("aria-expanded", "true");
+
+        const painel = radar(page).locator("#ropPainelSegmentos");
+        await expect(painel.getByRole("checkbox")).toHaveCount(7);   // a lista oficial
+        await painel.getByLabel(METAIS).check();
+        await painel.getByRole("button", { name: "Aplicar" }).click();
+
+        await expect(painel).toBeHidden();
+        await expect(botao).toHaveText("◎ Segmentos (1)");
+        await expect(botao).toBeFocused();
+        await expect(radar(page).locator("#ropTotal")).toHaveText("1");
+        await expect(radar(page).locator("#ropStatus")).toHaveText(`1 oportunidade detectada em ${METAIS}.`);
+        await expect(radar(page).locator("#ropFeed")).toContainText("Chapa de aço 2mm");
+        await expect(radar(page).locator("#ropFeed")).not.toContainText("Arroz");
+
+        // Salvo no banco e filtrado na consulta (não no navegador)
+        expect(chamadas.find(c => c.nome === "definir_segmentos").corpo).toEqual({ p_categorias: [METAIS] });
+        const consulta = chamadas.filter(c => c.tabela === "oportunidades").at(-1);
+        expect(consulta.parametros).toContainEqual(["categoria", `in.(${METAIS})`]);
+
+        expect(errosRelevantes(errosDaPagina)).toEqual([]);
+    });
+
+    test("a escolha salva vale na próxima visita; 'Ver todos' limpa", async ({ page }) => {
+        const tabelas = tabelasComMetais();
+        tabelas.segmentos_interesse = [{ categoria: ALIMENTOS }];
+        await abrir(page, tabelas);
+
+        const botao = radar(page).locator("#ropSegmentos");
+        await expect(botao).toHaveText("◎ Segmentos (1)");
+        await expect(radar(page).locator("#ropStatus")).toContainText(`em ${ALIMENTOS}`);
+        await expect(radar(page).locator("#ropFeed")).not.toContainText("Chapa de aço");
+
+        await botao.click();
+        await expect(radar(page).getByLabel(ALIMENTOS)).toBeChecked();
+        await radar(page).getByRole("button", { name: "Ver todos" }).click();
+
+        await expect(botao).toHaveText("◎ Segmentos");
+        await expect(radar(page).locator("#ropTotal")).toHaveText("5");
+        await expect(radar(page).locator("#ropStatus")).toHaveText("5 oportunidades detectadas para a sua empresa.");
+    });
+
+    test("segmento sem oportunidades: radar vazio explica e avisa do e-mail", async ({ page }) => {
+        await abrir(page);
+        await radar(page).locator("#ropSegmentos").click();
+        await radar(page).getByLabel("Construção Civil").check();
+        await radar(page).getByRole("button", { name: "Aplicar" }).click();
+
+        await expect(radar(page).locator("#ropTotal")).toHaveText("0");
+        await expect(radar(page).locator("#ropStatus"))
+            .toHaveText("Nenhuma oportunidade em Construção Civil agora. Você recebe um e-mail quando surgir um produto novo.");
+    });
+
+    test("teclado: Esc fecha o painel e devolve o foco; erro ao salvar aparece no painel", async ({ page }) => {
+        await simularSupabase(page, {
+            usuario: EMPRESA, tabelas: tabelasComMetais(),
+            rpc: { definir_segmentos: () => { throw Object.assign(new Error("Escolha no máximo 20 segmentos."), { code: "P0001" }); } }
+        });
+        await page.goto("/pages/app/home.html");
+
+        const botao = radar(page).locator("#ropSegmentos");
+        await botao.click();
+        await expect(radar(page).getByLabel(METAIS)).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(radar(page).locator("#ropPainelSegmentos")).toBeHidden();
+        await expect(botao).toBeFocused();
+
+        await botao.click();
+        await radar(page).getByLabel(METAIS).check();
+        await radar(page).getByRole("button", { name: "Aplicar" }).click();
+        await expect(radar(page).locator("#ropErroSegmentos")).toHaveText("Escolha no máximo 20 segmentos.");
+        await expect(radar(page).locator("#ropPainelSegmentos")).toBeVisible();
+        await expect(radar(page).locator("#ropTotal")).toHaveText("5");    // nada mudou
+    });
+
+    test("sem a migration 021, o botão some e o radar mostra tudo", async ({ page }) => {
+        const tabelas = tabelasComMetais();
+        await simularSupabase(page, { usuario: EMPRESA, tabelas, falhas: { segmentos_interesse: "relation does not exist" } });
+        await page.goto("/pages/app/home.html");
+
+        await expect(radar(page).locator("#ropTotal")).toHaveText("5");
+        await expect(radar(page).locator("#ropSegmentos")).toBeHidden();
+    });
+});
