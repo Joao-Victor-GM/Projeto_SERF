@@ -76,10 +76,10 @@
     // Pedido: abre o modal aqui mesmo (sem recarregar a Home)
     lista.addEventListener("click", evento => {
         const botao = evento.target.closest("[data-pedido]");
-        if (!botao || typeof abrirPedidoPorId !== "function") return;
+        if (!botao || !window.SERFHome) return;
 
         evento.preventDefault();
-        abrirPedidoPorId(Number(botao.dataset.pedido));
+        window.SERFHome.abrirPedidoPorId(Number(botao.dataset.pedido));
     });
 
     // Várias mudanças seguidas (Realtime) viram uma consulta só

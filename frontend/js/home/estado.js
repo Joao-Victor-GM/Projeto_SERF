@@ -3,14 +3,14 @@
    Dependências, cache de pedidos, estado da interface, elementos
    e busca de pedidos no Supabase (seções 01–06).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+
 
 
 /* ==========================================================
@@ -19,7 +19,7 @@
    formatação e escape de texto vêm de utils.js.
    ========================================================== */
 
-const {
+export const {
     escaparHTML,
     formatarMoeda,
     formatarData,
@@ -34,23 +34,23 @@ const {
    ========================================================== */
 
 // Pedidos do Supabase já convertidos para o formato da interface.
-let pedidosCache = [];
+export let pedidosCache = [];
 
 // Índice id → pedido (busca O(1) em Realtime, conversas, links e tabela).
 // Sempre atualizado junto com pedidosCache (ver indexarPedidos).
-let pedidosPorId = new Map();
+export let pedidosPorId = new Map();
 
 function indexarPedidos() {
     pedidosPorId = new Map(pedidosCache.map(pedido => [pedido.id, pedido]));
 }
 
-function obterPedido(idPedido) {
+export function obterPedido(idPedido) {
     return pedidosPorId.get(idPedido);
 }
 
 // Cadastros da empresa logada nas tabelas usuarios e fornecedores.
 // Uma empresa com perfil "Ambos" possui os dois identificadores.
-const empresaLogada = {
+export const empresaLogada = {
     authUserId: null, // UUID do Supabase Auth (remetente das mensagens)
     idUsuario: null,
     idFornecedor: null,
@@ -58,15 +58,15 @@ const empresaLogada = {
 };
 
 // Status do banco → categoria de filtros/KPIs + rótulo (definido em utils.js)
-const STATUS_BANCO = window.SERFUtils.STATUS_PEDIDO;
+export const STATUS_BANCO = window.SERFUtils.STATUS_PEDIDO;
 
 // Próximos status que o fornecedor pode aplicar (definido em utils.js,
 // espelho do trigger do banco).
-const TRANSICOES_STATUS = window.SERFUtils.TRANSICOES_STATUS;
+export const TRANSICOES_STATUS = window.SERFUtils.TRANSICOES_STATUS;
 
 // Conversas do chat agrupadas por pedido (tabela mensagens_pedidos).
 // idPedido → { idPedido, ultimoTexto, ultimaData, ultimaMinha, naoLidas }
-let conversasCache = new Map();
+export let conversasCache = new Map();
 
 
 /* ==========================================================
@@ -74,7 +74,7 @@ let conversasCache = new Map();
    Armazena o modo ativo, filtros, pesquisa e carregamento.
    ========================================================== */
 
-const estado = {
+export const estado = {
     modo: "comprar",
     periodo: 30,
     status: "todos",
@@ -92,7 +92,7 @@ const estado = {
    Centraliza referências aos componentes da Home.
    ========================================================== */
 
-const elementos = {
+export const elementos = {
     sidebar: document.getElementById("sidebar"),
     menuToggle: document.getElementById("menuToggle"),
     empresaAtiva: document.getElementById("empresaAtiva"),
@@ -155,7 +155,7 @@ const elementos = {
 
 // Empresa do outro lado da negociação, conforme o modo ativo:
 // ao comprar, o fornecedor; ao vender, o comprador.
-function parceiroDoPedido(pedido) {
+export function parceiroDoPedido(pedido) {
     return pedido.parceiros[estado.modo];
 }
 
@@ -206,7 +206,7 @@ function normalizarPedido(registro) {
 
 // Atualiza status e datas a partir de uma linha de pedidos
 // (carga inicial, resposta do UPDATE ou evento do Realtime).
-function aplicarStatusPedido(pedido, registro) {
+export function aplicarStatusPedido(pedido, registro) {
 
     const statusBanco = registro.status_pedido;
     const status = STATUS_BANCO[statusBanco] || {
@@ -238,17 +238,17 @@ function aplicarStatusPedido(pedido, registro) {
 
 // A empresa logada é a compradora deste pedido?
 // (papéis calculados pelo banco na view pedidos_painel)
-function souCompradorDoPedido(pedido) {
+export function souCompradorDoPedido(pedido) {
     return pedido.souComprador === true;
 }
 
 // A empresa logada é a fornecedora do produto deste pedido?
-function souFornecedorDoPedido(pedido) {
+export function souFornecedorDoPedido(pedido) {
     return pedido.souFornecedor === true;
 }
 
 // UPDATE do status na tabela pedidos (permitido ao fornecedor pelo RLS).
-function atualizarStatusPedido(idPedido, novoStatus) {
+export function atualizarStatusPedido(idPedido, novoStatus) {
     return SERFDados.pedidos.atualizarStatus(idPedido, novoStatus);
 }
 
@@ -262,7 +262,7 @@ function janelaDoPainelDias() {
     return Math.max(90, ...opcoes.filter(Number.isFinite));
 }
 
-async function buscarPedidosSupabase() {
+export async function buscarPedidosSupabase() {
 
     await identificarEmpresaLogada();
 
@@ -282,7 +282,7 @@ async function buscarPedidosSupabase() {
 }
 
 // Pedido fora do recorte do painel (ex.: link antigo da página Empresas).
-async function buscarPedidoPorId(idPedido) {
+export async function buscarPedidoPorId(idPedido) {
 
     let linha;
     try {

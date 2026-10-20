@@ -3,14 +3,23 @@
    Navegação lateral, eventos dos filtros, indicadores e ações da
    Home (seções 16–19).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import { elementos, estado, formatarMoeda, obterPedido } from "./estado.js";
+import {
+    abrirConversa,
+    alterarModo,
+    atualizarDashboard,
+    atualizarListagem,
+    mostrarMaisPedidos,
+    obterConversasDoModo
+} from "./dashboard.js";
+import { abrirDetalhesPedido } from "./pedido-modal.js";
 
 
 /* ==========================================================
@@ -18,7 +27,7 @@
    Controla o menu responsivo e os links existentes.
    ========================================================== */
 
-function configurarNavegacao() {
+export function configurarNavegacao() {
 
     // Abre ou recolhe o menu em telas menores.
     // Botão ☰ do celular: tratado por js/ui/layout.js (todas as páginas)
@@ -68,7 +77,7 @@ function configurarNavegacao() {
 // Espera após a última tecla antes de filtrar (digitação contínua = 1 render)
 const ATRASO_BUSCA_MS = 150;
 
-function configurarFiltros() {
+export function configurarFiltros() {
 
     elementos.filtroPeriodo.addEventListener("change", evento => {
         estado.periodo = Number(evento.target.value);
@@ -322,7 +331,7 @@ function configurarSugestoesFornecedores() {
    Permite filtrar pedidos ao clicar em uma métrica.
    ========================================================== */
 
-function configurarIndicadores() {
+export function configurarIndicadores() {
 
     document.querySelectorAll(".metric-item").forEach(botao => {
 
@@ -360,7 +369,7 @@ function configurarIndicadores() {
    Botões da tabela, atalhos e funcionalidades futuras.
    ========================================================== */
 
-function configurarAcoes() {
+export function configurarAcoes() {
 
     // Alternância de contexto Comprar/Vender.
     document.querySelectorAll(".modo-btn").forEach(botao => {

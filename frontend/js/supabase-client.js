@@ -16,7 +16,8 @@
      - obterSupabase()        (retorna null se o SDK não carregou)
 
    Scripts clássicos (sem import/export) para funcionar também
-   ao abrir os arquivos direto do disco, sem servidor.
+   ao abrir os arquivos direto do disco, sem servidor. (Exceção: a Home
+   usa módulos ES em js/home/ e precisa de servidor — ver docs/arquitetura.md.)
    ========================================================== */
 
 "use strict";

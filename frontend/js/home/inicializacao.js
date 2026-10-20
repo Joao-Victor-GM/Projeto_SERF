@@ -3,14 +3,27 @@
    Cabeçalho da empresa, modos disponíveis, pedido pela URL e
    inicialização da Home (seção 21).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import { adicionarMensagens } from "./chat.js";
+import { buscarPedidoPorId, buscarPedidosSupabase, elementos, empresaLogada, estado, obterPedido } from "./estado.js";
+import {
+    alterarModo,
+    assinarMensagensTempoReal,
+    atualizarDashboard,
+    atualizarIndicadores,
+    buscarConversasSupabase,
+    preencherFiltroEmpresas,
+    renderizarConversas
+} from "./dashboard.js";
+import { configurarAcoes, configurarFiltros, configurarIndicadores, configurarNavegacao } from "./eventos.js";
+import { abrirDetalhesPedido, configurarChat } from "./pedido-modal.js";
+import { assinarNotasTempoReal, assinarPagamentosTempoReal, assinarPedidosTempoReal } from "./tempo-real.js";
 
 
 /* ==========================================================
@@ -85,7 +98,7 @@ async function abrirPedidoPorId(idPedido) {
     return true;
 }
 
-async function recarregarPedidos() {
+export async function recarregarPedidos() {
     try {
         await buscarPedidosSupabase();
         estado.carregamento = "ok";
@@ -186,6 +199,9 @@ async function iniciarHome() {
     console.info("[SERF] Home inicializada com pedidos do Supabase.");
 }
 
-// O script utiliza defer no HTML.
-// Portanto, os elementos já estarão disponíveis.
+// O que os outros scripts da página (radar, ações pendentes, catálogo) e os
+// testes usam da Home. Antes eram globais soltas; agora é a API explícita.
+window.SERFHome = Object.freeze({ abrirPedidoPorId, alterarModo, adicionarMensagens });
+
+// Módulo = sempre adiado: os elementos da página já existem.
 iniciarHome();

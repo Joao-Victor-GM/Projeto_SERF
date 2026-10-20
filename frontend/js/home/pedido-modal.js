@@ -3,18 +3,41 @@
    Modal do pedido: resumo, gestão de status, cancelamento,
    pagamento e NF-e (seção 20, segunda parte).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import {
+    STATUS_BANCO,
+    TRANSICOES_STATUS,
+    aplicarStatusPedido,
+    atualizarStatusPedido,
+    elementos,
+    escaparHTML,
+    estado,
+    formatarData,
+    formatarMoeda,
+    parceiroDoPedido,
+    souCompradorDoPedido,
+    souFornecedorDoPedido
+} from "./estado.js";
+import { atualizarDashboard, marcarMensagensComoLidas } from "./dashboard.js";
+import {
+    INTERVALO_SINCRONIZACAO_CHAT,
+    adicionarMensagens,
+    assinarChatTempoReal,
+    buscarMensagensPedido,
+    chat,
+    enviarMensagemPedido,
+    sincronizarMensagensChat
+} from "./chat.js";
 
 
 // Preenche o resumo do pedido no topo do modal.
-function renderizarResumoPedido(pedido) {
+export function renderizarResumoPedido(pedido) {
 
     const parceiro = parceiroDoPedido(pedido);
     const papel = estado.modo === "comprar" ? "Fornecedor" : "Comprador";
@@ -48,7 +71,7 @@ function renderizarResumoPedido(pedido) {
 
 // Mostra o seletor de status apenas ao fornecedor do produto,
 // com os próximos status permitidos a partir do atual.
-function renderizarGestaoStatus(pedido) {
+export function renderizarGestaoStatus(pedido) {
 
     // Toda mudança no pedido passa por aqui: atualiza também o cancelamento.
     renderizarCancelamento(pedido);
@@ -247,7 +270,7 @@ async function carregarNota(pedido) {
     renderizarGestaoStatus(pedido);
 }
 
-function renderizarNota(pedido) {
+export function renderizarNota(pedido) {
     if (!window.SERFNotas || pedido.nota === undefined) return;
 
     window.SERFNotas.renderizar(elementos.pedidoNota, {
@@ -298,7 +321,7 @@ async function carregarPagamento(pedido) {
     renderizarNota(pedido);
 }
 
-function renderizarPagamento(pedido) {
+export function renderizarPagamento(pedido) {
     if (!window.SERFPagamentos || pedido.pagamento === undefined) return;
 
     window.SERFPagamentos.renderizar(elementos.pedidoPagamento, {
@@ -385,7 +408,7 @@ async function enviarAtualizacaoStatus(evento) {
     }
 }
 
-async function abrirDetalhesPedido(pedido) {
+export async function abrirDetalhesPedido(pedido) {
 
     // Encerra o canal de um pedido aberto anteriormente.
     fecharCanalChat();
@@ -467,7 +490,7 @@ function fecharDetalhesPedido() {
     elementos.modalPedido.style.display = "none";
 }
 
-function configurarChat() {
+export function configurarChat() {
 
     elementos.btnFecharModalPedido.addEventListener("click", fecharDetalhesPedido);
     elementos.formStatusPedido.addEventListener("submit", enviarAtualizacaoStatus);

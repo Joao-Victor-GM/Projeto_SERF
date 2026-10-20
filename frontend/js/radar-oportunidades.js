@@ -13,7 +13,7 @@
    automática fora da tela / aba oculta / mouse sobre os cartões, e
    prefers-reduced-motion começa parado.
 
-   Depende de: utils.js; na Home, usa abrirPedidoPorId() (js/home/) e
+   Depende de: utils.js; na Home, usa SERFHome.abrirPedidoPorId() (js/home/) e
    CatalogoModule.abrirModalNegociacao() (catalogo.js) quando disponíveis.
    ========================================================================= */
 
@@ -516,8 +516,8 @@
 
     async function agir(o) {
         if (o.tipo === "NOVA_DEMANDA") {
-            if (typeof abrirPedidoPorId === "function") {
-                await abrirPedidoPorId(o.id_pedido);
+            if (window.SERFHome) {
+                await window.SERFHome.abrirPedidoPorId(o.id_pedido);
             } else {
                 window.location.href = `home.html?pedido=${encodeURIComponent(o.id_pedido)}`;
             }

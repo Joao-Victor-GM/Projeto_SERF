@@ -486,7 +486,16 @@ Perfil carregam também `pedidos.js` logo após `utils.js`.
 
 ### Home (`js/home/`)
 
-Scripts clássicos que compartilham o escopo global, nesta ordem:
+**Módulos ES nativos, sem build.** A `home.html` carrega um único
+`<script type="module" src="../../js/home/inicializacao.js">`; cada arquivo
+importa o que usa dos outros (`import { … } from "./estado.js"`) e exporta o
+que oferece. Nada mais vaza para o escopo global: o que os scripts clássicos
+da página usam (radar, ações pendentes, catálogo) é a API
+`window.SERFHome = { abrirPedidoPorId, alterarModo, adicionarMensagens }`
+(`tests/e2e/modulos.spec.mjs` garante isso).
+
+Módulos não carregam de `file://`: abra pelo servidor (`npm run servidor` ou
+Live Server); aberta do disco, a Home mostra um aviso em vez de quebrar.
 
 | Arquivo | Conteúdo |
 |---|---|
@@ -498,8 +507,13 @@ Scripts clássicos que compartilham o escopo global, nesta ordem:
 | `tempo-real.js` | Assinaturas Realtime de pedidos, pagamentos e notas |
 | `inicializacao.js` | Cabeçalho, modos disponíveis, `?pedido=ID` e `iniciarHome()` |
 
-Só `inicializacao.js` executa código ao carregar. Funções novas podem ficar em
-qualquer arquivo; código que **roda no carregamento** só no último.
+Só `inicializacao.js` executa código ao carregar. Função nova usada por outro
+arquivo: `export` onde ela mora e `import` onde é usada. Um módulo não pode
+**reatribuir** variável de outro (import é só leitura): mude o objeto (ex.:
+`conversasCache.clear()`) ou exporte uma função que faça a troca.
+
+Próximo passo gradual: `// @ts-check` nesses módulos (hoje ~200 avisos, quase
+todos "elemento do DOM pode ser nulo"), arquivo por arquivo.
 
 **Recorte de dados da Home:** o servidor devolve os pedidos movimentados nos
 últimos 90 dias (maior opção do filtro de período) **mais** todos os pedidos em

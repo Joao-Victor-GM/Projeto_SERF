@@ -2,14 +2,18 @@
    S.E.R.F. — HOME / TEMPO-REAL.JS
    Assinaturas Realtime do painel: pedidos, pagamentos e NF-e.
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import { aplicarStatusPedido, obterPedido } from "./estado.js";
+import { atualizarDashboard } from "./dashboard.js";
+import { chat } from "./chat.js";
+import { renderizarGestaoStatus, renderizarNota, renderizarPagamento, renderizarResumoPedido } from "./pedido-modal.js";
+import { recarregarPedidos } from "./inicializacao.js";
 
 
 // Pedidos em tempo real (tabela pedidos na publicação supabase_realtime).
@@ -21,7 +25,7 @@ let recargaPedidosAgendada = null;
 // (e o comprador vê a aprovação do prazo). RLS: só os pedidos da empresa.
 let canalPagamentos = null;
 
-function assinarPagamentosTempoReal() {
+export function assinarPagamentosTempoReal() {
 
     if (canalPagamentos || !window.SERFPagamentos) return;
 
@@ -48,7 +52,7 @@ function assinarPagamentosTempoReal() {
 // NF-e em tempo real: o comprador vê a nota assim que é emitida.
 let canalNotas = null;
 
-function assinarNotasTempoReal() {
+export function assinarNotasTempoReal() {
 
     if (canalNotas || !window.SERFNotas) return;
 
@@ -74,7 +78,7 @@ function assinarNotasTempoReal() {
     );
 }
 
-function assinarPedidosTempoReal() {
+export function assinarPedidosTempoReal() {
 
     if (canalPedidos) return;
 

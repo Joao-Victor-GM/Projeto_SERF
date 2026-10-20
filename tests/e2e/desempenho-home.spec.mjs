@@ -110,7 +110,7 @@ test("chat: mensagens novas são anexadas; fora de ordem, a conversa é reordena
     // Marca o 1º balão: anexar não pode recriá-lo
     await page.evaluate(() => { document.querySelector("#chatMensagens .chat-balao").dataset.marca = "1"; });
 
-    await page.evaluate(() => adicionarMensagens([
+    await page.evaluate(() => window.SERFHome.adicionarMensagens([
         { id: "n1", id_pedido: 101, id_remetente: "x", texto: "Nova A", lida: false, data_envio: new Date(Date.now() + 1000).toISOString() },
         { id: "n2", id_pedido: 101, id_remetente: "x", texto: "Nova B", lida: false, data_envio: new Date(Date.now() + 2000).toISOString() }
     ]));
@@ -119,11 +119,11 @@ test("chat: mensagens novas são anexadas; fora de ordem, a conversa é reordena
     await expect(page.locator('#chatMensagens .chat-balao[data-marca="1"]')).toHaveCount(1);
 
     // Repetida: ignorada
-    await page.evaluate(() => adicionarMensagens([{ id: "n1", id_pedido: 101, id_remetente: "x", texto: "Nova A", lida: false, data_envio: new Date().toISOString() }]));
+    await page.evaluate(() => window.SERFHome.adicionarMensagens([{ id: "n1", id_pedido: 101, id_remetente: "x", texto: "Nova A", lida: false, data_envio: new Date().toISOString() }]));
     await expect(baloes).toHaveCount(4);
 
     // Atrasada (mais antiga que a última): entra na posição certa
-    await page.evaluate(() => adicionarMensagens([
+    await page.evaluate(() => window.SERFHome.adicionarMensagens([
         { id: "velha", id_pedido: 101, id_remetente: "x", texto: "Atrasada", lida: false, data_envio: new Date(Date.now() - 30 * 86400000).toISOString() }
     ]));
     await expect(baloes.first()).toHaveText("Atrasada");

@@ -3,14 +3,28 @@
    Modo Comprar/Vender, filtros, tabela, KPIs, gráfico, radar e
    conversas recentes (seções 07–15).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import {
+    conversasCache,
+    elementos,
+    empresaLogada,
+    escaparHTML,
+    estado,
+    formatarData,
+    obterPedido,
+    parceiroDoPedido,
+    pedidosCache,
+    pedidosPorId,
+    tempoRelativo
+} from "./estado.js";
+import { chat } from "./chat.js";
+import { abrirDetalhesPedido } from "./pedido-modal.js";
 
 
 /* ==========================================================
@@ -18,7 +32,7 @@
    Atualiza o contexto visual conforme o perfil.
    ========================================================== */
 
-function alterarModo(novoModo) {
+export function alterarModo(novoModo) {
 
     // Impede a seleção de modos desconhecidos.
     if (!["comprar", "vender"].includes(novoModo)) {
@@ -195,7 +209,7 @@ function renderizarPedidos(pedidos) {
     atualizarBotaoMaisPedidos(pedidos.length, visiveis.length);
 }
 
-function mostrarMaisPedidos() {
+export function mostrarMaisPedidos() {
     estado.limiteTabela += LIMITE_LINHAS_TABELA;
     renderizarPedidos(obterPedidosFiltrados());
 }
@@ -207,7 +221,7 @@ function mostrarMaisPedidos() {
    ========================================================== */
 
 // pedidosBase: quem já calculou a base passa adiante (evita refiltrar).
-function atualizarIndicadores(pedidosBase = obterPedidosBase()) {
+export function atualizarIndicadores(pedidosBase = obterPedidosBase()) {
 
     // Mantém período, empresa e busca nos indicadores.
     // O filtro de status é aplicado apenas à tabela.
@@ -233,7 +247,7 @@ function atualizarIndicadores(pedidosBase = obterPedidosBase()) {
    Lista as empresas parceiras presentes nos pedidos do modo.
    ========================================================== */
 
-function preencherFiltroEmpresas() {
+export function preencherFiltroEmpresas() {
 
     const empresas = SERFPainel.parceiros(obterPedidosDoModo(), estado.modo);
 
@@ -414,9 +428,9 @@ function renderizarRadar() {
 const LIMITE_CONVERSAS = 6;
 
 // Busca as mensagens dos pedidos carregados e agrupa por pedido.
-async function buscarConversasSupabase() {
+export async function buscarConversasSupabase() {
 
-    conversasCache = new Map();
+    conversasCache.clear();
 
     if (pedidosCache.length === 0) return;
 
@@ -428,7 +442,7 @@ async function buscarConversasSupabase() {
 }
 
 // Atualiza o resumo da conversa de um pedido com uma mensagem.
-function registrarMensagemNaConversa(mensagem) {
+export function registrarMensagemNaConversa(mensagem) {
 
     const minha = mensagem.id_remetente === empresaLogada.authUserId;
     const atual = conversasCache.get(mensagem.id_pedido) || {
@@ -450,7 +464,7 @@ function registrarMensagemNaConversa(mensagem) {
 }
 
 // Conversas cujo pedido pertence ao modo, da mais recente à mais antiga.
-function obterConversasDoModo(modo = estado.modo) {
+export function obterConversasDoModo(modo = estado.modo) {
     return SERFPainel.conversasDoModo(conversasCache, pedidosPorId, modo);
 }
 
@@ -483,7 +497,7 @@ function atualizarBadgesModo() {
     });
 }
 
-function renderizarConversas() {
+export function renderizarConversas() {
 
     if (estado.carregamento === "carregando") {
         elementos.conversasRecentes.innerHTML = `
@@ -551,7 +565,7 @@ function renderizarConversas() {
 }
 
 // Abre o modal/chat do pedido a partir de uma conversa.
-function abrirConversa(idPedido) {
+export function abrirConversa(idPedido) {
     const pedido = obterPedido(idPedido);
 
     if (pedido) {
@@ -560,7 +574,7 @@ function abrirConversa(idPedido) {
 }
 
 // Marca como lidas as mensagens RECEBIDAS do pedido (UPDATE só em "lida").
-async function marcarMensagensComoLidas(idPedido) {
+export async function marcarMensagensComoLidas(idPedido) {
 
     const conversa = conversasCache.get(idPedido);
 
@@ -584,7 +598,7 @@ async function marcarMensagensComoLidas(idPedido) {
 // O RLS garante que só chegam mensagens dos pedidos da empresa.
 let canalMensagens = null;
 
-function assinarMensagensTempoReal() {
+export function assinarMensagensTempoReal() {
 
     if (canalMensagens) return;
 
@@ -613,7 +627,7 @@ function assinarMensagensTempoReal() {
    - atualizarDashboard(): tudo (dados, modo, período).
    ========================================================== */
 
-function atualizarListagem({ manterPaginacao = false } = {}) {
+export function atualizarListagem({ manterPaginacao = false } = {}) {
 
     if (!manterPaginacao) estado.limiteTabela = LIMITE_LINHAS_TABELA;
 
@@ -623,7 +637,7 @@ function atualizarListagem({ manterPaginacao = false } = {}) {
     atualizarIndicadores(base);
 }
 
-function atualizarDashboard() {
+export function atualizarDashboard() {
 
     atualizarListagem();
     renderizarGrafico();

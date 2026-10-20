@@ -3,14 +3,20 @@
    Chat B2B do pedido: histórico, envio, Realtime e plano B
    (seção 20, primeira parte).
 
-   A Home é dividida em scripts clássicos que compartilham o escopo
-   global, carregados nesta ordem (todos com defer):
-     estado.js → dashboard.js → eventos.js → chat.js →
-     pedido-modal.js → tempo-real.js → inicializacao.js
-   Só inicializacao.js executa algo ao carregar (iniciarHome()).
+   A Home é um conjunto de MÓDULOS ES (sem build): cada arquivo importa
+   o que usa dos outros e exporta o que oferece. A entrada é
+   inicializacao.js (<script type="module"> na home.html), a única que
+   executa algo ao carregar (iniciarHome()). O que outros scripts da
+   página usam fica em window.SERFHome.
    ========================================================== */
 
-"use strict";
+import { elementos, empresaLogada, escaparHTML, parceiroDoPedido } from "./estado.js";
+import {
+    atualizarIndicadores,
+    marcarMensagensComoLidas,
+    registrarMensagemNaConversa,
+    renderizarConversas
+} from "./dashboard.js";
 
 
 /* ==========================================================
@@ -20,7 +26,7 @@
    Só fica ativo enquanto o modal do pedido está aberto.
    ========================================================== */
 
-const chat = {
+export const chat = {
     pedido: null,           // Pedido com o modal aberto
     canal: null,            // Canal Realtime do pedido
     sincronizacao: null,    // Intervalo de conferência (plano B do Realtime)
@@ -31,7 +37,7 @@ const chat = {
 
 // Com o chat aberto, confere mensagens novas periodicamente. Garante a
 // entrega mesmo se o Realtime cair ou for bloqueado (rede, RLS, token).
-const INTERVALO_SINCRONIZACAO_CHAT = 4000;
+export const INTERVALO_SINCRONIZACAO_CHAT = 4000;
 
 // Com o Realtime ativo, o plano B só confere a cada N ciclos (4 s × 5 = 20 s).
 const CICLOS_SINCRONIZACAO_COM_REALTIME = 5;
@@ -48,7 +54,7 @@ function ultimaDataDoChat() {
     return ultima ? ultima.toISOString() : null;
 }
 
-async function sincronizarMensagensChat(idPedido) {
+export async function sincronizarMensagensChat(idPedido) {
 
     if (chat.pedido?.id !== idPedido || document.hidden) return;
 
@@ -83,12 +89,12 @@ async function sincronizarMensagensChat(idPedido) {
 
 // 1) Histórico de mensagens do pedido
 // desde: só mensagens a partir dessa data (inclusive; o Map descarta repetidas).
-function buscarMensagensPedido(idPedido, desde = null) {
+export function buscarMensagensPedido(idPedido, desde = null) {
     return SERFDados.mensagens.listarDoPedido(idPedido, desde);
 }
 
 // 2) Envio de uma nova mensagem
-async function enviarMensagemPedido(idPedido, texto) {
+export async function enviarMensagemPedido(idPedido, texto) {
 
     if (!empresaLogada.authUserId) {
         throw new Error("Faça login para enviar mensagens.");
@@ -98,7 +104,7 @@ async function enviarMensagemPedido(idPedido, texto) {
 }
 
 // 3) Tempo real: novas mensagens do pedido aparecem sem recarregar
-function assinarChatTempoReal(idPedido) {
+export function assinarChatTempoReal(idPedido) {
 
     atualizarStatusChat("Conectando...", "");
 
@@ -167,7 +173,7 @@ function htmlDaMensagem(mensagem, nomeParceiro) {
 // Caso comum (mensagem nova chegando no fim): só ANEXA os balões novos.
 // Antes, cada mensagem reordenava e redesenhava o histórico inteiro
 // (custo quadrático: 300 mensagens levavam segundos).
-function adicionarMensagens(lista) {
+export function adicionarMensagens(lista) {
 
     const novas = lista.filter(mensagem => !chat.mensagens.has(mensagem.id));
     lista.forEach(mensagem => chat.mensagens.set(mensagem.id, mensagem));

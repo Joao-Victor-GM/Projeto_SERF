@@ -941,7 +941,7 @@
     // Na catalogo.html (sem os scripts da Home), a chave Comprar/Vender só aparece para
     // empresas com perfil "Ambos". Na Home, js/home/ faz esse controle.
     async function ajustarModosCatalogo() {
-        if (typeof window.alterarModo === 'function') return;
+        if (window.SERFHome) return;
 
         const modoSwitch = document.getElementById('modoSwitch');
         if (!modoSwitch) return;
