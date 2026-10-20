@@ -163,6 +163,29 @@ propostas). Tabelas só de leitura para o navegador; escrita pelas RPCs.
 `pedidos_validar` também congela, depois de criado, comprador, produto,
 quantidade, preço e proposta do pedido (segunda camada além do GRANT da 003).
 
+## LGPD: exportar dados e excluir a conta (migration 025)
+
+Perfil → **Privacidade e dados**.
+
+- **Baixar meus dados** (art. 18, II/V): RPC `exportar_meus_dados()` devolve
+  em JSON a conta, as empresas, produtos, compras, vendas, mensagens enviadas,
+  pagamentos, NF-e, cotações, propostas, segmentos, favoritos, preferências e
+  notificações. A tela baixa como `serf-meus-dados-AAAA-MM-DD.json`.
+- **Excluir conta** (art. 18, VI): Edge Function `excluir-conta` (JWT do
+  próprio usuário + "EXCLUIR" digitado) → `anonimizar_conta(uid)` → apaga o
+  login. Bloqueado enquanto houver pedido em andamento
+  (`meus_pedidos_em_andamento()`, mostrado antes de pedir confirmação).
+  - Apagado: login, e-mail, telefone, nome do responsável, preferências,
+    segmentos, favoritos, notificações; produtos saem do ar; cotações e
+    propostas abertas são encerradas.
+  - Mantido sem vínculo com a pessoa: pedidos, mensagens, pagamentos e NF-e,
+    que são também histórico da outra empresa e documentos fiscais com guarda
+    obrigatória (art. 16, I). Nome empresarial e CNPJ (pessoa jurídica) ficam
+    nesse histórico; por isso o mesmo CNPJ não se cadastra de novo sem suporte.
+  - A 025 trocou `mensagens_pedidos.id_remetente` para `ON DELETE SET NULL`:
+    antes, apagar um login apagava as mensagens dele da conversa da outra
+    empresa.
+
 ## Central de notificações (migration 023)
 
 Sino no topo das páginas internas (`js/notificacoes.js`, regras de texto em
@@ -216,6 +239,7 @@ Ativar em produção (uma vez):
 supabase functions deploy homologar-fornecedor
 supabase functions deploy enviar-emails --no-verify-jwt
 supabase functions deploy descadastrar --no-verify-jwt
+supabase functions deploy excluir-conta
 supabase secrets set CRON_SECRET=<segredo-forte> RESEND_API_KEY=<chave> \
   EMAIL_REMETENTE="S.E.R.F. <avisos@seudominio.com.br>" APP_URL=<url-publica-do-front> \
   DESCADASTRO_SECRET=<outro-segredo-forte>
@@ -437,10 +461,10 @@ depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
 (segmentos do radar), 022 (categorias oficiais; converte categorias antigas
 fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
-024 (cotações). Sem 018–024
+024 (cotações) e 025 (LGPD). Sem 018–025
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
-indisponíveis; a página de cotações mostra o erro. Publicar as páginas antes delas
+indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas
 quebra Home, Relatórios, Perfil e Empresas; sem a 015, a página de alertas
 mostra erro e o contador do menu fica oculto; sem a 016, o radar mostra
 "Radar indisponível" (o resto funciona).

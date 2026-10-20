@@ -784,12 +784,98 @@
         });
     }
 
+    /* LGPD (migration 025): baixar os dados e excluir a conta */
+    function baixarArquivo(nome, conteudo) {
+        const url = URL.createObjectURL(new Blob([conteudo], { type: "application/json" }));
+        const link = Object.assign(document.createElement("a"), { href: url, download: nome });
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function exportarDados(botao) {
+        botao.disabled = true;
+        try {
+            const dados = await window.SERFDados.empresa.exportarDados();
+            const hoje = window.SERFUtils.dataLocalISO(Date.now());
+            baixarArquivo(`serf-meus-dados-${hoje}.json`, JSON.stringify(dados, null, 2));
+            window.SERFAvisos.sucesso("Arquivo gerado", "Seus dados foram baixados em JSON.");
+        } catch (erro) {
+            await window.SERFAvisos.erro("Não foi possível exportar os dados", erro);
+        } finally {
+            botao.disabled = false;
+        }
+    }
+
+    const TEXTO_EXCLUSAO = "Serão apagados: login, e-mail, telefone, nome do responsável, preferências, " +
+        "segmentos, favoritos e notificações. Seus produtos saem do ar e cotações/propostas abertas são encerradas. " +
+        "Pedidos, conversas e notas fiscais já concluídos continuam no histórico da outra empresa (obrigação legal), " +
+        "sem ligação com você. Não dá para desfazer.";
+
+    // Pede para digitar EXCLUIR; true = confirmado
+    async function confirmarExclusao() {
+        if (typeof Swal === "undefined") {
+            return (window.prompt(`${TEXTO_EXCLUSAO}
+
+Digite EXCLUIR para confirmar:`) || "").trim().toUpperCase() === "EXCLUIR";
+        }
+
+        const resultado = await Swal.fire({
+            ...(window.SERFUtils.swalConfig || {}),
+            title: "Excluir a conta?",
+            text: TEXTO_EXCLUSAO,
+            icon: "warning",
+            input: "text",
+            inputLabel: "Digite EXCLUIR para confirmar",
+            inputAttributes: { autocapitalize: "characters", autocomplete: "off", "aria-label": "Digite EXCLUIR para confirmar" },
+            showCancelButton: true,
+            confirmButtonText: "Excluir minha conta",
+            cancelButtonText: "Voltar",
+            confirmButtonColor: "#DC2626",
+            focusCancel: true,
+            inputValidator: valor => (valor.trim().toUpperCase() === "EXCLUIR" ? null : "Digite EXCLUIR para confirmar.")
+        });
+        return resultado.isConfirmed;
+    }
+
+    async function excluirConta(botao) {
+        botao.disabled = true;
+        try {
+            const pendentes = await window.SERFDados.empresa.pedidosEmAndamento();
+            if (pendentes.length) {
+                const lista = pendentes.map(p => `#${p.id_pedido}`).join(", ");
+                await window.SERFAvisos.info("Ainda não dá para excluir a conta",
+                    `Conclua ou cancele os pedidos em andamento (${lista}). Assim a outra empresa não fica sem resposta.`);
+                return;
+            }
+
+            if (!(await confirmarExclusao())) return;
+
+            await window.SERFDados.empresa.excluirConta("EXCLUIR");
+            try { await obterSupabase()?.auth.signOut(); } catch { /* o login já não existe */ }
+            window.location.replace("../public/index.html");
+        } catch (erro) {
+            await window.SERFAvisos.erro("Não foi possível excluir a conta", erro);
+        } finally {
+            botao.disabled = false;
+        }
+    }
+
+    function configurarPrivacidade() {
+        const exportar = document.getElementById("btnExportarDados");
+        const excluir = document.getElementById("btnExcluirConta");
+        exportar?.addEventListener("click", () => exportarDados(exportar));
+        excluir?.addEventListener("click", () => excluirConta(excluir));
+    }
+
     async function iniciarPerfil() {
         configurarAbas();
         configurarFiltros();
         configurarAcoesHistorico();
         configurarFormularioCadastro();
         configurarSeguranca();
+        configurarPrivacidade();
 
         const client = obterSupabase();
         if (!client) return;

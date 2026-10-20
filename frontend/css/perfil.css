@@ -867,3 +867,55 @@
     margin-top: 1px;
     accent-color: var(--serf-laranja);
 }
+
+/* ---------------- PRIVACIDADE E DADOS (LGPD, migration 025) ---------------- */
+
+.privacidade p {
+    margin: 0 0 12px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.privacidade-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.privacidade-acoes button {
+    cursor: pointer;
+}
+
+.privacidade-acoes button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.btn-perigo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 15px;
+    border: 1px solid #DC2626;
+    border-radius: 5px;
+    background: transparent;
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.btn-perigo:hover {
+    background: var(--serf-tint-vermelho);
+}
+
+:root[data-theme="dark"] .btn-perigo {
+    border-color: #F87171;
+    color: #F87171;
+}
+
+.privacidade-acoes button:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
