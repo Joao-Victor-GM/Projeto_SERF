@@ -14,7 +14,7 @@ export default defineConfig({
     projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
     webServer: {
         command: "node tests/e2e/servidor.mjs",
-        url: "http://localhost:4173/pages/public/landing.html",
+        url: "http://localhost:4173/pages/public/",
         reuseExistingServer: !process.env.CI
     }
 });

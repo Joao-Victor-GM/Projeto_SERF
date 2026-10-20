@@ -740,9 +740,41 @@ function animarRedeBrasil() {
     }
 
 
-    requestAnimationFrame(
-        animarRedeBrasil
-    );
+    agendarRedeBrasil();
+}
+
+
+// =========================================================
+// QUANDO ANIMAR
+// Só com o mapa na tela e sem "reduzir movimento": a página é
+// longa e o mapa fica a maior parte do tempo fora de vista.
+// =========================================================
+
+const movimentoReduzidoBrasil =
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let mapaVisivelBrasil = true;
+let quadroAgendadoBrasil = false;
+
+function agendarRedeBrasil() {
+
+    if (movimentoReduzidoBrasil || !mapaVisivelBrasil || quadroAgendadoBrasil) {
+        return;
+    }
+
+    quadroAgendadoBrasil = true;
+
+    requestAnimationFrame(() => {
+        quadroAgendadoBrasil = false;
+        animarRedeBrasil();
+    });
+}
+
+if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([entrada]) => {
+        mapaVisivelBrasil = entrada.isIntersecting;
+        agendarRedeBrasil();   // retoma ao voltar para a tela
+    }).observe(canvasBrasil);
 }
 
 

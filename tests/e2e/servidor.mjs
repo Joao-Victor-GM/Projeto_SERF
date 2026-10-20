@@ -1,5 +1,5 @@
 // Servidor estático do front-end para os testes (e para abrir localmente):
-//   npm run servidor  →  http://localhost:4173/pages/public/landing.html
+//   npm run servidor  →  http://localhost:4173/pages/public/
 
 import http from "node:http";
 import fs from "node:fs";
@@ -21,7 +21,12 @@ const TIPOS = {
 
 http.createServer((req, res) => {
     const caminho = decodeURIComponent(new URL(req.url, "http://x").pathname);
-    const arquivo = path.normalize(path.join(RAIZ, caminho));
+    let arquivo = path.normalize(path.join(RAIZ, caminho));
+
+    // Pasta → index.html, como qualquer hospedagem estática
+    if (arquivo.startsWith(RAIZ) && fs.existsSync(arquivo) && fs.statSync(arquivo).isDirectory()) {
+        arquivo = path.join(arquivo, "index.html");
+    }
 
     if (!arquivo.startsWith(RAIZ) || !fs.existsSync(arquivo) || fs.statSync(arquivo).isDirectory()) {
         res.writeHead(404).end("Não encontrado");
@@ -30,4 +35,4 @@ http.createServer((req, res) => {
 
     res.writeHead(200, { "Content-Type": TIPOS[path.extname(arquivo)] || "application/octet-stream" });
     fs.createReadStream(arquivo).pipe(res);
-}).listen(PORTA, () => console.log(`S.E.R.F. em http://localhost:${PORTA}/pages/public/landing.html`));
+}).listen(PORTA, () => console.log(`S.E.R.F. em http://localhost:${PORTA}/pages/public/`));

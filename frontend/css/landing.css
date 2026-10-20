@@ -1,1282 +1,707 @@
-/* =========================================================
-   SERF - LANDING PAGE
-   Versão visual amadurecida.
+/* ==========================================================
+   SERF - LANDING.CSS
+   Página pública (pages/public/index.html). Tema escuro fixo,
+   com a identidade do S.E.R.F.: marinho, laranja e azul.
+   ========================================================== */
 
-   PRINCÍPIOS DE DESIGN
-   - Azul-marinho como base institucional.
-   - Laranja reservado para ação e oportunidade.
-   - Azul de interação usado como apoio visual.
-   - Painéis translúcidos integrados ao fundo.
-   - Movimento discreto, sem excesso de efeitos.
-========================================================= */
+.lp {
+    --lp-fundo: #061E36;
+    --lp-fundo-2: #0A2A4D;
+    --lp-cartao: rgba(14, 44, 78, 0.72);
+    --lp-cartao-solido: #0E2C4E;
+    --lp-borda: rgba(148, 184, 222, 0.16);
+    --lp-borda-forte: rgba(148, 184, 222, 0.32);
+    --lp-texto: #E8EFF7;
+    --lp-texto-2: #A9BCD0;
+    --lp-texto-3: #7E95AD;
+    --lp-laranja: #F47A20;
+    --lp-laranja-claro: #FF9A4D;
+    --lp-azul: #5AA6F0;
+    --lp-verde: #34D399;
+    --lp-raio: 14px;
+    --lp-largura: 1160px;
 
-html,
-body {
     margin: 0;
-    background: #082B4C;
-    color: #FFFFFF;
-    overflow-x: hidden;
+    overflow-x: clip;
+    background: linear-gradient(180deg, var(--lp-fundo) 0%, var(--lp-fundo-2) 100%);
+    color: var(--lp-texto);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
 }
 
-body {
-    position: relative;
+/* O <html> também precisa da cor: sem ela, ao rolar além do conteúdo (ou em
+   capturas da página inteira) aparece o fundo claro padrão. A fonte vem do
+   global.css (body), não é redefinida aqui. */
+html:has(body.lp) {
+    background: #061E36;
 }
 
+.lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
+
+.lp a { color: inherit; }
+
+.lp :focus-visible {
+    outline: 2px solid var(--lp-laranja-claro);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+/* Rede animada de fundo (landing_background.js) */
 #landing-background {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
     z-index: 0;
-    pointer-events: none;
-}
-
-.hero,
-.rede-brasil,
-.comprar-vender,
-.contato-final {
-    position: relative;
-    z-index: 2;
-}
-
-
-/* =========================================================
-   1. NAVBAR
-========================================================= */
-
-.navbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 20;
-    width: 100%;
-    height: 70px;
-    box-sizing: border-box;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 5%;
-    background: transparent;
-}
-
-.navbar-logo a {
-    color: #FFFFFF;
-    font-size: 24px;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.navbar-menu {
-    display: flex;
-    align-items: center;
-    gap: 34px;
-}
-
-.navbar-menu a {
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 15px;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.navbar-menu a:hover {
-    color: #FFFFFF;
-}
-
-.navbar-acoes {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.btn-entrar {
-    padding: 10px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    border-radius: 8px;
-    color: #FFFFFF;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.btn-entrar:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #FFFFFF;
-}
-
-.btn-criar-conta {
-    padding: 11px 18px;
-    border-radius: 8px;
-    background: #F47A20;
-    color: #FFFFFF;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-criar-conta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(244, 122, 32, 0.22);
-}
-
-
-/* =========================================================
-   2. HERO
-========================================================= */
-
-.hero {
-    min-height: 100vh;
-    box-sizing: border-box;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 60px;
-
-    padding: 90px 5% 45px;
-    overflow: hidden;
-    background: transparent;
-}
-
-#hero-particles {
-    position: absolute;
-    inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
     pointer-events: none;
+    opacity: 0.55;
 }
 
-.hero-conteudo,
-.hero-radar {
-    position: relative;
-    z-index: 1;
+.lp main, .lp-rodape { position: relative; z-index: 1; }
+
+.lp-container {
+    width: min(var(--lp-largura), 100% - 40px);
+    margin-inline: auto;
 }
 
-.hero-conteudo {
-    width: 50%;
-    max-width: 620px;
-}
+.lp-container-estreito { width: min(780px, 100% - 40px); }
 
-.hero-etiqueta {
-    color: #F47A20;
-    font-size: 13px;
+.lp-pular {
+    position: absolute;
+    top: -60px;
+    left: 16px;
+    z-index: 100;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--lp-laranja);
+    color: #FFFFFF;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    text-decoration: none;
 }
 
-.hero h1 {
-    max-width: 620px;
-    margin: 14px 0 18px;
-    font-size: clamp(2.7rem, 4vw, 3.45rem);
-    line-height: 1.04;
-    letter-spacing: -0.03em;
-    font-weight: 700;
-}
+.lp-pular:focus { top: 12px; }
 
-.hero h1 span {
-    display: block;
-    color: #F47A20;
-}
 
-.hero p {
-    max-width: 540px;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.80);
-    font-size: 18px;
-    line-height: 1.6;
-}
+/* ---------------- BOTÕES ---------------- */
 
-.hero-acoes {
-    display: flex;
-    gap: 14px;
-    margin-top: 26px;
-}
-
-.btn-comprador,
-.btn-fornecedor {
+.lp-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
-    padding: 0 22px;
-    border-radius: 8px;
-    color: #FFFFFF;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 700;
     text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.btn-comprador {
-    background: #F47A20;
+.lp-btn-grande { min-height: 50px; padding: 0 24px; font-size: 15px; }
+
+.lp-btn-primario { background: var(--lp-laranja); color: #FFFFFF; box-shadow: 0 10px 24px rgba(244, 122, 32, 0.28); }
+.lp-btn-primario:hover { background: var(--lp-laranja-claro); transform: translateY(-1px); }
+
+.lp-btn-secundario { background: #1268B3; color: #FFFFFF; }
+.lp-btn-secundario:hover { background: #1A7BD0; transform: translateY(-1px); }
+
+.lp-btn-contorno { border-color: var(--lp-borda-forte); color: var(--lp-texto); }
+.lp-btn-contorno:hover { border-color: var(--lp-texto-2); background: rgba(255, 255, 255, 0.05); }
+
+.lp-btn-fantasma { border-color: var(--lp-borda); background: rgba(255, 255, 255, 0.04); color: var(--lp-texto); }
+.lp-btn-fantasma:hover { background: rgba(255, 255, 255, 0.09); }
+
+
+/* ---------------- CABEÇALHO ---------------- */
+
+.lp-topo {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
-.btn-fornecedor {
-    border: 1px solid rgba(55, 159, 231, 0.75);
-    background: rgba(18, 104, 179, 0.30);
+.lp-topo.rolado {
+    border-bottom-color: var(--lp-borda);
+    background: rgba(6, 30, 54, 0.88);
+    backdrop-filter: blur(10px);
 }
 
-.btn-comprador:hover,
-.btn-fornecedor:hover {
-    transform: translateY(-2px);
-}
-
-.btn-comprador:hover {
-    box-shadow: 0 12px 28px rgba(244, 122, 32, 0.20);
-}
-
-.btn-fornecedor:hover {
-    background: rgba(18, 104, 179, 0.48);
-}
-
-
-/* =========================================================
-   3. RADAR DE OPORTUNIDADES
-   Painel escuro translúcido integrado ao fundo.
-========================================================= */
-
-.hero-radar {
-    width: 50%;
-    max-width: 520px;
-    padding: 24px;
-
-    border: 1px solid rgba(68, 175, 255, 0.42);
-    border-radius: 14px;
-
-    background: rgba(5, 39, 68, 0.72);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    color: #FFFFFF;
-}
-
-.radar-cabecalho {
+.lp-topo-linha {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 18px;
-    font-size: 18px;
-    font-weight: 700;
+    gap: 24px;
+    min-height: 72px;
 }
 
-.radar-status {
+.lp-marca {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    color: rgba(255, 255, 255, 0.70);
-    font-size: 11px;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.lp-marca img { border-radius: 8px; }
+
+.lp-menu {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.lp-nav {
+    display: flex;
+    gap: 28px;
+    margin-inline: auto;
+}
+
+.lp-nav a {
+    color: var(--lp-texto-2);
+    font-size: 14px;
     font-weight: 600;
+    text-decoration: none;
 }
 
-.radar-status-ponto {
-    width: 7px;
-    height: 7px;
+.lp-nav a:hover { color: var(--lp-texto); }
+
+.lp-acoes-topo { display: flex; gap: 10px; }
+
+.lp-menu-botao {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0 11px;
+    border: 1px solid var(--lp-borda-forte);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.lp-menu-botao span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--lp-texto);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.lp-menu-botao[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.lp-menu-botao[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.lp-menu-botao[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+
+/* ---------------- TÍTULOS E SEÇÕES ---------------- */
+
+.lp-etiqueta {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--lp-laranja);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.lp h1, .lp h2, .lp h3 { margin: 0; color: #FFFFFF; line-height: 1.15; }
+
+.lp h1 span, .lp h2 span { color: var(--lp-laranja); }
+
+.lp-secao { padding: 96px 0; }
+
+.lp-cabecalho-secao { max-width: 720px; margin-bottom: 44px; }
+
+.lp-cabecalho-secao h2 { font-size: clamp(28px, 3.6vw, 40px); }
+
+
+/* ---------------- HERO ---------------- */
+
+.lp-hero { padding: 72px 0 96px; }
+
+.lp-hero-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 56px;
+    align-items: center;
+}
+
+.lp-hero h1 { font-size: clamp(38px, 5.4vw, 64px); letter-spacing: -0.02em; }
+.lp-hero h1 span { display: block; }
+
+.lp-hero-sub {
+    max-width: 540px;
+    margin: 22px 0 32px;
+    color: var(--lp-texto-2);
+    font-size: 18px;
+}
+
+.lp-hero-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.lp-confianca {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin: 32px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lp-confianca li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--lp-texto-2);
+    font-size: 13px;
+}
+
+.lp-confianca li::before {
+    content: "✓";
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: #10B981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.38);
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--lp-verde);
+    font-size: 11px;
+    font-weight: 800;
 }
 
-.radar-lista {
+/* Exemplo ilustrativo da tela de pedido */
+.lp-demo { margin: 0; }
+
+.lp-demo-janela {
+    padding: 22px;
+    border: 1px solid var(--lp-borda-forte);
+    border-radius: 18px;
+    background: var(--lp-cartao);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35), 0 0 0 6px rgba(90, 166, 240, 0.05);
+    backdrop-filter: blur(6px);
+}
+
+.lp-demo-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.lp-demo-cabecalho small { display: block; color: var(--lp-texto-3); font-size: 12px; }
+.lp-demo-cabecalho strong { font-size: 16px; }
+
+.lp-demo-selo {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(52, 211, 153, 0.14);
+    color: var(--lp-verde);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.lp-demo-itens {
+    margin: 18px 0;
+    padding: 0;
+    border-top: 1px solid var(--lp-borda);
+    list-style: none;
+}
+
+.lp-demo-itens li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--lp-borda);
+    color: var(--lp-texto-2);
+    font-size: 14px;
+}
+
+.lp-demo-etapas {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+    counter-reset: etapa;
+}
+
+.lp-demo-etapas li {
+    position: relative;
+    padding-top: 24px;
+    color: var(--lp-texto-3);
+    font-size: 11px;
+    text-align: center;
+}
+
+.lp-demo-etapas li::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border: 2px solid var(--lp-borda-forte);
+    border-radius: 50%;
+    background: var(--lp-cartao-solido);
+}
+
+.lp-demo-etapas li + li::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--lp-borda);
+}
+
+.lp-demo-etapas li.feito { color: var(--lp-texto-2); }
+.lp-demo-etapas li.feito::before { border-color: var(--lp-verde); background: var(--lp-verde); }
+.lp-demo-etapas li.feito + li::after { background: var(--lp-verde); }
+.lp-demo-etapas li.atual { color: var(--lp-laranja-claro); font-weight: 700; }
+.lp-demo-etapas li.atual::before { border-color: var(--lp-laranja); box-shadow: 0 0 0 4px rgba(244, 122, 32, 0.2); }
+
+.lp-demo-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.lp-demo-chat p {
+    max-width: 80%;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.lp-demo-chat .recebida { background: rgba(255, 255, 255, 0.08); color: var(--lp-texto); }
+.lp-demo-chat .enviada { align-self: flex-end; background: var(--lp-laranja); color: #FFFFFF; }
+
+.lp-demo figcaption {
+    margin-top: 12px;
+    color: var(--lp-texto-3);
+    font-size: 12px;
+    text-align: center;
+}
+
+
+/* ---------------- COMO FUNCIONA ---------------- */
+
+.lp-passos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lp-passo {
+    padding: 26px 22px;
+    border: 1px solid var(--lp-borda);
+    border-radius: var(--lp-raio);
+    background: var(--lp-cartao);
+}
+
+.lp-passo-numero {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    background: rgba(244, 122, 32, 0.14);
+    color: var(--lp-laranja-claro);
+    font-weight: 800;
+}
+
+.lp-passo h3 { margin-bottom: 8px; font-size: 17px; }
+.lp-passo p { margin: 0; color: var(--lp-texto-2); font-size: 14px; }
+
+
+/* ---------------- PARA EMPRESAS ---------------- */
+
+.lp-perfis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.lp-perfil {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    border: 1px solid var(--lp-borda);
+    border-top: 3px solid var(--lp-laranja);
+    border-radius: var(--lp-raio);
+    background: var(--lp-cartao);
+}
+
+.lp-perfil-venda { border-top-color: var(--lp-azul); }
+
+.lp-perfil-tipo {
+    margin-bottom: 12px;
+    color: var(--lp-laranja-claro);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.lp-perfil-venda .lp-perfil-tipo { color: var(--lp-azul); }
+
+.lp-perfil h3 { margin-bottom: 18px; font-size: 22px; }
+
+.lp-perfil ul {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin: 0 0 28px;
+    padding: 0;
+    list-style: none;
 }
 
-.radar-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 14px;
-
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 10px;
-
-    background: rgba(255, 255, 255, 0.045);
-
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.radar-item:hover {
-    background: rgba(255, 255, 255, 0.065);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.radar-item-topo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.radar-item strong {
-    color: #FFFFFF;
+.lp-perfil li {
+    position: relative;
+    padding-left: 24px;
+    color: var(--lp-texto-2);
     font-size: 15px;
 }
 
-.radar-item > span,
-.radar-item small {
-    color: rgba(255, 255, 255, 0.60);
-}
-
-.radar-item > span {
-    font-size: 13px;
-}
-
-.radar-item small {
-    font-size: 11px;
-}
-
-.status {
-    padding: 4px 7px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.status-urgente {
-    color: #FFD7D4;
-    background: rgba(180, 35, 24, 0.45);
-}
-
-.status-negociacao {
-    color: #FFE1B4;
-    background: rgba(181, 71, 8, 0.48);
-}
-
-.status-aberto {
-    color: #D8EDFF;
-    background: rgba(18, 104, 179, 0.42);
-}
-
-
-/* =========================================================
-   4. REVEAL
-========================================================= */
-
-.reveal {
-    opacity: 0;
-    transform: translateY(22px);
-    transition: opacity 0.65s ease, transform 0.65s ease;
-}
-
-.reveal-ativo {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-
-/* =========================================================
-   5. REDE BRASIL
-========================================================= */
-
-.rede-brasil {
-min-height: 470px;
-
-    display: flex;
-    align-items: stretch;
-
-    background: transparent;
-}
-
-/* =========================================================
-   CONTEÚDO DA REDE BRASIL
-
-   O conteúdo começa próximo ao topo da seção para funcionar
-   como um cabeçalho institucional, em vez de ficar centralizado.
-========================================================= */
-
-.rede-brasil-conteudo {
-    width: 48%;
-    box-sizing: border-box;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: flex-start;
-
-    padding:
-        38px
-        5%
-        55px;
-}
-
-/* =========================================================
-   ENUNCIADOS DAS SEÇÕES
-
-   Pequenos títulos em laranja utilizados para introduzir
-   cada bloco da Landing.
-========================================================= */
-
-.rede-brasil-etiqueta,
-.section-eyebrow {
-    display: inline-block;
-
-    margin-bottom: 9px;
-
-    color: #F47A20;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    letter-spacing: 0.15em;
-
-    line-height: 1;
-}
-
-.rede-brasil-conteudo h2 {
-    max-width: 440px;
-    margin: 0 0 20px;
-    color: #FFFFFF;
-    font-size: clamp(2.2rem, 3vw, 2.75rem);
-    line-height: 1.04;
-    letter-spacing: -0.025em;
-}
-
-.rede-brasil-conteudo h2 span {
-    display: block;
-}
-
-.rede-brasil-conteudo p {
-    max-width: 500px;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.70);
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-.rede-brasil-visual {
-    position: relative;
-    width: 52%;
-    min-height: 470px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-    background: transparent;
-}
-
-.mapa-brasil-wrapper {
-    position: relative;
-    width: min(430px, 78%);
-    aspect-ratio: 1 / 1;
-}
-
-.mapa-brasil {
+.lp-perfil li::before {
+    content: "✓";
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    z-index: 1;
-    opacity: 0.28;
-    filter:
-        brightness(1.25)
-        contrast(1.05);
+    left: 0;
+    color: var(--lp-verde);
+    font-weight: 800;
 }
+
+.lp-perfil .lp-btn { align-self: flex-start; margin-top: auto; }
+
+
+/* ---------------- RECURSOS ---------------- */
+
+.lp-recursos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lp-recurso {
+    padding: 26px;
+    border: 1px solid var(--lp-borda);
+    border-radius: var(--lp-raio);
+    background: var(--lp-cartao);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.lp-recurso:hover { border-color: var(--lp-borda-forte); transform: translateY(-2px); }
+
+.lp-recurso svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 16px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(90, 166, 240, 0.12);
+    color: var(--lp-azul);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.lp-recurso h3 { margin-bottom: 8px; font-size: 17px; }
+.lp-recurso p { margin: 0; color: var(--lp-texto-2); font-size: 14px; }
+
+
+/* ---------------- REDE BRASIL ---------------- */
+
+.lp-rede-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: center;
+}
+
+.lp-rede-texto h2 { margin-bottom: 18px; font-size: clamp(28px, 3.6vw, 40px); }
+.lp-rede-texto p { max-width: 480px; margin: 0; color: var(--lp-texto-2); font-size: 16px; }
+
+.lp-mapa {
+    position: relative;
+    width: min(420px, 100%);
+    margin-inline: auto;
+}
+
+.lp-mapa .mapa-brasil { display: block; width: 100%; height: auto; opacity: 0.55; }
 
 #brasil-particles {
     position: absolute;
     inset: 0;
-
     width: 100%;
     height: 100%;
-
-    z-index: 2;
     pointer-events: none;
 }
 
-.rede-brasil-mensagem {
-    position: absolute;
-    right: 4%;
-    bottom: 38px;
-    z-index: 3;
 
+/* ---------------- DÚVIDAS ---------------- */
+
+.lp-faq { display: flex; flex-direction: column; gap: 10px; }
+
+.lp-faq details {
+    border: 1px solid var(--lp-borda);
+    border-radius: 12px;
+    background: var(--lp-cartao);
+}
+
+.lp-faq summary {
     display: flex;
-    flex-direction: column;
-
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     padding: 18px 22px;
-
-    border: 1px solid rgba(68, 175, 255, 0.30);
-    border-radius: 12px;
-
-    background: rgba(5, 39, 68, 0.64);
-
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-
     color: #FFFFFF;
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: 700;
+    list-style: none;
+    cursor: pointer;
 }
 
-.rede-brasil-mensagem strong {
-    margin-top: 2px;
-    color: #F47A20;
+.lp-faq summary::-webkit-details-marker { display: none; }
+
+.lp-faq summary::after {
+    content: "+";
+    flex-shrink: 0;
+    color: var(--lp-laranja);
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 0.2s ease;
 }
 
-/* =========================================================
-   TELA 3 - COMPRAR OU VENDER
+.lp-faq details[open] summary::after { transform: rotate(45deg); }
 
-   Reduzimos o espaço superior para aproximar o título
-   do início da seção e reforçar sua função de cabeçalho.
-========================================================= */
-
-.comprar-vender {
-    padding:
-        32px
-        0
-        58px;
-
-    background: transparent;
-}
-
-.comprar-vender-container,
-.contato-final-container {
-    width: min(1180px, 90%);
-    margin: 0 auto;
-}
-
-.comprar-vender-header {
-    max-width: 760px;
-
-    margin-bottom: 28px;
-}
-.comprar-vender-header h2 {
-    max-width: 720px;
-    margin: 0;
-    color: #FFFFFF;
-    font-size:
-        clamp(
-            2rem,
-            2.8vw,
-            2.6rem
-        );
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-}
+.lp-faq details p { margin: 0; padding: 0 22px 20px; color: var(--lp-texto-2); font-size: 15px; }
 
 
-.comprar-vender-header h2 span {
-    display: block;
-    color: #F47A20;
-}
+/* ---------------- CHAMADA FINAL E RODAPÉ ---------------- */
 
+.lp-final { padding-top: 40px; }
 
-/* =========================================================
-   7. CARDS COMPRADOR E FORNECEDOR
-   Painéis translúcidos substituem as antigas caixas brancas.
-========================================================= */
-
-.comprar-vender-cards {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-    margin-bottom: 42px;
-}
-
-.perfil-card {
-    position: relative;
-    min-height: 250px;
-    box-sizing: border-box;
-
+.lp-final-caixa {
     display: flex;
-    flex-direction: column;
-
-    padding: 26px 28px;
-
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 12px;
-
-    background: rgba(7, 48, 82, 0.62);
-
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
-
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    overflow: hidden;
-
-    transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.perfil-card:hover {
-    transform: translateY(-3px);
-    background: rgba(9, 57, 96, 0.76);
-    border-color: rgba(255, 255, 255, 0.24);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
-}
-
-.comprador-card {
-    border-top: 2px solid #F47A20;
-}
-
-.fornecedor-card {
-    border-top: 2px solid #1687D0;
-}
-
-.perfil-card-topo {
-    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    gap: 28px;
+    padding: 44px;
+    border: 1px solid rgba(244, 122, 32, 0.35);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(244, 122, 32, 0.18), transparent 55%),
+        var(--lp-cartao-solido);
 }
 
-.perfil-numero {
-    color: rgba(255, 255, 255, 0.42);
-    font-size: 11px;
-    font-weight: 700;
-}
+.lp-final-caixa h2 { margin-bottom: 10px; font-size: clamp(24px, 3vw, 32px); }
+.lp-final-caixa p { margin: 0; color: var(--lp-texto-2); }
+.lp-final-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
 
-.perfil-tipo {
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-}
+.lp-rodape { padding: 48px 0 32px; border-top: 1px solid var(--lp-borda); background: rgba(3, 18, 33, 0.6); }
 
-.comprador-card .perfil-tipo {
-    color: #FFB47B;
-    background: rgba(244, 122, 32, 0.12);
-}
-
-.fornecedor-card .perfil-tipo {
-    color: #8DCCFF;
-    background: rgba(18, 104, 179, 0.16);
-}
-
-.perfil-icone {
-    width: 42px;
-    height: 42px;
-
+.lp-rodape-grade {
     display: flex;
-    align-items: center;
-    justify-content: center;
-
-    margin-bottom: 14px;
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-}
-
-.perfil-icone svg {
-    width: 21px;
-    height: 21px;
-}
-
-.comprador-card .perfil-icone {
-    color: #F47A20;
-    background: rgba(244, 122, 32, 0.09);
-}
-
-.fornecedor-card .perfil-icone {
-    color: #42A8F0;
-    background: rgba(18, 104, 179, 0.12);
-}
-
-.perfil-card h3 {
-    margin: 0;
-    color: #FFFFFF;
-    font-size: 1.18rem;
-    line-height: 1.25;
-}
-
-.perfil-card > p {
-    margin: 10px 0 14px;
-    color: rgba(255, 255, 255, 0.64);
-    font-size: 0.84rem;
-    line-height: 1.5;
-}
-
-.perfil-beneficios {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    margin-bottom: 16px;
-}
-
-.beneficio-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.74);
-    font-size: 0.81rem;
-}
-
-.beneficio-marcador {
-    width: 5px;
-    height: 5px;
-    flex-shrink: 0;
-    border-radius: 50%;
-}
-
-.comprador-card .beneficio-marcador {
-    background: #F47A20;
-}
-
-.fornecedor-card .beneficio-marcador {
-    background: #1687D0;
-}
-
-.perfil-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-
-    width: fit-content;
-    margin-top: auto;
-
-    font-size: 0.83rem;
-    font-weight: 700;
-    text-decoration: none;
-
-    transition: gap 0.2s ease, opacity 0.2s ease;
-}
-
-.perfil-link:hover {
-    gap: 13px;
-}
-
-.comprador-link {
-    color: #FF9A51;
-}
-
-.fornecedor-link {
-    color: #70BFFF;
-}
-
-/* =========================================================
-   CABEÇALHO - COMO FUNCIONA
-========================================================= */
-
-.como-funciona-header {
-    margin: 2px 0 0;
-    color: #FFFFFF;
-    font-size:
-        clamp(
-            1.6rem,
-            2.2vw,
-            2rem
-        );
-    line-height: 1.08;
-    letter-spacing: -0.015em;
-}
-
-.como-funciona-etapas {
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1fr)
-        50px
-        minmax(0, 1fr)
-        50px
-        minmax(0, 1fr);
-
-    align-items: center;
-}
-
-.funciona-etapa {
-    min-height: 110px;
-    box-sizing: border-box;
-
-    padding: 20px 22px;
-
-    border: 1px solid rgba(68, 175, 255, 0.25);
-    border-radius: 11px;
-
-    background: rgba(7, 48, 82, 0.54);
-
-    box-shadow: none;
-
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-
-    transition:
-        transform 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
-}
-
-.funciona-etapa:hover {
-    transform: translateY(-3px);
-    background: rgba(9, 57, 96, 0.68);
-    border-color: rgba(68, 175, 255, 0.40);
-}
-
-.etapa-numero {
-    width: 34px;
-    height: 34px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    margin-bottom: 11px;
-
-    border: 1px solid #1687D0;
-    border-radius: 50%;
-
-    background: rgba(6, 39, 68, 0.90);
-
-    color: #FFFFFF;
-
-    font-size: 10px;
-    font-weight: 700;
-
-    box-shadow: 0 0 16px rgba(18, 104, 179, 0.15);
-}
-
-.etapa-conteudo h4 {
-    margin: 0 0 6px;
-    color: #FFFFFF;
-    font-size: 0.93rem;
-}
-
-.etapa-conteudo p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.60);
-    font-size: 0.78rem;
-    line-height: 1.45;
-}
-
-.etapa-conector {
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-}
-
-.etapa-conector span {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.22);
-}
-
-.etapa-conector span::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    border-top: 1px solid #F47A20;
-    border-right: 1px solid #F47A20;
-    transform: translateY(-50%) rotate(45deg);
-}
-
-
-/* =========================================================
-   CONTATO
-   Continua o mesmo fundo da Landing, sem divisor horizontal.
-========================================================= */
-
-.contato-final {
-    padding:
-        34px
-        0
-        22px;
-    background: transparent;
-}
-
-.contato-box {
-    position: relative;
-
-    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 40px;
-
-    padding: 30px 38px;
-
-    border: 1px solid rgba(68, 175, 255, 0.26);
-    border-radius: 14px;
-
-    background: rgba(6, 43, 74, 0.60);
-
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
-
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    overflow: hidden;
-}
-
-.contato-box::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 18px;
-    bottom: 18px;
-    width: 3px;
-    background: #F47A20;
-}
-
-.contato-conteudo {
-    max-width: 670px;
-}
-
-.contato-conteudo h2 {
-    margin: 3px 0 0;
-    color: #FFFFFF;
-    font-size: clamp(1.8rem, 3vw, 2.35rem);
-    line-height: 1.1;
-}
-
-.contato-conteudo p {
-    max-width: 620px;
-    margin: 12px 0 0;
-    color: rgba(255, 255, 255, 0.62);
-    font-size: 0.88rem;
-    line-height: 1.6;
-}
-
-.contato-acao {
-    flex-shrink: 0;
-}
-
-.btn-contato {
-    min-height: 46px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-
-    padding: 0 26px;
-
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 8px;
-
-    background: linear-gradient(135deg, #F47A20, #FF6800);
-
-    color: #FFFFFF;
-
-    font-size: 0.86rem;
-    font-weight: 700;
-    text-decoration: none;
-
-    box-shadow: 0 9px 20px rgba(244, 122, 32, 0.15);
-
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-contato:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 13px 28px rgba(244, 122, 32, 0.25);
-}
-
-
-/* =========================================================
-   10. RODAPÉ
-========================================================= */
-
-.footer-serf {
-    display: grid;
-    grid-template-columns:
-        1fr auto 1fr;
-    align-items: center;
-    gap: 40px;
-    margin-top: 28px;
-    padding:
-        18px
-        0;
-}
-
-.footer-marca,
-.footer-assinatura {
-    display: flex;
-    flex-direction: column;
-}
-
-.footer-marca {
-    gap: 4px;
-}
-
-.footer-marca strong {
-    color: #FFFFFF;
-    font-size: 1.18rem;
-}
-
-.footer-marca span {
-    color: rgba(255, 255, 255, 0.48);
-    font-size: 0.72rem;
-}
-
-.footer-links {
-    display: flex;
-    align-items: center;
     gap: 24px;
 }
 
-.footer-links a {
-    color: rgba(255, 255, 255, 0.62);
-    font-size: 0.75rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
+.lp-rodape-marca strong { display: block; font-size: 18px; letter-spacing: 0.04em; }
+.lp-rodape-marca span { color: var(--lp-texto-3); font-size: 14px; }
 
-.footer-links a:hover {
-    color: #FFFFFF;
-}
+.lp-rodape-links { display: flex; flex-wrap: wrap; gap: 22px; }
+.lp-rodape-links a { color: var(--lp-texto-2); font-size: 14px; text-decoration: none; }
+.lp-rodape-links a:hover { color: #FFFFFF; }
 
-.footer-assinatura {
-    align-items: flex-end;
-    gap: 2px;
-    font-size: 0.75rem;
-}
-
-.footer-assinatura span {
-    color: rgba(255, 255, 255, 0.58);
-}
-
-.footer-assinatura strong {
-    color: #F47A20;
-}
-
-.footer-final {
+.lp-rodape-final {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: space-between;
-    padding:
-        10px
-        0
-        0;
-    color:
-        rgba(255, 255, 255, 0.30);
-    font-size:
-        0.65rem;
+    gap: 8px 24px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--lp-borda);
+    color: var(--lp-texto-3);
+    font-size: 12px;
 }
 
 
-/* =========================================================
-   11. RESPONSIVIDADE - TABLET
-========================================================= */
+/* ---------------- REVELAÇÃO AO ROLAR ---------------- */
+
+/* Só esconde se o JS estiver ativo (landing.js marca o <html>) */
+.lp-js .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.lp-js .reveal.reveal-ativo { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-js .reveal { opacity: 1; transform: none; transition: none; }
+    .lp-btn, .lp-recurso, .lp-topo, .lp-menu-botao span { transition: none; }
+    .lp-btn:hover, .lp-recurso:hover { transform: none; }
+}
+
+
+/* ---------------- RESPONSIVO ---------------- */
+
+@media (max-width: 1024px) {
+    .lp-passos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-recursos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 900px) {
+    .lp-menu-botao { display: inline-flex; }
 
-    .navbar {
-        padding: 0 4%;
-    }
-
-    .navbar-menu {
-        gap: 18px;
-    }
-
-    .hero {
-        min-height: auto;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 110px 6% 60px;
-    }
-
-    .hero-conteudo,
-    .hero-radar {
-        width: 100%;
-        max-width: none;
-    }
-
-    .rede-brasil {
-        flex-direction: column;
-    }
-
-    .rede-brasil-conteudo,
-    .rede-brasil-visual {
-        width: 100%;
-    }
-
-    .rede-brasil-conteudo {
-        padding: 55px 6%;
-    }
-
-    .rede-brasil-visual {
-        min-height: 430px;
-    }
-
-    .comprar-vender {
-        padding: 50px 0;
-    }
-
-    .comprar-vender-cards,
-    .como-funciona-etapas {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .etapa-conector {
+    .lp-menu {
+        position: absolute;
+        top: 72px;
+        right: 0;
+        left: 0;
         display: none;
-    }
-
-    .contato-box {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 25px;
-        padding: 32px;
-    }
-
-    .footer-serf {
-        grid-template-columns: 1fr;
+        align-items: stretch;
         gap: 20px;
+        padding: 20px;
+        border-bottom: 1px solid var(--lp-borda);
+        background: rgba(6, 30, 54, 0.98);
     }
 
-    .footer-links {
-        flex-wrap: wrap;
-    }
+    .lp-menu.aberto { display: flex; }
 
-    .footer-assinatura {
-        align-items: flex-start;
-    }
+    .lp-nav { flex-direction: column; gap: 4px; margin: 0; }
+    .lp-nav a { padding: 12px 4px; font-size: 16px; }
+    .lp-acoes-topo .lp-btn { flex: 1; min-height: 48px; }
+
+    .lp-hero { padding: 40px 0 64px; }
+    .lp-hero-grade, .lp-rede-grade, .lp-perfis { grid-template-columns: 1fr; gap: 40px; }
+    .lp-secao { padding: 64px 0; }
 }
-
-
-/* =========================================================
-   12. RESPONSIVIDADE - MOBILE
-========================================================= */
 
 @media (max-width: 600px) {
-
-    .navbar {
-        height: auto;
-        min-height: 70px;
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 14px 5%;
-    }
-
-    .navbar-menu {
-        order: 3;
-        width: 100%;
-        justify-content: space-between;
-        gap: 10px;
-    }
-
-    .navbar-menu a {
-        font-size: 12px;
-    }
-
-    .navbar-acoes {
-        gap: 7px;
-    }
-
-    .btn-entrar,
-    .btn-criar-conta {
-        padding: 8px 11px;
-        font-size: 12px;
-    }
-
-    .hero {
-        padding-top: 140px;
-    }
-
-    .hero h1 {
-        font-size: 38px;
-    }
-
-    .hero p {
-        font-size: 16px;
-    }
-
-    .hero-acoes {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn-comprador,
-    .btn-fornecedor {
-        width: 100%;
-        box-sizing: border-box;
-        text-align: center;
-    }
-
-    .hero-radar {
-        padding: 18px;
-    }
-
-    .radar-cabecalho {
-        font-size: 16px;
-    }
-
-    .rede-brasil-conteudo h2 {
-        font-size: 34px;
-    }
-/* =========================================================
-   MAPA DO BRASIL - ÁREA DE PROTEÇÃO
-
-   O pseudo-elemento cria uma máscara no formato do Brasil.
-   Essa máscara bloqueia as partículas globais que estão atrás
-   do mapa, mas mantém o acabamento visual translúcido.
-========================================================= */
-    .mapa-brasil-wrapper {
-        position: relative;
-        width: min(430px, 78%);
-        aspect-ratio: 1 / 1;
-    }
-    /* =========================================================
-   MÁSCARA DO MAPA
-
-   Cria uma camada sólida exatamente no formato do Brasil.
-   Assim as partículas do fundo não aparecem dentro do mapa.
-========================================================= */
-
-    .mapa-brasil-wrapper::before {
-        content: "";
-
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        background: #164563;
-        -webkit-mask-image:
-        url("../assets/images/mapa-brasil.svg");
-        mask-image:
-        url("../assets/images/mapa-brasil.svg");
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-
-        -webkit-mask-position: center;
-        mask-position: center;
-
-        -webkit-mask-size: contain;
-        mask-size: contain;
-}
-    .rede-brasil-mensagem {
-        right: 6%;
-        bottom: 22px;
-        padding: 14px 16px;
-        font-size: 16px;
-    }
-
-    .perfil-card {
-        padding: 24px 22px;
-    }
-
-    .contato-final {
-        padding-top: 42px;
-    }
-
-    .contato-box {
-        padding: 28px 24px;
-    }
-
-    .contato-acao,
-    .btn-contato {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .footer-final {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
+    .lp-passos, .lp-recursos { grid-template-columns: 1fr; }
+    .lp-hero-acoes .lp-btn, .lp-final-acoes .lp-btn { width: 100%; }
+    .lp-perfil, .lp-final-caixa { padding: 24px; }
+    .lp-demo-janela { padding: 16px; }
+    .lp-demo-etapas li { font-size: 9px; }
+    .lp-hero-sub { font-size: 16px; }
 }

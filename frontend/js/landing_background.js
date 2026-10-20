@@ -647,9 +647,13 @@ function animarLandingBackground() {
     conectarMouseLanding();
 
 
-    requestAnimationFrame(
-        animarLandingBackground
-    );
+    // "Reduzir movimento" no sistema: fica o primeiro quadro, parado.
+    // (Com a aba em segundo plano o navegador já pausa o requestAnimationFrame.)
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        requestAnimationFrame(
+            animarLandingBackground
+        );
+    }
 }
 
 

@@ -1,0 +1,116 @@
+// Página pública (frontend/pages/public/index.html).
+
+import { test, expect } from "@playwright/test";
+import { simularSupabase } from "./supabase-falso.mjs";
+
+const INICIO = "pages/public/";
+
+function coletarErros(page) {
+    const erros = [];
+    page.on("pageerror", erro => erros.push(erro.message));
+    page.on("console", msg => { if (msg.type() === "error") erros.push(msg.text()); });
+    return erros;
+}
+
+test("a pasta pública abre a landing (index.html); landing.html não existe mais", async ({ page, request }) => {
+    const erros = coletarErros(page);
+    await page.goto(INICIO);
+
+    await expect(page).toHaveTitle(/S\.E\.R\.F\./);
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.locator("h1")).toContainText("Onde empresas");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /B2B/);
+
+    expect((await request.get("/pages/public/landing.html")).status()).toBe(404);
+    expect(erros).toEqual([]);
+});
+
+test("conteúdo honesto: nada 'ao vivo' inventado; o exemplo é rotulado; simulação é avisada", async ({ page }) => {
+    await page.goto(INICIO);
+
+    await expect(page.locator("body")).not.toContainText(/ao vivo/i);
+    await expect(page.locator("body")).not.toContainText(/publique (sua|uma) necessidade/i);
+    await expect(page.locator(".lp-demo figcaption")).toHaveText("Exemplo ilustrativo da tela de pedido");
+    await expect(page.locator(".lp-rodape")).toContainText("pagamentos e notas fiscais são simulados");
+});
+
+test("'Criar conta' abre o login direto no cadastro; 'Entrar' abre no login", async ({ page }) => {
+    await simularSupabase(page, { usuario: null });
+    await page.goto(INICIO);
+
+    await page.locator(".lp-acoes-topo").getByText("Criar conta").click();
+    await expect(page).toHaveURL(/login-cadastro\.html#cadastro$/);
+    await expect(page.locator("#container")).toHaveClass(/right-panel-active/);
+
+    await page.goto(INICIO);
+    await page.locator(".lp-acoes-topo").getByText("Entrar").click();
+    await expect(page).toHaveURL(/login-cadastro\.html$/);
+    await expect(page.locator("#container")).not.toHaveClass(/right-panel-active/);
+});
+
+test("celular: menu abre, fecha com Esc e ao escolher um destino; sem rolagem lateral", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto(INICIO);
+
+    const botao = page.locator("#lpMenuBotao");
+    const menu = page.locator("#lpMenu");
+
+    await expect(menu).toBeHidden();
+    await botao.click();
+    await expect(menu).toBeVisible();
+    await expect(botao).toHaveAttribute("aria-expanded", "true");
+
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(botao).toBeFocused();
+
+    await botao.click();
+    await menu.getByText("Dúvidas").click();
+    await expect(menu).toBeHidden();
+    await expect(page).toHaveURL(/#duvidas$/);
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("dúvidas frequentes abrem e fecham", async ({ page }) => {
+    await page.goto(INICIO);
+    const pergunta = page.locator(".lp-faq details").filter({ hasText: "Preciso ter CNPJ?" });
+
+    await expect(pergunta.locator("p")).toBeHidden();
+    await pergunta.locator("summary").click();
+    await expect(pergunta.locator("p")).toBeVisible();
+});
+
+test("teclado: 'Pular para o conteúdo' é o primeiro foco", async ({ page }) => {
+    await page.goto(INICIO);
+    await page.keyboard.press("Tab");
+    await expect(page.locator(".lp-pular")).toBeFocused();
+    await expect(page.locator(".lp-pular")).toBeInViewport();
+});
+
+// Conta quantos quadros de animação são pedidos ao navegador em ~1 s
+async function quadrosPorSegundo(page) {
+    await page.addInitScript(() => {
+        window.__quadros = 0;
+        const original = window.requestAnimationFrame.bind(window);
+        window.requestAnimationFrame = callback => { window.__quadros += 1; return original(callback); };
+    });
+    await page.goto(INICIO);
+    await page.waitForTimeout(400);
+    const antes = await page.evaluate(() => window.__quadros);
+    await page.waitForTimeout(1000);
+    return (await page.evaluate(() => window.__quadros)) - antes;
+}
+
+test("com 'reduzir movimento', as animações param e todo o conteúdo aparece", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    expect(await quadrosPorSegundo(page)).toBe(0);
+
+    // Sem esperar a rolagem: os blocos "reveal" não ficam escondidos
+    const bloco = page.locator("#recursos .lp-cabecalho-secao");
+    expect(await bloco.evaluate(el => getComputedStyle(el).opacity)).toBe("1");
+});
+
+test("sem a preferência, a rede de fundo anima normalmente", async ({ page }) => {
+    expect(await quadrosPorSegundo(page)).toBeGreaterThan(20);
+});

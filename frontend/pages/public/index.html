@@ -3,18 +3,379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.E.R.F.</title>
-    <!--
-        Entrada padrão da pasta pública. Redireciona para a landing em vez de
-        copiá-la: uma cópia de 536 linhas já tinha divergido da original e usava
-        caminhos absolutos (/frontend/...) que quebram fora da raiz do servidor.
-    -->
-    <meta http-equiv="refresh" content="0; url=landing.html">
-    <link rel="canonical" href="landing.html">
+    <title>S.E.R.F. | Onde empresas encontram empresas</title>
+
+    <meta name="description" content="Marketplace B2B de atacado: compre de fornecedores com CNPJ verificado, negocie no chat do pedido e acompanhe pagamento, nota fiscal e entrega em um só lugar.">
+    <meta name="theme-color" content="#061E36">
+
+    <!-- Prévia ao compartilhar o link (WhatsApp, LinkedIn...) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="S.E.R.F. — Onde empresas encontram empresas">
+    <meta property="og:description" content="Compre e venda no atacado entre empresas: catálogo, carrinho com vários fornecedores, chat por pedido, pagamento e NF-e no mesmo fluxo.">
+    <meta property="og:image" content="../../assets/images/serflogo.png">
+    <meta property="og:locale" content="pt_BR">
+
     <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
-    <script>window.location.replace("landing.html" + window.location.hash);</script>
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="../../css/landing.css">
 </head>
-<body>
-    <p><a href="landing.html">Ir para o S.E.R.F.</a></p>
+
+<body class="lp">
+
+    <a class="lp-pular" href="#conteudo">Pular para o conteúdo</a>
+
+    <!-- Rede animada de fundo (landing_background.js) -->
+    <canvas id="landing-background" aria-hidden="true"></canvas>
+
+    <!-- =========================================================
+         CABEÇALHO
+    ========================================================== -->
+    <header class="lp-topo" id="topo">
+        <div class="lp-container lp-topo-linha">
+
+            <a href="#conteudo" class="lp-marca" aria-label="S.E.R.F. — início">
+                <img src="../../assets/icons/fivecon.png" alt="" width="32" height="32">
+                <span>S.E.R.F.</span>
+            </a>
+
+            <button type="button" class="lp-menu-botao" id="lpMenuBotao"
+                    aria-expanded="false" aria-controls="lpMenu" aria-label="Abrir menu">
+                <span></span><span></span><span></span>
+            </button>
+
+            <div class="lp-menu" id="lpMenu">
+                <nav class="lp-nav" aria-label="Navegação principal">
+                    <a href="#como-funciona">Como funciona</a>
+                    <a href="#para-empresas">Para empresas</a>
+                    <a href="#recursos">Recursos</a>
+                    <a href="#duvidas">Dúvidas</a>
+                </nav>
+
+                <div class="lp-acoes-topo">
+                    <a href="login-cadastro.html" class="lp-btn lp-btn-contorno">Entrar</a>
+                    <a href="login-cadastro.html#cadastro" class="lp-btn lp-btn-primario">Criar conta</a>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <main id="conteudo">
+
+        <!-- =====================================================
+             HERO
+        ====================================================== -->
+        <section class="lp-hero" aria-labelledby="heroTitulo">
+            <div class="lp-container lp-hero-grade">
+
+                <div class="lp-hero-texto">
+                    <span class="lp-etiqueta">Marketplace B2B de atacado</span>
+
+                    <h1 id="heroTitulo">
+                        Onde empresas
+                        <span>encontram empresas.</span>
+                    </h1>
+
+                    <p class="lp-hero-sub">
+                        Compre de fornecedores com CNPJ verificado, negocie no chat
+                        do pedido e acompanhe pagamento, nota fiscal e entrega em um só lugar.
+                    </p>
+
+                    <div class="lp-hero-acoes">
+                        <a href="login-cadastro.html#cadastro" class="lp-btn lp-btn-primario lp-btn-grande">
+                            Criar conta da empresa
+                        </a>
+                        <a href="#como-funciona" class="lp-btn lp-btn-fantasma lp-btn-grande">
+                            Ver como funciona
+                        </a>
+                    </div>
+
+                    <ul class="lp-confianca" aria-label="Por que confiar">
+                        <li>CNPJ conferido na Receita Federal</li>
+                        <li>Preço e estoque direto do fornecedor</li>
+                        <li>Compre e venda com a mesma conta</li>
+                    </ul>
+                </div>
+
+                <!-- Exemplo ilustrativo da tela de pedido (não são dados reais) -->
+                <figure class="lp-demo" aria-labelledby="demoLegenda">
+                    <div class="lp-demo-janela" aria-hidden="true">
+                        <div class="lp-demo-cabecalho">
+                            <div>
+                                <small>Pedido #1042</small>
+                                <strong>Distribuidora Exemplo</strong>
+                            </div>
+                            <span class="lp-demo-selo">Pago</span>
+                        </div>
+
+                        <ul class="lp-demo-itens">
+                            <li><span>Arroz tipo 1 · 5 kg</span><span>40 un.</span></li>
+                            <li><span>Feijão carioca · 1 kg</span><span>60 un.</span></li>
+                        </ul>
+
+                        <ol class="lp-demo-etapas">
+                            <li class="feito">Pedido</li>
+                            <li class="feito">Confirmado</li>
+                            <li class="feito">Pago</li>
+                            <li class="atual">NF-e</li>
+                            <li>Enviado</li>
+                            <li>Entregue</li>
+                        </ol>
+
+                        <div class="lp-demo-chat">
+                            <p class="recebida">Pagamento recebido! A NF-e sai hoje.</p>
+                            <p class="enviada">Perfeito, obrigado!</p>
+                        </div>
+                    </div>
+                    <figcaption id="demoLegenda">Exemplo ilustrativo da tela de pedido</figcaption>
+                </figure>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             COMO FUNCIONA (o fluxo real do sistema)
+        ====================================================== -->
+        <section class="lp-secao" id="como-funciona" aria-labelledby="comoTitulo">
+            <div class="lp-container">
+
+                <header class="lp-cabecalho-secao reveal">
+                    <span class="lp-etiqueta">Como funciona</span>
+                    <h2 id="comoTitulo">Do cadastro à entrega, <span>sem planilha e sem e-mail perdido.</span></h2>
+                </header>
+
+                <ol class="lp-passos">
+                    <li class="lp-passo reveal">
+                        <span class="lp-passo-numero">1</span>
+                        <h3>Cadastre a empresa</h3>
+                        <p>Informe o CNPJ e escolha como usar o S.E.R.F.: comprar, vender ou os dois.</p>
+                    </li>
+                    <li class="lp-passo reveal">
+                        <span class="lp-passo-numero">2</span>
+                        <h3>Compre ou receba pedidos</h3>
+                        <p>Monte um carrinho com produtos de vários fornecedores, ou publique seu catálogo com preço de atacado e pedido mínimo.</p>
+                    </li>
+                    <li class="lp-passo reveal">
+                        <span class="lp-passo-numero">3</span>
+                        <h3>Negocie no chat do pedido</h3>
+                        <p>Cada pedido tem sua conversa: prazo, entrega e condições ficam registrados junto com ele.</p>
+                    </li>
+                    <li class="lp-passo reveal">
+                        <span class="lp-passo-numero">4</span>
+                        <h3>Pague e acompanhe</h3>
+                        <p>Pix, boleto, cartão ou a prazo; NF-e emitida no fluxo e status atualizado até a entrega.</p>
+                    </li>
+                </ol>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             PARA EMPRESAS (compradores e fornecedores)
+        ====================================================== -->
+        <section class="lp-secao" id="para-empresas" aria-labelledby="empresasTitulo">
+            <div class="lp-container">
+
+                <header class="lp-cabecalho-secao reveal">
+                    <span class="lp-etiqueta">Uma rede, dois lados</span>
+                    <h2 id="empresasTitulo">Comprar ou vender. <span>Ou os dois, com a mesma conta.</span></h2>
+                </header>
+
+                <div class="lp-perfis">
+                    <article class="lp-perfil lp-perfil-compra reveal" aria-labelledby="perfilCompra">
+                        <span class="lp-perfil-tipo">Para quem compra</span>
+                        <h3 id="perfilCompra">Reponha o estoque sem correr atrás de orçamento.</h3>
+                        <ul>
+                            <li>Catálogo com preço de atacado, pedido mínimo e estoque disponível</li>
+                            <li>Carrinho com vários fornecedores, enviado de uma vez</li>
+                            <li>Alertas de cobrança, recompra e mensagens não lidas</li>
+                            <li>Histórico de compras e relatórios de gastos</li>
+                        </ul>
+                        <a href="login-cadastro.html#cadastro" class="lp-btn lp-btn-primario">Quero comprar</a>
+                    </article>
+
+                    <article class="lp-perfil lp-perfil-venda reveal" aria-labelledby="perfilVenda">
+                        <span class="lp-perfil-tipo">Para quem vende</span>
+                        <h3 id="perfilVenda">Receba pedidos de empresas que já sabem o que querem.</h3>
+                        <ul>
+                            <li>Catálogo próprio: edite preço e estoque ou pause as vendas quando quiser</li>
+                            <li>Estoque reservado automaticamente ao confirmar o pedido</li>
+                            <li>Selo de fornecedor homologado após a verificação do CNPJ</li>
+                            <li>Relatórios de vendas, clientes e saúde do estoque</li>
+                        </ul>
+                        <a href="login-cadastro.html#cadastro" class="lp-btn lp-btn-secundario">Quero vender</a>
+                    </article>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             RECURSOS
+        ====================================================== -->
+        <section class="lp-secao" id="recursos" aria-labelledby="recursosTitulo">
+            <div class="lp-container">
+
+                <header class="lp-cabecalho-secao reveal">
+                    <span class="lp-etiqueta">Recursos</span>
+                    <h2 id="recursosTitulo">Tudo o que um pedido B2B precisa, <span>no mesmo lugar.</span></h2>
+                </header>
+
+                <ul class="lp-recursos">
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 9.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7"/><circle cx="10" cy="19" r="1.4"/><circle cx="18" cy="19" r="1.4"/></svg>
+                        <h3>Carrinho com vários fornecedores</h3>
+                        <p>Junte produtos de fornecedores diferentes e envie tudo de uma vez: ou entram todos os pedidos, ou nenhum.</p>
+                    </li>
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>
+                        <h3>Chat por pedido</h3>
+                        <p>Comprador e fornecedor conversam dentro do pedido, em tempo real, com tudo registrado.</p>
+                    </li>
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+                        <h3>Pagamento e NF-e no fluxo</h3>
+                        <p>Pix, boleto, cartão ou a prazo com aprovação do fornecedor; a nota fiscal é emitida antes do envio.</p>
+                    </li>
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                        <h3>Fornecedores verificados</h3>
+                        <p>O CNPJ é conferido na Receita Federal; fornecedores aprovados ganham o selo de homologado.</p>
+                    </li>
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+                        <h3>Alertas que dizem o que fazer</h3>
+                        <p>Pedido para responder, cobrança vencida, estoque baixo: cada alerta leva direto à ação.</p>
+                    </li>
+                    <li class="lp-recurso reveal">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+                        <h3>Relatórios comerciais</h3>
+                        <p>Faturamento, produtos mais vendidos, clientes recorrentes e tempo de resposta, exportáveis em CSV.</p>
+                    </li>
+                </ul>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             REDE BRASIL (identidade visual mantida)
+        ====================================================== -->
+        <section class="lp-secao lp-rede" aria-labelledby="redeTitulo">
+            <div class="lp-container lp-rede-grade">
+
+                <div class="lp-rede-texto reveal">
+                    <span class="lp-etiqueta">Uma rede que aproxima</span>
+                    <h2 id="redeTitulo">Mais negócios, <span>menos distância.</span></h2>
+                    <p>
+                        Compradores e fornecedores de diferentes regiões em uma única rede.
+                        O Radar de Oportunidades mostra produtos novos, menores preços e
+                        fornecedores do seu nicho assim que você entra.
+                    </p>
+                </div>
+
+                <div class="lp-mapa reveal" aria-hidden="true">
+                    <img src="../../assets/images/mapa-brasil.svg" alt="" class="mapa-brasil">
+                    <!-- Rede animada sobre o mapa (landing_particle.js) -->
+                    <canvas id="brasil-particles"></canvas>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             DÚVIDAS FREQUENTES
+        ====================================================== -->
+        <section class="lp-secao" id="duvidas" aria-labelledby="duvidasTitulo">
+            <div class="lp-container lp-container-estreito">
+
+                <header class="lp-cabecalho-secao reveal">
+                    <span class="lp-etiqueta">Dúvidas frequentes</span>
+                    <h2 id="duvidasTitulo">Antes de criar a conta</h2>
+                </header>
+
+                <div class="lp-faq">
+                    <details>
+                        <summary>Preciso ter CNPJ?</summary>
+                        <p>Sim. O S.E.R.F. é exclusivo para negócios entre empresas: o cadastro é feito com o CNPJ, e a razão social é preenchida a partir dele.</p>
+                    </details>
+                    <details>
+                        <summary>Posso comprar e vender com a mesma conta?</summary>
+                        <p>Pode. Ao escolher o perfil "Ambos", você alterna entre os modos Comprar e Vender no topo do painel, com pedidos, mensagens e relatórios separados por modo.</p>
+                    </details>
+                    <details>
+                        <summary>Como sei que um fornecedor é confiável?</summary>
+                        <p>O CNPJ de cada empresa pode ser conferido na Receita Federal pela própria plataforma. Fornecedores com CNPJ ativo e razão social conferida recebem o selo de homologado, e o diretório de empresas mostra a taxa de entrega e o tempo de resposta de cada um.</p>
+                    </details>
+                    <details>
+                        <summary>Como fico sabendo de um pedido novo?</summary>
+                        <p>Pela central de alertas e pelo contador no menu, em tempo real. Também é possível receber avisos por e-mail, que podem ser desligados no Perfil.</p>
+                    </details>
+                    <details>
+                        <summary>Os pagamentos e as notas fiscais são reais?</summary>
+                        <p>Ainda não. O S.E.R.F. é um projeto acadêmico: Pix, boleto, cartão e NF-e seguem o fluxo completo, mas são simulados. Nenhum valor é cobrado e nenhuma nota tem validade fiscal.</p>
+                    </details>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- =====================================================
+             CHAMADA FINAL
+        ====================================================== -->
+        <section class="lp-secao lp-final" aria-labelledby="finalTitulo">
+            <div class="lp-container">
+                <div class="lp-final-caixa reveal">
+                    <div>
+                        <h2 id="finalTitulo">Pronto para comprar ou vender no atacado?</h2>
+                        <p>Cadastre sua empresa em poucos minutos. Você só precisa do CNPJ e de um e-mail.</p>
+                    </div>
+                    <div class="lp-final-acoes">
+                        <a href="login-cadastro.html#cadastro" class="lp-btn lp-btn-primario lp-btn-grande">Criar conta da empresa</a>
+                        <a href="mailto:contato@serf.com.br" class="lp-btn lp-btn-fantasma lp-btn-grande">Falar com a equipe</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- =========================================================
+         RODAPÉ
+    ========================================================== -->
+    <footer class="lp-rodape">
+        <div class="lp-container lp-rodape-grade">
+            <div class="lp-rodape-marca">
+                <strong>S.E.R.F.</strong>
+                <span>Onde empresas encontram empresas.</span>
+            </div>
+
+            <nav class="lp-rodape-links" aria-label="Navegação do rodapé">
+                <a href="#como-funciona">Como funciona</a>
+                <a href="#para-empresas">Para empresas</a>
+                <a href="#recursos">Recursos</a>
+                <a href="#duvidas">Dúvidas</a>
+                <a href="login-cadastro.html">Entrar</a>
+            </nav>
+        </div>
+
+        <div class="lp-container lp-rodape-final">
+            <span>© 2026 S.E.R.F. · Projeto Aplicado II / ACEx</span>
+            <span>Projeto acadêmico: pagamentos e notas fiscais são simulados.</span>
+        </div>
+    </footer>
+
+
+    <!-- Rede animada de fundo e do mapa; interações (menu, revelação) -->
+    <script src="../../js/landing_background.js" defer></script>
+    <script src="../../js/landing_particle.js" defer></script>
+    <script src="../../js/landing.js" defer></script>
+
 </body>
 </html>

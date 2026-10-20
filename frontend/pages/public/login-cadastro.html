@@ -94,6 +94,11 @@
     const signInButton = document.getElementById("signIn");
     const container = document.getElementById("container");
 
+    // Links "Criar conta" da página inicial (login-cadastro.html#cadastro) já abrem o cadastro
+    if (window.location.hash === "#cadastro") {
+        container.classList.add("right-panel-active");
+    }
+
     signUpButton.addEventListener("click", () => {
         container.classList.add("right-panel-active");
     });

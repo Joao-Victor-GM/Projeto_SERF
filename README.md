@@ -19,7 +19,7 @@ O repositório está organizado em áreas de responsabilidade:
 
 O frontend está organizado em:
 
-- `pages/public/` — páginas públicas, como Landing Page, login e cadastro;
+- `pages/public/` — páginas públicas: a página inicial (`index.html`), login e cadastro;
 - `pages/app/` — páginas internas da aplicação;
 - `css/` — estilos da interface;
 - `js/` — scripts e comportamentos do frontend;
