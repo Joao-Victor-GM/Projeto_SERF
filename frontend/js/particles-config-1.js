@@ -1,3 +1,10 @@
+// Fundo de partículas do login e da segmentação. Não roda no celular
+// (bateria e desempenho) nem com "reduzir movimento" ligado no sistema.
+(function () {
+const leve = window.matchMedia?.("(max-width: 768px)").matches ||
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+if (leve || typeof particlesJS !== "function") return;
+
 particlesJS("particles-js", {
   "particles": {
     "number": {
@@ -62,3 +69,4 @@ particlesJS("particles-js", {
   },
   "retina_detect": true
 });
+})();

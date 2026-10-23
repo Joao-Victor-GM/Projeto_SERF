@@ -1,119 +1,128 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.E.R.F. - Conexão B2B e Leilão de Urgência</title>
-    <!-- Importação do arquivo CSS original -->
-    <link rel="stylesheet" href="../../css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#001f3f">
+    <meta name="robots" content="noindex">
+    <title>S.E.R.F. | Entrar ou criar conta</title>
     <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
-    <!-- Fonte corporativa utilizada no projeto -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
 
-<!-- Camada para as partículas de fundo (Particles.js) -->
-<div id="particles-js"></div>
+<!-- Fundo animado (Particles.js); some no celular e com "reduzir movimento" -->
+<div id="particles-js" aria-hidden="true"></div>
 
-<div class="container" id="container">
-    <!-- TELA DE CADASTRO (Escondida à esquerda inicialmente) -->
-    <div class="form-container sign-up-container">
-        <form id="formCadastro">
-            <img src="../../assets/images/serflogo.png" alt="Logo SERF" class="logo" />
-            <h2>Criar Conta</h2>
-            <span class="subtitle">Insira os dados da sua empresa para começar.</span>
+<main class="container" id="container">
 
-            <!-- Inputs diretos para cadastro unificado sem escolha de perfil nesta etapa -->
-            <input type="text" id="cnpjCadastro" placeholder="CNPJ" required />
-            <input type="text" id="razaoSocialCadastro" placeholder="Razão Social" required />
-            <input type="email" id="emailCadastro" placeholder="E-mail" required />
-            <input type="password" id="senhaCadastro" placeholder="Senha" required />
-            <!-- Campo Novo: Confirmar Senha -->
-            <input type="password" id="confirmarSenhaCadastro" placeholder="Confirmar Senha" required />
+    <!-- Celular: abas no lugar do painel deslizante -->
+    <div class="auth-abas" role="tablist" aria-label="Acesso">
+        <button type="button" role="tab" id="abaEntrar" aria-controls="painelEntrar" aria-selected="true">Entrar</button>
+        <button type="button" role="tab" id="abaCadastrar" aria-controls="painelCadastrar" aria-selected="false" tabindex="-1">Criar conta</button>
+    </div>
+
+    <!-- CADASTRO -->
+    <div class="form-container sign-up-container" id="painelCadastrar" role="tabpanel" aria-labelledby="abaCadastrar">
+        <form id="formCadastro" novalidate>
+            <img src="../../assets/images/serflogo.png" alt="S.E.R.F." class="logo" width="120" height="40">
+            <h1>Criar conta</h1>
+            <p class="subtitle">Insira os dados da sua empresa para começar.</p>
+
+            <label class="sr-only" for="cnpjCadastro">CNPJ</label>
+            <input type="text" id="cnpjCadastro" placeholder="CNPJ" inputmode="numeric" autocomplete="off"
+                   maxlength="18" enterkeyhint="next" required>
+
+            <label class="sr-only" for="razaoSocialCadastro">Razão social</label>
+            <input type="text" id="razaoSocialCadastro" placeholder="Razão social" autocomplete="organization"
+                   maxlength="150" enterkeyhint="next" required>
+
+            <label class="sr-only" for="emailCadastro">E-mail</label>
+            <input type="email" id="emailCadastro" placeholder="E-mail" autocomplete="email" inputmode="email"
+                   maxlength="150" enterkeyhint="next" required>
+
+            <label class="sr-only" for="senhaCadastro">Senha (mínimo 8 caracteres)</label>
+            <div class="campo-senha">
+                <input type="password" id="senhaCadastro" placeholder="Senha (mín. 8 caracteres)" autocomplete="new-password"
+                       minlength="8" maxlength="72" enterkeyhint="next" required aria-describedby="dicaSenha">
+                <button type="button" class="mostrar-senha" aria-controls="senhaCadastro" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            </div>
+
+            <label class="sr-only" for="confirmarSenhaCadastro">Confirmar senha</label>
+            <div class="campo-senha">
+                <input type="password" id="confirmarSenhaCadastro" placeholder="Confirmar senha" autocomplete="new-password"
+                       minlength="8" maxlength="72" enterkeyhint="done" required>
+                <button type="button" class="mostrar-senha" aria-controls="confirmarSenhaCadastro" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            </div>
+            <p class="dica" id="dicaSenha">Use 8 ou mais caracteres, misturando letras e números.</p>
 
             <button type="submit" class="btn-solid">Cadastrar</button>
         </form>
     </div>
 
-    <!-- TELA DE LOGIN (Visível à direita inicialmente) -->
-    <div class="form-container sign-in-container">
-        <form id="formLogin">
-            <img src="../../assets/images/serflogo.png" alt="Logo SERF" class="logo" />
-            <h2>Acesse sua conta</h2>
-            <span class="subtitle">Insira seus dados para continuar.</span>
+    <!-- LOGIN -->
+    <div class="form-container sign-in-container" id="painelEntrar" role="tabpanel" aria-labelledby="abaEntrar">
+        <form id="formLogin" novalidate>
+            <img src="../../assets/images/serflogo.png" alt="S.E.R.F." class="logo" width="120" height="40">
+            <h1>Acesse sua conta</h1>
+            <p class="subtitle">Insira seus dados para continuar.</p>
 
-            <input type="email" id="emailLogin" placeholder="E-mail corporativo" autocomplete="username" required />
-            <input type="password" id="senhaLogin" placeholder="Senha" required />
+            <label class="sr-only" for="emailLogin">E-mail</label>
+            <input type="email" id="emailLogin" placeholder="E-mail corporativo" autocomplete="username" inputmode="email"
+                   enterkeyhint="next" required>
+
+            <label class="sr-only" for="senhaLogin">Senha</label>
+            <div class="campo-senha">
+                <input type="password" id="senhaLogin" placeholder="Senha" autocomplete="current-password" enterkeyhint="go" required>
+                <button type="button" class="mostrar-senha" aria-controls="senhaLogin" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            </div>
 
             <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
             <button type="submit" class="btn-solid">Entrar</button>
         </form>
     </div>
 
-    <!-- PAINEL DESLIZANTE (Animação de transição lateral) -->
-    <div class="overlay-container">
+    <!-- Desktop: painel deslizante -->
+    <div class="overlay-container" aria-hidden="true">
         <div class="overlay">
             <div class="overlay-panel overlay-left">
                 <h2>Já é membro?</h2>
                 <p>Faça login para continuar de onde parou e acessar a cadeia de suprimentos.</p>
-                <button class="btn-ghost" id="signIn">Fazer Login</button>
+                <button type="button" class="btn-ghost" id="signIn" tabindex="-1">Fazer login</button>
             </div>
             <div class="overlay-panel overlay-right">
                 <h2>Novo por aqui?</h2>
                 <p>Crie sua conta em poucos segundos e desbloqueie toda a experiência B2B.</p>
-                <button class="btn-ghost" id="signUp">Criar Conta</button>
+                <button type="button" class="btn-ghost" id="signUp" tabindex="-1">Criar conta</button>
             </div>
         </div>
     </div>
-</div>
+</main>
 
-<!-- MODAL DE RECUPERAÇÃO DE SENHA (Posicionado antes dos scripts para evitar falha no clique) -->
-<div id="modalRecuperar" class="modal">
+<p class="voltar-inicio"><a href="index.html">← Voltar ao início</a></p>
+
+<!-- RECUPERAÇÃO DE SENHA -->
+<div id="modalRecuperar" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloRecuperar" hidden>
     <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>Recuperar Senha</h3>
+        <button type="button" class="close-modal" aria-label="Fechar">&times;</button>
+        <h2 id="tituloRecuperar">Recuperar senha</h2>
         <p>Digite o e-mail cadastrado da sua empresa. Se ele estiver no S.E.R.F., enviaremos um link de redefinição de senha.</p>
-        <form id="formRecuperar">
-            <input type="email" id="emailRecuperar" placeholder="contato@suaempresa.com.br" autocomplete="email" required>
-            <button type="submit" class="btn-recuperar">Enviar Link de Recuperação</button>
+        <form id="formRecuperar" novalidate>
+            <label class="sr-only" for="emailRecuperar">E-mail</label>
+            <input type="email" id="emailRecuperar" placeholder="contato@suaempresa.com.br" autocomplete="email"
+                   inputmode="email" enterkeyhint="send" required>
+            <button type="submit" class="btn-recuperar">Enviar link de recuperação</button>
         </form>
     </div>
 </div>
 
-<!-- ========================================== SCRIPTS DE SISTEMA ========================================== -->
-
-<!-- Biblioteca do Supabase Auth & Database -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
-
-<!-- Biblioteca do SweetAlert2 (Para Alertas Customizados e Sem Cara de IA) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
-
-<!-- Script de controle da animação nativa do slide lateral -->
-<script>
-    const signUpButton = document.getElementById("signUp");
-    const signInButton = document.getElementById("signIn");
-    const container = document.getElementById("container");
-
-    // Links "Criar conta" da página inicial (login-cadastro.html#cadastro) já abrem o cadastro
-    if (window.location.hash === "#cadastro") {
-        container.classList.add("right-panel-active");
-    }
-
-    signUpButton.addEventListener("click", () => {
-        container.classList.add("right-panel-active");
-    });
-
-    signInButton.addEventListener("click", () => {
-        container.classList.remove("right-panel-active");
-    });
-</script>
-
-<!-- Biblioteca externa Particles.js para as partículas flutuantes -->
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
-<!-- Scripts lógicos e de configurações do app -->
 <script src="../../js/supabase-client.js"></script>
 <script src="../../js/utils.js"></script>
+<script src="../../js/login-telas.js"></script>
 <script src="../../js/app-v2.js"></script>
 <script src="../../js/particles-config-1.js"></script>
 

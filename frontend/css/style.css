@@ -1,26 +1,60 @@
+/* ==========================================================
+   S.E.R.F. — Login e cadastro (login-cadastro.html)
+   Desktop: cartão com painel deslizante.
+   Celular (≤ 768px): uma coluna, abas "Entrar | Criar conta",
+   campos de 16px (o iPhone não dá zoom) e a página rola com o teclado.
+   ========================================================== */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --login-azul: #1d2d5c;
+    --login-fundo: #001f3f;
+    --login-laranja: #f77f00;
+    --login-laranja-texto: #c25e00;     /* laranja com contraste AA sobre branco */
+    --login-texto-2: #5b6b7f;
+    --login-campo: #f4f7f6;
+    --login-borda: #d5dde6;
+}
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', system-ui, sans-serif;
 }
 
-/* ========================================================= FUNDO DA TELA (Imagem Animada com @keyframes) ========================================================= */
 body {
-    margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden; /* Evita barras de rolagem durante a animação */
-    background-color: #001f3f; /* Mesmo tom do fundo de partículas (#particles-js) */
+    gap: 16px;
+    padding: 24px 16px;
+    background-color: var(--login-fundo);
+    overflow-x: hidden;
 }
 
-/* ========================================================= ANIMAÇÃO DE TREMER (SHAKE ERROR) ========================================================= */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* ---------------- ERRO: CARTÃO TREME ---------------- */
+
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     15%, 45%, 75% { transform: translateX(-10px); }
@@ -31,25 +65,25 @@ body {
     animation: shake 0.4s ease-in-out;
 }
 
-/* ========================================================= CONTAINER PRINCIPAL DO FORMULÁRIO ========================================================= */
+/* ---------------- CARTÃO ---------------- */
+
 .container {
-    background-color: rgba(255, 255, 255, 0.95); /* Branco suave com leve transparência */
-    backdrop-filter: blur(5px); /* Efeito de vidro fosco moderno */
-    border-radius: 20px;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
     position: relative;
-    overflow: hidden;
     width: 900px;
     max-width: 100%;
-    min-height: 650px; /* Mais alto para caber tudo folgado */
+    min-height: 650px;
+    overflow: hidden;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
 .logo {
     width: 120px;
+    height: auto;
     margin-bottom: 20px;
 }
 
-/* ÁREAS DOS FORMULÁRIOS */
 .form-container {
     position: absolute;
     top: 0;
@@ -70,123 +104,215 @@ body {
     z-index: 1;
 }
 
-/* ESTILOS INTERNOS DO FORMULÁRIO */
 form {
-    background-color: #ffffff;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    padding: 0 50px;
     height: 100%;
+    padding: 0 50px;
+    background-color: #ffffff;
     text-align: center;
 }
 
-h2 {
-    color: #1d2d5c;
+form h1 {
     margin-bottom: 5px;
+    color: var(--login-azul);
+    font-size: 24px;
+    line-height: 1.25;
 }
 
 .subtitle {
-    font-size: 13px;
-    color: #718096;
     margin-bottom: 20px;
+    color: var(--login-texto-2);
+    font-size: 13px;
 }
 
-/* CAMPOS DE TEXTO E SENHA (Compactados para liberar espaço) */
+.dica {
+    align-self: stretch;
+    margin: 2px 0 0;
+    color: var(--login-texto-2);
+    font-size: 11px;
+    text-align: left;
+}
+
+/* ---------------- CAMPOS ---------------- */
+
 input {
-    background-color: #f4f7f6;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 15px;
-    margin: 6px 0;
     width: 100%;
-    font-size: 13px;
+    margin: 6px 0;
+    padding: 10px 15px;
+    border: 1px solid var(--login-borda);
+    border-radius: 8px;
+    background-color: var(--login-campo);
+    color: #172536;
+    font-size: 14px;
     outline: none;
-    transition: 0.3s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input:focus {
-    border-color: #f77f00;
+    border-color: var(--login-laranja);
+    box-shadow: 0 0 0 3px rgba(247, 127, 0, 0.18);
 }
 
-/* BOTÕES */
+input::placeholder {
+    color: #7b8a9b;
+}
+
+.campo-senha {
+    position: relative;
+    width: 100%;
+}
+
+.campo-senha input {
+    padding-right: 76px;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #333;
+    -webkit-box-shadow: 0 0 0 1000px #f4f6f9 inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ---------------- BOTÕES ---------------- */
+
 button {
+    cursor: pointer;
+    font: inherit;
+}
+
+.btn-solid,
+.btn-ghost {
+    margin-top: 15px;
+    padding: 12px 45px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: bold;
-    padding: 12px 45px;
+    font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
-    transition: transform 80ms ease-in;
-    cursor: pointer;
-    margin-top: 15px;
+    transition: transform 80ms ease-in, filter 0.2s;
 }
 
-button:active {
-    transform: scale(0.95);
+.btn-solid:active,
+.btn-ghost:active {
+    transform: scale(0.97);
 }
 
 .btn-solid {
-    background-color: #f77f00; /* Laranja SERF */
-    color: #ffffff;
     border: none;
+    background-color: var(--login-laranja);
+    color: #ffffff;
+}
+
+.btn-solid:hover {
+    filter: brightness(1.06);
+}
+
+.btn-solid:disabled {
+    opacity: 0.7;
+    cursor: progress;
 }
 
 .btn-ghost {
-    background-color: transparent;
     border: 2px solid #ffffff;
+    background-color: transparent;
     color: #ffffff;
 }
 
-/* ===================================================================== PAINEL DESLIZANTE COM EFEITO DE CORTE ===================================================================== */
+.mostrar-senha {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    min-width: 60px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--login-azul);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.mostrar-senha:hover {
+    background: rgba(29, 45, 92, 0.07);
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #1268b3;
+    outline-offset: 2px;
+}
+
+.forgot-pass {
+    display: block;
+    margin: 15px 0;
+    color: var(--login-laranja-texto);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.forgot-pass:hover {
+    text-decoration: underline;
+}
+
+/* ---------------- PAINEL DESLIZANTE (DESKTOP) ---------------- */
+
 .overlay-container {
     position: absolute;
     top: 0;
     left: 50%;
+    z-index: 100;
     width: 50%;
     height: 100%;
     overflow: hidden;
-    transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
-    z-index: 100;
     clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+    transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
 .overlay {
-    background: linear-gradient(135deg, #1d2d5c 0%, #f77f00 100%);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: 0 0;
-    color: #ffffff;
     position: relative;
     left: -100%;
-    height: 100%;
     width: 200%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--login-azul) 0%, var(--login-laranja) 100%);
+    color: #ffffff;
     transform: translateX(0);
     transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
 .overlay-panel {
     position: absolute;
+    top: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
+    width: 50%;
+    height: 100%;
     padding: 0 40px;
     text-align: center;
-    top: 0;
-    height: 100%;
-    width: 50%;
     transform: translateX(0);
     transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
+.overlay-panel h2 {
+    color: #ffffff;            /* antes: azul-escuro sobre o degradê (contraste baixo) */
+    font-size: 26px;
+}
+
 .overlay-panel p {
+    margin: 20px 0 30px;
     font-size: 14px;
     font-weight: 300;
     line-height: 20px;
     letter-spacing: 0.5px;
-    margin: 20px 0 30px;
 }
 
 .overlay-left {
@@ -198,16 +324,15 @@ button:active {
     transform: translateX(0);
 }
 
-/* === AÇÕES DA ANIMAÇÃO QUANDO A CLASSE "right-panel-active" ENTRA EM CENA === */
 .container.right-panel-active .sign-in-container {
     transform: translateX(100%);
     opacity: 0;
 }
 
 .container.right-panel-active .sign-up-container {
-    transform: translateX(100%);
-    opacity: 1;
     z-index: 5;
+    opacity: 1;
+    transform: translateX(100%);
     animation: show 0.6s;
 }
 
@@ -233,63 +358,55 @@ button:active {
     50%, 100% { opacity: 1; z-index: 5; }
 }
 
+/* ---------------- ABAS (SÓ NO CELULAR) ---------------- */
+
+.auth-abas {
+    display: none;
+}
+
+/* ---------------- FUNDO ---------------- */
+
 #particles-js {
     position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-color: #001f3f; /* Azul escuro corporativo */
-    z-index: -1; /* Mantém atrás do container */
+    inset: 0;
+    z-index: -1;
+    background-color: var(--login-fundo);
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #333;
-    -webkit-box-shadow: 0 0 0px 1000px #f4f6f9 inset;
-    transition: background-color 5000s ease-in-out 0s;
-}
-
-/* ========================================== ESTILOS DO MODAL DE RECUPERAÇÃO DE SENHA ========================================== */
-.forgot-pass {
-    display: block;
-    text-align: right;
+.voltar-inicio a {
+    color: #c8d6e6;
     font-size: 13px;
-    color: #e67e22; /* Laranja SERF */
     text-decoration: none;
-    margin: 15px 0;
-    font-weight: 600;
 }
 
-.forgot-pass:hover {
+.voltar-inicio a:hover {
+    color: #ffffff;
     text-decoration: underline;
 }
 
-/* Estrutura do Modal */
+/* ---------------- RECUPERAÇÃO DE SENHA ---------------- */
+
 .modal {
-    display: none;
     position: fixed;
+    inset: 0;
     z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
-    justify-content: center;
-    align-items: center;
 }
 
 .modal-content {
-    background-color: #ffffff;
+    position: relative;
+    width: 100%;
+    max-width: 400px;
     padding: 30px;
     border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    background-color: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
-    position: relative;
     animation: zoomIn 0.3s ease;
 }
 
@@ -300,52 +417,199 @@ input:-webkit-autofill:focus {
 
 .close-modal {
     position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #888;
+    top: 8px;
+    right: 8px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #667;
+    font-size: 26px;
+    line-height: 1;
 }
 
 .close-modal:hover {
+    background: #f1f4f8;
     color: #333;
 }
 
-.modal-content h3 {
-    color: #003366;
+.modal-content h2 {
     margin-bottom: 12px;
+    color: #003366;
     font-size: 22px;
 }
 
 .modal-content p {
-    font-size: 14px;
-    color: #666;
     margin-bottom: 20px;
+    color: #555;
+    font-size: 14px;
 }
 
 .modal-content input {
-    width: 100%;
-    padding: 12px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
+    padding: 12px;
+    font-size: 16px;
 }
 
 .btn-recuperar {
     width: 100%;
     padding: 12px;
-    background-color: #e67e22;
-    color: white;
     border: none;
     border-radius: 6px;
-    font-weight: bold;
+    background-color: var(--login-laranja);
+    color: #ffffff;
     font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
+    font-weight: 700;
+    transition: filter 0.2s;
 }
 
 .btn-recuperar:hover {
-    background-color: #ff8c00;
+    filter: brightness(1.06);
+}
+
+/* ==========================================================
+   CELULAR E TABLET ESTREITO
+   ========================================================== */
+
+@media (max-width: 768px) {
+    body {
+        justify-content: flex-start;
+        padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    }
+
+    .container {
+        width: 100%;
+        max-width: 440px;
+        min-height: 0;
+        margin-top: 4vh;
+        border-radius: 16px;
+    }
+
+    /* Sem painel deslizante: uma coluna, um formulário por vez */
+    .overlay-container {
+        display: none;
+    }
+
+    .form-container,
+    .container.right-panel-active .sign-in-container,
+    .container.right-panel-active .sign-up-container {
+        position: static;
+        width: 100%;
+        height: auto;
+        opacity: 1;
+        transform: none;
+        transition: none;
+        animation: none;
+    }
+
+    .sign-up-container,
+    .container.right-panel-active .sign-in-container {
+        display: none;
+    }
+
+    .container.right-panel-active .sign-up-container {
+        display: block;
+    }
+
+    .auth-abas {
+        display: flex;
+        gap: 4px;
+        margin: 16px 16px 0;
+        padding: 4px;
+        border-radius: 10px;
+        background: #eef2f6;
+    }
+
+    .auth-abas button {
+        flex: 1;
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--login-texto-2);
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .auth-abas button[aria-selected="true"] {
+        background: #ffffff;
+        color: var(--login-azul);
+        box-shadow: 0 1px 4px rgba(8, 43, 76, 0.12);
+    }
+
+    form {
+        justify-content: flex-start;
+        padding: 20px 20px 28px;
+    }
+
+    .logo {
+        width: 96px;
+        margin-bottom: 14px;
+    }
+
+    form h1 {
+        font-size: 22px;
+    }
+
+    .subtitle {
+        margin-bottom: 14px;
+    }
+
+    /* 16px: o iPhone não dá zoom ao tocar no campo */
+    input {
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+
+    .campo-senha input {
+        padding-right: 80px;
+    }
+
+    .mostrar-senha {
+        min-height: 40px;
+        font-size: 13px;
+    }
+
+    .forgot-pass {
+        align-self: flex-end;
+        margin: 6px 0 4px;
+        padding: 8px 0;
+        font-size: 14px;
+    }
+
+    .btn-solid {
+        width: 100%;
+        min-height: 50px;
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .dica {
+        font-size: 12px;
+    }
+
+    .shake-error {
+        animation-duration: 0.3s;
+    }
+}
+
+/* Telas baixas no desktop (notebook com zoom): o cartão não é cortado */
+@media (min-width: 769px) and (max-height: 700px) {
+    body {
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .form-container,
+    .overlay-container,
+    .overlay,
+    .overlay-panel,
+    .modal-content,
+    .shake-error {
+        transition: none !important;
+        animation: none !important;
+    }
 }

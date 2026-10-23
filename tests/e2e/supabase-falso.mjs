@@ -129,7 +129,9 @@ function ordenar(linhas, parametros) {
 // Retorna { chamadas, errosDaPagina } para as asserções.
 // funcoes: { nome: (corpo, tabelas) => resposta } — Edge Functions (/functions/v1/nome);
 //          lançar um erro com .status responde com esse status e { erro: mensagem }
-export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, falhas = {}, funcoes = {} }) {
+// login: { email, senha, usuario } → POST /auth/v1/token aceita só essa
+// combinação (devolve a sessão de "usuario"); qualquer outra é recusada.
+export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, falhas = {}, funcoes = {}, login = null }) {
     const chamadas = [];
     const errosDaPagina = [];
 
@@ -168,6 +170,12 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
         if (url.pathname.startsWith("/auth/v1/")) {
             chamadas.push({ tipo: "auth", caminho: url.pathname, metodo });
             if (url.pathname.endsWith("/logout")) return responder(204);
+            if (url.pathname.endsWith("/token") && url.searchParams.get("grant_type") === "password") {
+                const certo = login && corpo?.email === login.email && corpo?.password === login.senha;
+                return certo
+                    ? responder(200, sessaoFalsa(login.usuario))
+                    : responder(400, { code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" });
+            }
             return responder(200, usuario ? sessaoFalsa(usuario).user : {});
         }
 

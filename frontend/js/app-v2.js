@@ -6,7 +6,7 @@
 // 1. DEPENDÊNCIAS COMPARTILHADAS
 // O cliente (supabaseClient) é criado em supabase-client.js;
 // swalConfig e a máscara de CNPJ vêm de utils.js.
-const { swalConfig, aplicarMascaraCNPJ } = window.SERFUtils;
+const { swalConfig, aplicarMascaraCNPJ, escaparHTML } = window.SERFUtils;
 
 // 2. CAPTURA DOS ELEMENTOS DO HTML (DOM)
 const formCadastro = document.getElementById('formCadastro');
@@ -109,7 +109,6 @@ if (cnpjCadastro) {
 
                 // Insere a Razão Social no HTML
                 campoRazao.value = dadosEmpresa.razao_social;
-                console.log(`CNPJ Validado com Sucesso: ${dadosEmpresa.razao_social}`);
 
                 // Alerta elegante de sucesso na busca do CNPJ
                 Swal.fire({
@@ -173,6 +172,16 @@ if (formCadastro) {
             });
             return;
         }
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            tremerTela();
+            Swal.fire({ ...swalConfig, title: 'E-mail inválido', text: 'Confira o e-mail digitado.', icon: 'warning' });
+            return;
+        }
+        if (senha.length < 8) {
+            tremerTela();
+            Swal.fire({ ...swalConfig, title: 'Senha curta', text: 'Use uma senha com 8 ou mais caracteres.', icon: 'warning' });
+            return;
+        }
         if (senha !== confirmarSenha) {
             tremerTela();
             Swal.fire({
@@ -220,10 +229,10 @@ if (formCadastro) {
                 Swal.fire({
                     ...swalConfig,
                     title: 'Confirme seu E-mail',
-                    html: `Enviamos um link de confirmação para <strong>${email}</strong>.<br><br>Depois de confirmar, faça login para configurar o perfil da sua empresa.`,
+                    html: `Enviamos um link de confirmação para <strong>${escaparHTML(email)}</strong>.<br><br>Depois de confirmar, faça login para configurar o perfil da sua empresa.`,
                     icon: 'info'
                 }).then(() => {
-                    containerTela?.classList.remove('right-panel-active');
+                    window.SERFLogin?.mostrar(false);
                 });
                 return;
             }
@@ -357,33 +366,9 @@ if (formLogin) {
 // =========================================================================
 // FUNCIONALIDADE 5: FLUXO DE RECUPERAÇÃO DE SENHA (MODAL COM SWEETALERT2)
 // =========================================================================
-const modalRecuperar = document.getElementById('modalRecuperar');
-const linkEsqueceuSenha = document.getElementById('linkEsqueceuSenha');
-const closeModal = document.querySelector('.close-modal');
+// Abrir/fechar o diálogo (foco, Esc, clique fora): login-telas.js
 const formRecuperar = document.getElementById('formRecuperar');
 const emailRecuperar = document.getElementById('emailRecuperar');
-
-// Abre o Modal ao clicar no link de esqueceu senha
-if (linkEsqueceuSenha) {
-    linkEsqueceuSenha.addEventListener('click', (e) => {
-        e.preventDefault();
-        modalRecuperar.style.display = 'flex';
-    });
-}
-
-// Fecha o Modal ao clicar no "X"
-if (closeModal) {
-    closeModal.addEventListener('click', () => {
-        modalRecuperar.style.display = 'none';
-    });
-}
-
-// Fecha o Modal ao clicar fora do conteúdo
-window.addEventListener('click', (e) => {
-    if (e.target === modalRecuperar) {
-        modalRecuperar.style.display = 'none';
-    }
-});
 
 // Envio do formulário de recuperação
 if (formRecuperar) {
@@ -425,11 +410,11 @@ if (formRecuperar) {
             Swal.fire({
                 ...swalConfig,
                 title: 'Verifique seu E-mail',
-                html: `Se <strong>${email.replace(/[<>&"']/g, '')}</strong> estiver cadastrado no S.E.R.F., você receberá o link de redefinição em instantes.<br><br>Confira também a caixa de Spam ou Lixo Eletrônico.`,
+                html: `Se <strong>${escaparHTML(email)}</strong> estiver cadastrado no S.E.R.F., você receberá o link de redefinição em instantes.<br><br>Confira também a caixa de Spam ou Lixo Eletrônico.`,
                 icon: 'success'
             });
 
-            modalRecuperar.style.display = 'none';
+            window.SERFLogin?.fecharRecuperacao();
             formRecuperar.reset();
 
         } catch (error) {
