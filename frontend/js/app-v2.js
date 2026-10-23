@@ -48,8 +48,9 @@ function mensagemErroAuth(error) {
     if (msg.includes('Email not confirmed')) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
     if (msg.includes('User already registered')) return 'Já existe uma conta com este e-mail.';
     // O trigger do banco recusa CNPJ repetido; o Auth devolve um erro genérico.
-    if (msg.includes('Database error saving new user') || msg.includes('CNPJ_JA_CADASTRADO')) {
-        return 'Este CNPJ já está cadastrado no S.E.R.F.';
+    // [029] CNPJ repetido só é recusado quando já tem dono VERIFICADO
+    if (msg.includes('Database error saving new user') || msg.includes('CNPJ_JA_CADASTRADO') || msg.includes('CNPJ_JA_VERIFICADO')) {
+        return 'Este CNPJ já pertence a uma empresa verificada no S.E.R.F. Se ele é da sua empresa, fale com o suporte.';
     }
     if (msg.includes('rate limit')) return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.';
 

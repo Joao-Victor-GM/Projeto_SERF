@@ -52,7 +52,31 @@
 
     const excluirConta = confirmacao => chamarFuncao("excluir-conta", { confirmacao });
 
+    /* Posse do CNPJ (migration 029) */
+
+    // Situação da própria conta; null = sem a migration 029 ou sem empresa
+    async function identidade() {
+        return dadosOuErro(await cliente()
+            .from("identidade_empresas")
+            .select("cnpj, verificada_em, metodo, carencia_ate, contestada_em, codigo_expira_em, tentativas, email_destino")
+            .maybeSingle());
+    }
+
+    async function modoIdentidade() {
+        const linha = dadosOuErro(await cliente().from("configuracao_identidade").select("modo").maybeSingle());
+        return linha?.modo === "REAL" ? "REAL" : "DEMONSTRACAO";
+    }
+
+    // → { modo, destino (mascarado), codigo? (só na demonstração) }
+    const enviarCodigoIdentidade = () => chamarFuncao("verificar-cnpj");
+
+    // → "verificada" | "ja_verificada" | "incorreto:<restantes>"
+    async function confirmarIdentidade(codigo) {
+        return dadosOuErro(await cliente().rpc("confirmar_identidade", { p_codigo: codigo }));
+    }
+
     window.SERFDados.empresa = Object.freeze({
-        verificarCnpj, preferencias, salvarPreferencias, exportarDados, pedidosEmAndamento, excluirConta
+        verificarCnpj, preferencias, salvarPreferencias, exportarDados, pedidosEmAndamento, excluirConta,
+        identidade, modoIdentidade, enviarCodigoIdentidade, confirmarIdentidade
     });
 })();

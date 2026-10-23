@@ -280,6 +280,12 @@
                         </label>
                     </section>
 
+                    <!-- Posse do CNPJ (js/identidade.js → Edge Function verificar-cnpj, migration 029) -->
+                    <section class="perfil-card-selos identidade" id="identidade" aria-labelledby="identidadeTitulo" hidden>
+                        <h3 id="identidadeTitulo">Identidade da empresa</h3>
+                        <div id="identidadeConteudo" aria-live="polite"></div>
+                    </section>
+
                     <!-- LGPD (perfil.js → exportar_meus_dados / Edge Function excluir-conta, migration 025) -->
                     <section class="perfil-card-selos privacidade" id="privacidade">
                         <h3>Privacidade e dados</h3>
@@ -526,6 +532,7 @@
     <script src="../../js/ui/avisos.js" defer></script>
     <script src="../../js/dados/base.js" defer></script>
     <script src="../../js/dados/empresa.repositorio.js" defer></script>
+    <script src="../../js/identidade.js" defer></script>
     <script src="../../js/dados/pendencias.repositorio.js" defer></script>
     <!-- Contador de alertas do menu lateral -->
     <script src="../../js/alertas-contagem.js" defer></script>

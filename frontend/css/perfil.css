@@ -952,3 +952,97 @@
         grid-column: auto;
     }
 }
+
+/* ---------------- IDENTIDADE DA EMPRESA (posse do CNPJ, migration 029) ---------------- */
+
+.identidade p {
+    margin: 0 0 10px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.identidade .identidade-ok {
+    color: #15803D;
+    font-weight: 600;
+}
+
+.identidade-msg {
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+.identidade-msg.aviso {
+    background: var(--serf-tint-laranja);
+    color: var(--serf-texto-principal) !important;
+}
+
+.identidade-msg.erro {
+    background: var(--serf-tint-vermelho);
+    color: #B91C1C !important;
+}
+
+.identidade-dica {
+    font-size: 11px !important;
+}
+
+.identidade button {
+    cursor: pointer;
+}
+
+.identidade button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.identidade-codigo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--serf-borda);
+}
+
+.identidade-demo {
+    padding: 10px;
+    border: 1px dashed var(--serf-laranja);
+    border-radius: 6px;
+    background: var(--serf-tint-laranja);
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.identidade-demo code {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+}
+
+.identidade-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--serf-texto-secundario);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.identidade-campo input {
+    max-width: 180px;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--serf-borda-media);
+    border-radius: 6px;
+    background: var(--serf-superficie);
+    color: var(--serf-texto-principal);
+    font-size: 18px;
+    letter-spacing: 0.2em;
+}
+
+.identidade-campo input:focus-visible,
+.identidade button:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}

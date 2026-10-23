@@ -101,9 +101,11 @@ export async function erroDe(db, empresa, sql, parametros = []) {
 }
 
 // Cadastra (signUp + segmentação) uma empresa com o perfil indicado.
-export async function criarEmpresa(db, perfil, nome = `Empresa ${perfil} ${sequencia + 1}`) {
+// Por padrão já com a posse do CNPJ comprovada (migration 029), para os
+// testes de negócio; { verificada: false } testa a conta recém-criada.
+export async function criarEmpresa(db, perfil, nome = `Empresa ${perfil} ${sequencia + 1}`, { verificada = true, cnpj: cnpjFixo } = {}) {
     const uid = novoUuid();
-    const cnpj = novoCnpj();
+    const cnpj = cnpjFixo ?? novoCnpj();
 
     await db.query(
         "INSERT INTO auth.users (id, email, raw_user_meta_data) VALUES ($1, $2, $3)",
@@ -116,6 +118,11 @@ export async function criarEmpresa(db, perfil, nome = `Empresa ${perfil} ${seque
 
     const [ids] = await como(db, empresa,
         "SELECT public.meu_id_usuario() AS id_usuario, public.meu_id_fornecedor() AS id_fornecedor");
+
+    const temIdentidade = (await db.query("SELECT to_regclass('public.identidade_empresas') IS NOT NULL AS existe")).rows[0].existe;
+    if (verificada && temIdentidade) {
+        await db.query("UPDATE public.identidade_empresas SET verificada_em = NOW(), metodo = 'TESTE' WHERE auth_user_id = $1", [uid]);
+    }
 
     return { ...empresa, idUsuario: ids.id_usuario, idFornecedor: ids.id_fornecedor };
 }

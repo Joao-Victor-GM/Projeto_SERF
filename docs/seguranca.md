@@ -93,16 +93,10 @@ versionada (histórico verificado).
 
 ## Riscos que continuam (decisões de negócio)
 
-- **Posse do CNPJ não é comprovada.** Qualquer pessoa pode se cadastrar com
-  o CNPJ de outra empresa: os dados da Receita são públicos e o selo de
-  "homologado" só confere se razão social e situação batem. Também dá para
-  "ocupar" o CNPJ antes do dono. Mitigações:
-  - exigir e-mail com o domínio do site da empresa;
-  - aprovação manual com documento;
-  - certificado e-CNPJ (mais forte e mais caro).
-  
-  Até lá, o selo "homologado" não deve ser apresentado como garantia de
-  identidade.
+- **Posse do CNPJ — resolvida na migration 029, mas em modo DEMONSTRAÇÃO
+  por padrão.** Ver "Posse do CNPJ" abaixo. Enquanto o modo for
+  `DEMONSTRACAO`, o código aparece na tela de quem pede: serve para mostrar
+  o fluxo, **não** prova nada. Para valer, mude para `REAL`.
 - **Sem limite de frequência próprio** em mensagens, produtos e cotações (as
   cotações têm teto de 20 abertas). Um usuário abusivo pode gerar volume.
   Mitigações:
@@ -113,6 +107,50 @@ versionada (histórico verificado).
   aos poucos.
 - **Pix e NF-e reais** foram testados contra simulações. Valide em sandbox e
   homologação antes de ligar.
+
+## Posse do CNPJ (migration 029)
+
+Antes, o CNPJ era só declarado: os dados da Receita são públicos, então
+qualquer um se passava por outra empresa, e o primeiro a cadastrar
+"ocupava" o CNPJ — o dono não conseguia mais entrar.
+
+**Como funciona agora:**
+
+1. Perfil → **Identidade da empresa** → "Enviar código". A Edge Function
+   `verificar-cnpj` consulta o CNPJ na BrasilAPI e manda um código de 6
+   dígitos para o **e-mail que a Receita tem do CNPJ** (não o que a pessoa
+   digitou). O e-mail diz quem pediu; quem não reconhece só ignora.
+2. A pessoa digita o código (`confirmar_identidade`). O banco guarda só o
+   **hash**; o código vale 30 min, aceita 5 tentativas (a 5ª errada invalida
+   até o código certo) e no máximo 3 envios por hora. Depois de enviado, o
+   código é apagado da fila de e-mails.
+3. **CNPJ único só entre contas verificadas.** O dono verdadeiro pode se
+   cadastrar mesmo que alguém tenha ocupado o CNPJ; ao verificar, a conta
+   ocupante perde a carência e não consegue mais verificar. Depois disso,
+   ninguém mais cadastra o CNPJ (`CNPJ_JA_VERIFICADO`).
+4. **Vender exige identidade:** sem verificação, a empresa não recebe
+   pedidos nem envia propostas (compra normalmente). Contas que existiam
+   antes da 029 têm **30 dias de carência**.
+5. **Selo "homologado"** = CNPJ ativo na Receita **e** posse comprovada.
+
+**Modos** (`configuracao_identidade.modo`, só pelo SQL Editor):
+
+| Modo | Para onde vai o código | Use para |
+|---|---|---|
+| `DEMONSTRACAO` (padrão) | aparece na tela, com aviso "em produção iria para o e-mail da Receita" | apresentações (não manda e-mail para empresas reais) |
+| `REAL` | só para o e-mail da Receita | produção: `UPDATE public.configuracao_identidade SET modo = 'REAL';` |
+
+O modo `REAL` precisa da função `enviar-emails` configurada (Resend).
+
+**Limites conhecidos:**
+- CNPJ sem e-mail na Receita: a tela pede para atualizar o e-mail na
+  Receita (pelo contador) ou falar com o suporte. Verificação por documentos
+  (contrato social + quadro de sócios, com aprovação manual) é o próximo
+  passo, se o negócio seguir.
+- O e-mail da Receita às vezes é o do contador: ele repassa o código, o que
+  é aceitável (é alguém de confiança da empresa).
+- Fornecedor que ligar a NF-e real já provou a posse com o certificado A1 na
+  Focus: dá para verificá-lo automaticamente no futuro.
 
 ## Como manter
 

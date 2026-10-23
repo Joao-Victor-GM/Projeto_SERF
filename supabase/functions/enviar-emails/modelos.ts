@@ -35,6 +35,7 @@ interface Conteudo {
     paragrafos: string[];      // texto simples (escapado na versão HTML)
     acao: string;
     caminho: string;           // página do app (ex.: "home.html?pedido=12")
+    rodape?: string;           // quando quem recebe não é usuário do S.E.R.F.
 }
 
 function conteudo(tipo: string, d: Record<string, any>): Conteudo {
@@ -155,6 +156,23 @@ function conteudo(tipo: string, d: Record<string, any>): Conteudo {
                 acao: "Comparar propostas",
                 caminho: `cotacoes.html?cotacao=${d.id_cotacao}`
             };
+        case "VERIFICACAO_CNPJ": {
+            const cnpj = String(d.cnpj ?? "").replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+            return {
+                assunto: "Código para confirmar o CNPJ da sua empresa no S.E.R.F.",
+                titulo: "Confirme que esta empresa é sua",
+                paragrafos: [
+                    `Alguém (${d.solicitante}) pediu para comprovar que representa ${d.razao_social || "a empresa"} (CNPJ ${cnpj}) no S.E.R.F., uma rede de compras e vendas entre empresas.`,
+                    "Este e-mail foi enviado para o contato do CNPJ na Receita Federal. Se o pedido é da sua empresa, repasse o código:",
+                    `Código: ${d.codigo}`,
+                    "Ele vale por 30 minutos.",
+                    "Não reconhece este pedido? Ignore este e-mail: sem o código, nada é vinculado à sua empresa."
+                ],
+                acao: "Abrir o S.E.R.F.",
+                caminho: "perfil.html",
+                rodape: "Você recebeu este e-mail por ser o contato deste CNPJ na Receita Federal. Não haverá outros envios sem um novo pedido."
+            };
+        }
         default:
             return { assunto: "Atualização no S.E.R.F.", titulo: "Você tem uma atualização", paragrafos: [], acao: "Abrir o S.E.R.F.", caminho: "home.html" };
     }
@@ -169,12 +187,14 @@ export function montarEmail(tipo: string, dados: Record<string, any>, urlApp: st
     const c = conteudo(tipo, dados || {});
     const link = `${urlApp.replace(/\/$/, "")}/pages/app/${c.caminho}`;
 
-    const rodapeTexto = linkDescadastro
-        ? `${RODAPE_DESCADASTRO} Parar de receber: ${linkDescadastro}`
-        : RODAPE;
-    const rodapeHtml = linkDescadastro
-        ? `${escapar(RODAPE_DESCADASTRO)} <a href="${escapar(linkDescadastro)}" style="color:#66788A">Parar de receber estes e-mails</a>`
-        : escapar(RODAPE);
+    const rodapeTexto = c.rodape
+        ? c.rodape
+        : linkDescadastro ? `${RODAPE_DESCADASTRO} Parar de receber: ${linkDescadastro}` : RODAPE;
+    const rodapeHtml = c.rodape
+        ? escapar(c.rodape)
+        : linkDescadastro
+            ? `${escapar(RODAPE_DESCADASTRO)} <a href="${escapar(linkDescadastro)}" style="color:#66788A">Parar de receber estes e-mails</a>`
+            : escapar(RODAPE);
 
     const texto = [c.titulo, "", ...c.paragrafos, "", `${c.acao}: ${link}`, "", rodapeTexto].join("\n");
 

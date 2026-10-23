@@ -38,7 +38,8 @@ BEGIN
        AND p.proname IN ('anonimizar_conta', 'pedidos_em_andamento_da_conta', 'registrar_cobranca_pix',
                          'confirmar_pagamento_provedor', 'registrar_nfe_enviada', 'atualizar_nfe_provedor',
                          'reservar_emails', 'notificar', 'enfileirar_email', 'enfileirar_somente_email',
-                         'limpar_notificacoes_antigas', 'pagamento_libera_envio')
+                         'limpar_notificacoes_antigas', 'pagamento_libera_envio',
+                         'registrar_codigo_identidade', 'identidade_libera_venda')
        AND (has_function_privilege('anon', p.oid, 'EXECUTE') OR has_function_privilege('authenticated', p.oid, 'EXECUTE'));
 
     IF v_lista IS NOT NULL THEN

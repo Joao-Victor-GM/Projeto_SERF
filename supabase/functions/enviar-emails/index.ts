@@ -63,7 +63,9 @@ Deno.serve(async (req: Request) => {
         let atualizacao: Record<string, unknown>;
 
         try {
-            const links = segredoDescadastro
+            // Verificação de CNPJ vai para o contato da Receita, que não é
+            // usuário: sem link de descadastro (o token seria de quem pediu)
+            const links = segredoDescadastro && n.tipo !== "VERIFICACAO_CNPJ"
                 ? linksDeDescadastro(await gerarToken(n.auth_user_id, segredoDescadastro), urlApp, url)
                 : null;
             const email = montarEmail(n.tipo, n.dados, urlApp, links?.pagina);
@@ -85,6 +87,8 @@ Deno.serve(async (req: Request) => {
             if (!resposta.ok) throw new Error(`Resend ${resposta.status}: ${(await resposta.text()).slice(0, 300)}`);
 
             atualizacao = { enviada_em: new Date().toISOString(), ultimo_erro: null };
+            // O código de verificação não fica guardado na fila depois de enviado
+            if (n.tipo === "VERIFICACAO_CNPJ") atualizacao.dados = { codigo_removido: true };
             enviados += 1;
         } catch (erro) {
             atualizacao = { tentativas: (n.tentativas || 0) + 1, reservada_em: null, ultimo_erro: String(erro).slice(0, 500) };

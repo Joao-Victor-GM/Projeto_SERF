@@ -21,6 +21,21 @@ export interface Database {
                 };
                 Relationships: [];
             };
+            configuracao_identidade: {
+                Row: {
+                    id: boolean;
+                    modo: string;
+                };
+                Insert: {
+                    id?: boolean;
+                    modo?: string;
+                };
+                Update: {
+                    id?: boolean;
+                    modo?: string;
+                };
+                Relationships: [];
+            };
             configuracao_nfe: {
                 Row: {
                     id: boolean;
@@ -177,6 +192,48 @@ export interface Database {
                     homologacao_motivo?: string | null;
                     homologacao_em?: string | null;
                     regime_tributario?: string;
+                };
+                Relationships: [];
+            };
+            identidade_empresas: {
+                Row: {
+                    auth_user_id: string;
+                    cnpj: string;
+                    verificada_em: string | null;
+                    metodo: string | null;
+                    carencia_ate: string | null;
+                    contestada_em: string | null;
+                    codigo_hash: string | null;
+                    codigo_expira_em: string | null;
+                    tentativas: number;
+                    email_destino: string | null;
+                    envios: Json;
+                };
+                Insert: {
+                    auth_user_id: string;
+                    cnpj: string;
+                    verificada_em?: string | null;
+                    metodo?: string | null;
+                    carencia_ate?: string | null;
+                    contestada_em?: string | null;
+                    codigo_hash?: string | null;
+                    codigo_expira_em?: string | null;
+                    tentativas?: number;
+                    email_destino?: string | null;
+                    envios?: Json;
+                };
+                Update: {
+                    auth_user_id?: string;
+                    cnpj?: string;
+                    verificada_em?: string | null;
+                    metodo?: string | null;
+                    carencia_ate?: string | null;
+                    contestada_em?: string | null;
+                    codigo_hash?: string | null;
+                    codigo_expira_em?: string | null;
+                    tentativas?: number;
+                    email_destino?: string | null;
+                    envios?: Json;
                 };
                 Relationships: [];
             };
@@ -866,6 +923,10 @@ export interface Database {
                 Args: { p_texto: string };
                 Returns: string;
             };
+            confirmar_identidade: {
+                Args: { p_codigo: string };
+                Returns: string;
+            };
             confirmar_pagamento_simulado: {
                 Args: { p_id_pedido: number; p_cartao_final?: string; p_cartao_bandeira?: string };
                 Returns: Database["public"]["Tables"]["pagamentos"]["Row"];
@@ -912,6 +973,10 @@ export interface Database {
             };
             gerar_pix_simulado: {
                 Args: { p_valor: number; p_id_pedido: number };
+                Returns: string;
+            };
+            hash_codigo_identidade: {
+                Args: { p_codigo: string; p_uid: string };
                 Returns: string;
             };
             ids_meus_compradores: {
