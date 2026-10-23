@@ -64,10 +64,13 @@ versionada (histórico verificado).
 | Baixa | Logout deixava CNPJ/e-mail da empresa no `localStorage`. | limpo ao sair e ao excluir a conta | — |
 | Baixa | Senha mínima de 6 (redefinição) / sem mínimo (cadastro). | 8 no front; **configure 8 no Supabase também** (abaixo) | `login.spec.mjs` |
 | Baixa | Segredo do agendador comparado com `!==` (vaza por tempo). | comparação em tempo constante | — |
+| Média | Sem limite de frequência: um usuário podia inundar o chat, cadastrar milhares de produtos ou abrir/cancelar cotações em série (cada uma dispara avisos para fornecedores). | Migration **030**: 20 mensagens/min, 60 produtos/h, 10 cotações/h; homologação de CNPJ no máximo a cada 2 min | `tests/banco/limites.test.mjs` |
+| Média | Relatórios, histórico e painel de empresas liam no máximo 1.000 linhas (corte silencioso da API): totais errados para quem tem muitos pedidos. | `buscarTodasAsPaginas` (páginas ordenadas com desempate) | `tests/unit/utils.test.mjs` |
+| Baixa | Erros técnicos do banco apareciam crus para o usuário em ~15 telas. | todos passam por `mensagemDeErro` | — |
 
 ## Ao publicar (checklist)
 
-**Banco:** aplique as migrations até a **028**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
+**Banco:** aplique as migrations até a **030**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
 
 **Hospedagem (Cloudflare Pages ou Netlify):**
 - Publicar a pasta **`frontend/`**. O `_headers` e o `_redirects` já estão nela; publicar a raiz do repositório exporia `tests/`, `docs/` e o código das funções.
@@ -97,11 +100,8 @@ versionada (histórico verificado).
   por padrão.** Ver "Posse do CNPJ" abaixo. Enquanto o modo for
   `DEMONSTRACAO`, o código aparece na tela de quem pede: serve para mostrar
   o fluxo, **não** prova nada. Para valer, mude para `REAL`.
-- **Sem limite de frequência próprio** em mensagens, produtos e cotações (as
-  cotações têm teto de 20 abertas). Um usuário abusivo pode gerar volume.
-  Mitigações:
-  - CAPTCHA no cadastro;
-  - limites por usuário no banco, se aparecer abuso.
+- **Limites de frequência existem no banco (030)**, mas por usuário: quem
+  cria muitas contas contorna. Ligue o CAPTCHA no cadastro (checklist acima).
 - **`style-src 'unsafe-inline'`** continua na CSP, porque vários componentes
   usam `style=`. É risco baixo (CSS não executa script) e pode ser removido
   aos poucos.

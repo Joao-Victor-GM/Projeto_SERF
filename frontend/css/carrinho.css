@@ -18,7 +18,7 @@
     padding: 12px 18px;
     border: 0;
     border-radius: 999px;
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     box-shadow: 0 10px 24px rgba(244, 122, 32, 0.35);
     color: #FFFFFF;
     font: inherit;
@@ -35,7 +35,7 @@
     padding: 0 6px;
     border-radius: 999px;
     background: #FFFFFF;
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-size: 12px;
 }
 

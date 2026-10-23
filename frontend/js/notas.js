@@ -316,7 +316,7 @@
             await tarefa();
         } catch (erro) {
             console.error("[SERF:NF-e]", erro);
-            Swal.fire({ ...swalConfig, title: "Não foi possível concluir", text: erro.message, icon: "error" });
+            Swal.fire({ ...swalConfig, title: "Não foi possível concluir", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
         } finally {
             botao.disabled = false;
             botao.textContent = original;

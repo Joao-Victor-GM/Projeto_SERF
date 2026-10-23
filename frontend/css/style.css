@@ -11,7 +11,8 @@
     --login-azul: #1d2d5c;
     --login-fundo: #001f3f;
     --login-laranja: #f77f00;
-    --login-laranja-texto: #c25e00;     /* laranja com contraste AA sobre branco */
+    --login-laranja-acao: #b4570b;      /* fundo de botão com texto branco (4,9:1) */
+    --login-laranja-texto: #ad5309;     /* laranja com contraste AA sobre branco */
     --login-texto-2: #5b6b7f;
     --login-campo: #f4f7f6;
     --login-borda: #d5dde6;
@@ -203,7 +204,7 @@ button {
 
 .btn-solid {
     border: none;
-    background-color: var(--login-laranja);
+    background-color: var(--login-laranja-acao);
     color: #ffffff;
 }
 
@@ -457,7 +458,7 @@ a:focus-visible {
     padding: 12px;
     border: none;
     border-radius: 6px;
-    background-color: var(--login-laranja);
+    background-color: var(--login-laranja-acao);
     color: #ffffff;
     font-size: 16px;
     font-weight: 700;

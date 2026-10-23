@@ -138,7 +138,7 @@
     --viz-cinza: #5E6B7A;
     --viz-grade: #1E2D40;
     --viz-base: #34465E;
-    --viz-texto-mudo: #7D8FA5;
+    --viz-texto-mudo: var(--serf-texto-mudo);
     --status-delta-bom: #0ca30c;
 }
 

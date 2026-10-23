@@ -17,7 +17,11 @@
     --serf-marinho: #082B4C;          /* fundo da barra lateral e botões ativos (fixo nos dois temas) */
     --serf-azul-principal: #082B4C;   /* títulos e texto de destaque */
     --serf-azul-interacao: #1268B3;   /* links e foco */
-    --serf-laranja: #F47A20;
+    --serf-laranja: #F47A20;          /* marca: ícones, bordas, destaques (não para texto) */
+    --serf-laranja-texto: #AD5309;    /* texto laranja: contraste AA (≥4,5) sobre branco e cinzas claros */
+    --serf-laranja-acao: #B4570B;     /* fundo de botão com texto branco (4,9:1) */
+    --serf-laranja-acao-hover: #974808;
+    --serf-verde-texto: #15803D;
 
     /* Superfícies */
     --serf-fundo: #F7F9FC;            /* plano da página */
@@ -35,8 +39,8 @@
 
     /* Texto */
     --serf-texto-principal: #172536;
-    --serf-texto-secundario: #66788A;
-    --serf-texto-mudo: #8B9AA8;
+    --serf-texto-secundario: #526476; /* ≥5,4:1 em todas as superfícies */
+    --serf-texto-mudo: #5C6E80;       /* ≥4,6:1 (WCAG AA) */
 
     /* Tons de status (fundos suaves de selos) */
     --serf-tint-verde: #DCFCE7;
@@ -67,7 +71,12 @@
 
     --serf-texto-principal: #E6EDF5;
     --serf-texto-secundario: #A3B3C6;
-    --serf-texto-mudo: #7D8FA5;
+    --serf-texto-mudo: #93A5BA;
+
+    --serf-laranja-texto: #F7934A;
+    --serf-laranja-acao: #B4570B;
+    --serf-laranja-acao-hover: #C9610D;
+    --serf-verde-texto: #4ADE80;
 
     --serf-tint-verde: rgba(12, 163, 12, 0.16);
     --serf-tint-vermelho: rgba(220, 38, 38, 0.18);

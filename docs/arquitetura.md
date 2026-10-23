@@ -591,7 +591,9 @@ fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
 024 (cotações), 025 (LGPD) e 026 (Pix real), 027 (NF-e real; ambos desligados por padrão) e **028
 (correção de segurança crítica: escrita pelas views — aplique o quanto
 antes; ver `docs/seguranca.md`)** e 029 (posse do CNPJ; modo demonstração
-por padrão; contas existentes ganham 30 dias para verificar). Sem 018–027
+por padrão; contas existentes ganham 30 dias para verificar) e 030 (índices
+que faltavam, busca do catálogo por trigramas e limites de frequência em
+chat, produtos e cotações). Sem 018–027
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas

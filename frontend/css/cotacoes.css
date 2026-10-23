@@ -173,7 +173,7 @@
 }
 
 .cot-categoria {
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;

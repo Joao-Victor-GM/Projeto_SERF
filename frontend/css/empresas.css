@@ -187,13 +187,13 @@
 
 .emp-favorito:hover {
     border-color: var(--serf-laranja);
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
 }
 
 .emp-favorito[aria-pressed="true"] {
     border-color: var(--serf-laranja);
     background: var(--serf-tint-laranja);
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
 }
 
 .emp-favorito:active {
@@ -396,7 +396,7 @@
 }
 
 .emp-produto-preco {
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-size: 17px;
     font-weight: 800;
 }

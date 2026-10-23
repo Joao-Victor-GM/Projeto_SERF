@@ -67,7 +67,8 @@
     }
 
     async function carregarDiretorio(client) {
-        const resposta = await client.from("fornecedores_vitrine").select("*");
+        const { buscarTodasAsPaginas } = window.SERFUtils;
+        const resposta = await buscarTodasAsPaginas(() => client.from("fornecedores_vitrine").select("*").order("id_fornecedor"));
 
         if (!resposta.error) {
             fornecedores = resposta.data || [];
@@ -79,9 +80,10 @@
         console.warn("[SERF:Empresas] Vitrine indisponível, usando dados públicos:", resposta.error.message);
         vitrineCompleta = false;
 
-        const basico = await client
+        const basico = await buscarTodasAsPaginas(() => client
             .from("fornecedores_publicos")
-            .select("id_fornecedor, razao_social, nome_fantasia, cidade, estado, nicho");
+            .select("id_fornecedor, razao_social, nome_fantasia, cidade, estado, nicho")
+            .order("id_fornecedor"));
 
         if (basico.error) throw basico.error;
 
@@ -106,20 +108,23 @@
     async function carregarPedidos(client) {
         // View pedidos_painel (migration 014): uma linha por pedido, com nomes
         // e os papéis da empresa logada já calculados pelo banco.
-        const { data, error } = await client
+        const { buscarTodasAsPaginas } = window.SERFUtils;
+        const { data, error } = await buscarTodasAsPaginas(() => client
             .from("pedidos_painel")
             .select(`
                 id_pedido, id_usuario, id_fornecedor, valor_total, status_pedido, data_pedido,
                 fornecedor_razao_social, fornecedor_nome_fantasia, fornecedor_cidade, fornecedor_estado,
                 comprador_nome, sou_comprador, sou_fornecedor
             `)
-            .order("data_pedido", { ascending: false });
+            .order("data_pedido", { ascending: false })
+            .order("id_pedido", { ascending: false }));
 
         if (error) throw error;
         pedidos = data || [];
 
         // Pagamentos (migration 009): opcional
-        const pagamentos = await client.from("pagamentos").select("id_pedido, status, metodo, valor, vencimento");
+        const pagamentos = await buscarTodasAsPaginas(() => client
+            .from("pagamentos").select("id_pedido, status, metodo, valor, vencimento").order("id_pedido"));
         pagamentosPorPedido = new Map((pagamentos.data || []).map(p => [p.id_pedido, p]));
     }
 
@@ -302,7 +307,7 @@
             renderizarDiretorio();
         } catch (erro) {
             console.error("[SERF:Empresas] Falha ao favoritar:", erro);
-            Swal.fire({ ...window.SERFUtils.swalConfig, title: "Não foi possível salvar", text: erro.message, icon: "error" });
+            Swal.fire({ ...window.SERFUtils.swalConfig, title: "Não foi possível salvar", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
             botao.disabled = false;
         }
     }
@@ -338,7 +343,7 @@
             .order("nome_produto");
 
         if (error) {
-            corpo.innerHTML = `<p class="rel-vazio">Não foi possível carregar os produtos: ${escaparHTML(error.message)}</p>`;
+            corpo.innerHTML = `<p class="rel-vazio">Não foi possível carregar os produtos: ${escaparHTML(window.SERFUtils.mensagemDeErro(error))}</p>`;
             return;
         }
 
@@ -621,7 +626,7 @@
             renderizarParceiros();
         } catch (erro) {
             console.error("[SERF:Empresas] Falha ao carregar:", erro);
-            el("gradeFornecedores").innerHTML = `<p class="rel-vazio">Não foi possível carregar as empresas: ${escaparHTML(erro.message)}</p>`;
+            el("gradeFornecedores").innerHTML = `<p class="rel-vazio">Não foi possível carregar as empresas: ${escaparHTML(window.SERFUtils.mensagemDeErro(erro))}</p>`;
             el("listaParceiros").innerHTML = "";
         }
     }

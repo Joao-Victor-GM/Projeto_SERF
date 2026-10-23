@@ -127,7 +127,7 @@ if (cnpjCadastro) {
                 Swal.fire({
                     ...swalConfig,
                     title: 'Erro na Validação',
-                    text: error.message,
+                    text: window.SERFUtils.mensagemDeErro(error),
                     icon: 'error',
                     confirmButtonColor: '#d33'
                 });

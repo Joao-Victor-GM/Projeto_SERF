@@ -184,7 +184,7 @@
         }
 
         raiz.hidden = false;
-        estado.canal = repositorio().assinarMudancas(agendarRecarga);
+        estado.canal = await repositorio().assinarMudancas(agendarRecarga);
 
         // Ao voltar para a aba (o Realtime pode ter caído no meio tempo)
         document.addEventListener("visibilitychange", () => { if (!document.hidden) agendarRecarga(); });

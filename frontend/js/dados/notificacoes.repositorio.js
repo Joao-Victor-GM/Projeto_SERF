@@ -32,9 +32,18 @@
         return dadosOuErro(await cliente().rpc("marcar_notificacoes_lidas")) || 0;
     }
 
-    // aoMudar() a cada notificação nova ou agrupada (o RLS filtra o usuário)
-    function assinarMudancas(aoMudar) {
-        return assinar({ canal: "serf-notificacoes", tabela: "notificacoes", aoReceber: aoMudar });
+    // aoMudar() a cada notificação nova ou agrupada. O filtro por usuário
+    // faz o servidor do Realtime descartar as dos outros antes de checar o
+    // RLS de cada uma (sem ele, cada INSERT era avaliado para todo conectado).
+    async function assinarMudancas(aoMudar) {
+        const { data } = await cliente().auth.getSession();
+        const uid = data?.session?.user?.id;
+        return assinar({
+            canal: "serf-notificacoes",
+            tabela: "notificacoes",
+            filtro: uid ? `auth_user_id=eq.${uid}` : undefined,
+            aoReceber: aoMudar
+        });
     }
 
     window.SERFDados.notificacoes = Object.freeze({ listar, marcarLida, marcarTodasLidas, assinarMudancas, cancelarAssinatura });

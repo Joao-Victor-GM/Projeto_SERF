@@ -330,7 +330,7 @@
             await tarefa();
         } catch (erro) {
             console.error("[SERF:Pagamentos]", erro);
-            Swal.fire({ ...swalConfig, title: "Não foi possível concluir", text: erro.message, icon: "error" });
+            Swal.fire({ ...swalConfig, title: "Não foi possível concluir", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
         } finally {
             botao.disabled = false;
         }
@@ -493,7 +493,7 @@
             return pagamento;
         } catch (erro) {
             console.error("[SERF:Pagamentos] Falha ao gerar cobrança:", erro);
-            Swal.fire({ ...swalConfig, title: "Não foi possível gerar a cobrança", text: erro.message, icon: "error" });
+            Swal.fire({ ...swalConfig, title: "Não foi possível gerar a cobrança", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
             return null;
         } finally {
             botao.disabled = false;
@@ -516,7 +516,7 @@
             sucesso("Pagamento aprovado!", pagamento);
         } catch (erro) {
             console.error("[SERF:Pagamentos] Pagamento não confirmado:", erro);
-            Swal.fire({ ...swalConfig, title: "Pagamento não aprovado", text: erro.message, icon: "error" });
+            Swal.fire({ ...swalConfig, title: "Pagamento não aprovado", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
         } finally {
             botao.disabled = false;
             botao.textContent = textoOriginal;
@@ -594,7 +594,7 @@
                     painelPixReal(painel, gerado);
                 } catch (erro) {
                     console.error("[SERF:Pagamentos] Pix real:", erro);
-                    Swal.fire({ ...swalConfig, title: "Não foi possível gerar o Pix", text: erro.message, icon: "error" });
+                    Swal.fire({ ...swalConfig, title: "Não foi possível gerar o Pix", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
                     botao.disabled = false;
                 }
             };

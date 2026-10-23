@@ -160,10 +160,10 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             return rota.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } });
         }
 
-        const responder = (status, dados) => rota.fulfill({
+        const responder = (status, dados, faixa = "0-0/*") => rota.fulfill({
             status,
             contentType: "application/json",
-            headers: { "access-control-allow-origin": "*", "content-range": "0-0/*" },
+            headers: { "access-control-allow-origin": "*", "access-control-expose-headers": "content-range", "content-range": faixa },
             body: dados === undefined ? "" : JSON.stringify(dados)
         });
 
@@ -210,7 +210,11 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             const tabela = tabelaMatch[1];
             const parametros = [...url.searchParams.entries()];
             const linhas = tabelas[tabela] || [];
-            const filtradas = ordenar(aplicarFiltros(linhas, parametros), parametros);
+            const ordenadas = ordenar(aplicarFiltros(linhas, parametros), parametros);
+            // offset/limit (.range() e .limit() do supabase-js) só no GET
+            const offset = Number(url.searchParams.get("offset") || 0);
+            const limite = url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : Infinity;
+            const filtradas = metodo === "GET" ? ordenadas.slice(offset, offset + limite) : ordenadas;
 
             chamadas.push({ tipo: "rest", tabela, metodo, parametros, corpo });
 
@@ -224,7 +228,9 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
                         ? responder(200, filtradas[0])
                         : responder(406, { code: "PGRST116", message: "JSON object requested, multiple (or no) rows returned" });
                 }
-                return responder(200, filtradas);
+                // count: 'exact' → total no content-range ("0-23/130")
+                const fim = offset + Math.max(filtradas.length - 1, 0);
+                return responder(200, filtradas, `${offset}-${fim}/${ordenadas.length}`);
             }
 
             if (metodo === "POST") {

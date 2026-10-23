@@ -76,18 +76,11 @@ test("Home com 3.000 pedidos e 2.000 mensagens", async ({ page }) => {
     // Soma o trabalho síncrono das 10 teclas + o que roda depois (debounce),
     // para comparar de forma justa com a versão sem debounce.
     await medir(page, "busca: digitar 10 caracteres (10 eventos)", async () => {
+        // A Home é ES module: as funções internas vêm do próprio módulo
+        // (mesma URL = mesma instância que a página está usando)
+        const { atualizarListagem } = await import(new URL("../../js/home/dashboard.js", location.href).href);
         const campo = document.getElementById("buscaGlobal");
         const esperar = ms => new Promise(resolver => setTimeout(resolver, ms));
-        let adiado = 0;
-
-        const original = typeof atualizarListagem === "function" ? atualizarListagem : null;
-        if (original) {
-            atualizarListagem = (...args) => {
-                const t = performance.now();
-                original(...args);
-                adiado += performance.now() - t;
-            };
-        }
 
         const t0 = performance.now();
         for (const parcial of ["p", "pr", "pro", "prod", "produ", "produt", "produto", "produto ", "produto 1", "produto 12"]) {
@@ -97,12 +90,16 @@ test("Home com 3.000 pedidos e 2.000 mensagens", async ({ page }) => {
         const sincrono = performance.now() - t0;
         await esperar(400);
 
+        // o trabalho que o debounce faz uma vez, com o termo final
+        const t1 = performance.now();
+        atualizarListagem();
+        const adiado = performance.now() - t1;
+
         campo.value = "";
         campo.dispatchEvent(new Event("input", { bubbles: true }));
         await esperar(400);
-        if (original) atualizarListagem = original;
 
-        return sincrono + adiado / 2; // metade = só a busca (a outra é limpar)
+        return sincrono + adiado;
     });
 
     await medir(page, "filtro de status (1 troca)", () => {
@@ -120,7 +117,9 @@ test("Home com 3.000 pedidos e 2.000 mensagens", async ({ page }) => {
         return performance.now() - t0;
     });
 
-    await medir(page, "evento Realtime: status de 1 pedido mudou", () => {
+    await medir(page, "evento Realtime: status de 1 pedido mudou", async () => {
+        const { pedidosCache, aplicarStatusPedido } = await import(new URL("../../js/home/estado.js", location.href).href);
+        const { atualizarDashboard } = await import(new URL("../../js/home/dashboard.js", location.href).href);
         const t0 = performance.now();
         // mesmo caminho do canal "pedidos-painel" (tempo-real.js)
         const pedido = pedidosCache.find(item => item.id === 10001);
@@ -129,7 +128,9 @@ test("Home com 3.000 pedidos e 2.000 mensagens", async ({ page }) => {
         return performance.now() - t0;
     });
 
-    await medir(page, "chat: 300 mensagens chegando uma a uma", () => {
+    await medir(page, "chat: 300 mensagens chegando uma a uma", async () => {
+        const { pedidosCache } = await import(new URL("../../js/home/estado.js", location.href).href);
+        const { chat, adicionarMensagens } = await import(new URL("../../js/home/chat.js", location.href).href);
         chat.pedido = pedidosCache.find(item => item.id === 10000);
         chat.mensagens = new Map();
         const t0 = performance.now();

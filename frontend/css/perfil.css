@@ -55,7 +55,7 @@
 }
 
 .perfil-breadcrumb strong {
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-weight: 700;
 }
 
@@ -185,7 +185,7 @@
     padding: 3px 9px;
     border-radius: 20px;
     background: rgba(21, 128, 61, 0.1);
-    color: var(--status-concluido);
+    color: #166534;
     font-size: 10px;
     font-weight: 700;
 }
@@ -208,7 +208,7 @@
 .meta-chip-destaque {
     border-color: rgba(244, 122, 32, 0.3);
     background: var(--perfil-laranja-suave);
-    color: #C25E12;
+    color: var(--serf-laranja-texto);
     font-weight: 700;
 }
 
@@ -469,7 +469,7 @@
 }
 
 .profile-tab-btn.active .tab-badge-count {
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
 }
 
@@ -759,14 +759,16 @@
    ========================================================== */
 
 @media (max-width: 1100px) {
+    /* minmax(0, …): sem isso um filho largo (tabela, texto longo) estica a
+       coluna além da tela no celular */
     .perfil-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .perfil-coluna-lateral {
         position: static;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -800,7 +802,7 @@
     .perfil-coluna-lateral,
     .form-two-cols,
     .form-three-cols {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .order-card-body {

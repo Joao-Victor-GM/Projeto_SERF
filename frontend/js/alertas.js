@@ -157,7 +157,7 @@
         } catch (erro) {
             console.error("[SERF:Alertas] Falha ao carregar alertas:", erro);
             estado.carregamento = "erro";
-            estado.erro = erro.message || "Erro de comunicação com o Supabase";
+            estado.erro = window.SERFUtils.mensagemDeErro(erro);
         }
 
         renderizar();

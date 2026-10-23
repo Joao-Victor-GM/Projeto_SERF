@@ -248,12 +248,14 @@
         erroPedidos = null;
 
         // O RLS devolve só os pedidos em que a empresa é compradora ou fornecedora.
-        const { data, error } = await window.SERFPedidos.consultar(client)
-            .order("data_pedido", { ascending: false });
+        // Histórico completo, em páginas (a API corta em 1.000 linhas)
+        const { data, error } = await window.SERFUtils.buscarTodasAsPaginas(() => window.SERFPedidos.consultar(client)
+            .order("data_pedido", { ascending: false })
+            .order("id_pedido", { ascending: false }));
 
         if (error) {
             console.error("[SERF:Perfil] Falha ao buscar pedidos:", error);
-            erroPedidos = error.message || "Erro de comunicação com o Supabase";
+            erroPedidos = window.SERFUtils.mensagemDeErro(error);
             compras = [];
             vendas = [];
             return;
@@ -485,14 +487,14 @@
 
                     <div style="text-align: right;">
                         <span style="font-size: 11px; color: #64748b; display: block;">VALOR TOTAL</span>
-                        <strong style="font-size: 20px; color: #F47A20;">${formatarMoeda(pedido.valorTotal)}</strong>
+                        <strong style="font-size: 20px; color: #AD5309;">${formatarMoeda(pedido.valorTotal)}</strong>
                     </div>
                 </div>
             `,
             showCancelButton: true,
             cancelButtonText: "Fechar",
             confirmButtonText: isCompra ? "Repetir pedido" : "Gerenciar no painel",
-            confirmButtonColor: "#F47A20"
+            confirmButtonColor: "#B4570B"
         }).then(result => {
             if (!result.isConfirmed) return;
 
@@ -548,7 +550,7 @@
             await Swal.fire({
                 ...swalConfig,
                 title: `Pedido #${data.id_pedido} criado!`,
-                html: `Total: <strong style="color: #f77f00;">${formatarMoeda(data.valor_total)}</strong><br>O fornecedor foi notificado e o pedido aguarda confirmação.`,
+                html: `Total: <strong style="color: #AD5309;">${formatarMoeda(data.valor_total)}</strong><br>O fornecedor foi notificado e o pedido aguarda confirmação.`,
                 icon: "success"
             });
 
@@ -559,7 +561,7 @@
             Swal.fire({
                 ...swalConfig,
                 title: "Não foi possível repetir a compra",
-                text: erro.message || "Falha de comunicação com o Supabase.",
+                text: window.SERFUtils.mensagemDeErro(erro),
                 icon: "error",
                 confirmButtonColor: "#d33"
             });
@@ -755,7 +757,7 @@
                 });
             } catch (erro) {
                 console.error("[SERF:Perfil] Falha ao salvar cadastro:", erro);
-                Swal.fire({ ...swalConfig, title: "Erro ao salvar", text: erro.message, icon: "error" });
+                Swal.fire({ ...swalConfig, title: "Erro ao salvar", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
             } finally {
                 botao.disabled = false;
             }
@@ -792,7 +794,7 @@
                 Swal.fire({ ...swalConfig, title: "Senha alterada!", text: "Sua senha de acesso foi atualizada.", icon: "success" });
                 formSenha.reset();
             } catch (erro) {
-                Swal.fire({ ...swalConfig, title: "Erro ao atualizar", text: erro.message, icon: "error" });
+                Swal.fire({ ...swalConfig, title: "Erro ao atualizar", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
             }
         });
     }

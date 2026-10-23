@@ -128,7 +128,7 @@ a {
 
 .sidebar-section-label {
     padding: 27px 22px 12px;
-    color: rgba(255, 255, 255, 0.42);
+    color: rgba(255, 255, 255, 0.62);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -230,7 +230,7 @@ a {
 
 .sidebar-footer small {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.38);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 
@@ -433,7 +433,7 @@ a {
     height: 16px;
     padding: 0 4px;
     border-radius: 8px;
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
     font-size: 9px;
     font-weight: 700;
@@ -528,7 +528,7 @@ a {
     display: block;
     margin-bottom: 7px;
 
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -569,12 +569,12 @@ a {
 
 .btn-primary {
     border: 1px solid var(--serf-laranja);
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
 }
 
 .btn-primary:hover {
-    background: #DB6814;
+    background: var(--serf-laranja-acao-hover);
 }
 
 .btn-secondary {
@@ -838,7 +838,7 @@ a {
 
 .order-status.negociacao {
     background: var(--serf-tint-laranja);
-    color: #B96312;
+    color: var(--serf-laranja-texto);
 }
 
 .order-status.concluido {
@@ -1200,6 +1200,54 @@ a {
    Grid responsivo, cards de produtos e modal de cadastro
    ========================================================== */
 
+/* Busca, segmento e ordenação do catálogo */
+.catalogo-filtros {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 220px) minmax(0, 180px);
+    gap: 10px;
+    padding: 16px 20px 0;
+}
+
+.catalogo-filtros input,
+.catalogo-filtros select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--serf-borda);
+    border-radius: 8px;
+    background: var(--serf-superficie);
+    color: inherit;
+    font: inherit;
+}
+
+.catalogo-resumo {
+    margin: 10px 20px 0;
+    font-size: 13px;
+    color: var(--serf-texto-secundario);
+}
+
+.catalogo-resumo:empty { display: none; }
+
+/* .btn-secondary define display; sem isto o atributo hidden não esconde */
+.catalogo-mais [hidden] { display: none; }
+
+.catalogo-mais {
+    display: flex;
+    justify-content: center;
+    padding: 0 20px 24px;
+}
+
+.catalogo-vazio-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+    .catalogo-filtros { grid-template-columns: 1fr 1fr; }
+    .catalogo-filtros input { grid-column: 1 / -1; }
+}
+
 .produtos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1320,7 +1368,7 @@ a {
 }
 
 .detalhe-valor.em-estoque {
-    color: #16A34A;
+    color: var(--serf-verde-texto);
 }
 
 .detalhe-valor.sem-estoque {
@@ -1343,13 +1391,13 @@ a {
 .produto-preco {
     font-size: 19px;
     font-weight: 800;
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
 }
 
 .btn-iniciar-negociacao {
     width: 100%;
     min-height: 38px;
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
     border: none;
     border-radius: 6px;
@@ -1364,7 +1412,7 @@ a {
 }
 
 .btn-iniciar-negociacao:hover {
-    background: #DB6814;
+    background: var(--serf-laranja-acao-hover);
 }
 
 .btn-iniciar-negociacao:active {
@@ -1645,13 +1693,13 @@ a {
 }
 
 .negociacao-preco {
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-weight: 700;
 }
 
 .negociacao-total {
     padding: 8px 0;
-    color: var(--serf-laranja);
+    color: var(--serf-laranja-texto);
     font-size: 20px;
     font-weight: 800;
 }

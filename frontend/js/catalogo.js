@@ -19,7 +19,21 @@
 
     // Estado local do módulo
     let fornecedorAtual = null; // Armazena dados se o usuário for fornecedor
-    let listaProdutosCache = []; // Cache dos produtos em memória
+    let listaProdutosCache = []; // Produtos já carregados (todas as páginas)
+
+    // Busca, segmento, ordenação e páginas: tudo no servidor. Antes o
+    // catálogo baixava a rede inteira (e a API corta em 1.000 linhas).
+    const TAMANHO_PAGINA = 24;
+    const filtros = { termo: "", categoria: "", ordem: "recentes", pagina: 0, total: null };
+    const ORDENS = {
+        recentes: ["id_produto", false],
+        menor_preco: ["preco_atacado", true],
+        maior_preco: ["preco_atacado", false]
+    };
+    let buscaEmAndamento = 0;   // descarta respostas de buscas antigas (digitação rápida)
+
+    // % _ e caracteres de sintaxe do PostgREST não podem ir crus no ILIKE
+    const limparTermo = termo => String(termo || "").replace(/["\\%*_,()]/g, " ").replace(/\s+/g, " ").trim();
 
     /* =========================================================================
        2. VERIFICAÇÃO DE FORNECEDOR (Painel do Vendedor)
@@ -75,7 +89,8 @@
        Busca produtos onde ativo = true, trazendo os dados da empresa fornecedora.
        Se o usuário for fornecedor no modo de gestão, filtra por seu id_fornecedor.
        ========================================================================= */
-    async function buscarProdutos() {
+    // proximaPagina = true: acrescenta a próxima página à lista atual
+    async function buscarProdutos({ proximaPagina = false } = {}) {
         const client = obterSupabase();
         const container = document.getElementById('listaProdutos');
 
@@ -89,7 +104,13 @@
             return [];
         }
 
-        if (container) {
+        filtros.pagina = proximaPagina ? filtros.pagina + 1 : 0;
+        const minhaBusca = ++buscaEmAndamento;
+        const botaoMais = document.getElementById('catalogoMais');
+        if (botaoMais) botaoMais.disabled = true;
+
+        if (container && !proximaPagina) {
+            container.setAttribute('aria-busy', 'true');
             container.innerHTML = '<p class="empty-state">Carregando catálogo de produtos...</p>';
         }
 
@@ -122,8 +143,7 @@
                         cidade,
                         estado
                     )
-                `)
-                .order('id_produto', { ascending: false });
+                `, { count: 'exact' });
 
             // Se for fornecedor e estiver no modo "vender" (Meus Produtos), filtra pelo seu id_fornecedor.
             // Ali aparecem também os produtos pausados (ativo = false), para reativar.
@@ -143,17 +163,35 @@
                 if (subtitulo) subtitulo.textContent = 'Explore insumos industriais e mercadorias com preço de atacado';
             }
 
-            const { data, error } = await query;
+            const termo = limparTermo(filtros.termo);
+            if (termo) query = query.ilike('nome_produto', `%${termo}%`);
+            if (filtros.categoria) query = query.eq('categoria', filtros.categoria);
+
+            const [coluna, crescente] = ORDENS[filtros.ordem] || ORDENS.recentes;
+            const inicio = filtros.pagina * TAMANHO_PAGINA;
+            query = query.order(coluna, { ascending: crescente });
+            if (coluna !== 'id_produto') query = query.order('id_produto', { ascending: false });   // desempate estável
+
+            const { data, error, count } = await query.range(inicio, inicio + TAMANHO_PAGINA - 1);
+
+            if (minhaBusca !== buscaEmAndamento) return listaProdutosCache;   // chegou outra busca depois
 
             if (error) {
                 throw error;
             }
 
-            listaProdutosCache = data || [];
+            const pagina = data || [];
+            listaProdutosCache = proximaPagina ? [...listaProdutosCache, ...pagina] : pagina;
+            filtros.total = typeof count === 'number' ? count : null;
+
             renderizarProdutos(listaProdutosCache);
+            atualizarResumo(pagina.length);
+            container.removeAttribute('aria-busy');
             return listaProdutosCache;
 
         } catch (error) {
+            if (minhaBusca !== buscaEmAndamento) return listaProdutosCache;
+            container?.removeAttribute('aria-busy');
             console.error('[SERF:Catalogo] Falha ao buscar produtos:', error);
             if (container) {
                 container.innerHTML = `
@@ -165,6 +203,51 @@
             }
             return [];
         }
+    }
+
+    // "Mostrando 24 de 130 produtos" + botão "Carregar mais"
+    function atualizarResumo(recebidosNestaPagina) {
+        const resumo = document.getElementById('catalogoResumo');
+        const botaoMais = document.getElementById('catalogoMais');
+        const mostrando = listaProdutosCache.length;
+        const haMais = filtros.total !== null ? mostrando < filtros.total : recebidosNestaPagina === TAMANHO_PAGINA;
+
+        if (resumo) {
+            resumo.textContent = mostrando === 0 ? ''
+                : filtros.total !== null
+                    ? `Mostrando ${mostrando} de ${filtros.total} produto${filtros.total === 1 ? '' : 's'}`
+                    : `Mostrando ${mostrando} produto${mostrando === 1 ? '' : 's'}`;
+        }
+        if (botaoMais) {
+            botaoMais.hidden = !haMais;
+            botaoMais.disabled = false;
+        }
+    }
+
+    function configurarFiltros() {
+        const form = document.getElementById('catalogoFiltros');
+        if (!form) return;
+
+        const categoria = document.getElementById('catalogoCategoria');
+        (window.SERFUtils.CATEGORIAS_PRODUTO || []).forEach(nome => categoria.add(new Option(nome, nome)));
+
+        let espera = null;
+        document.getElementById('catalogoBusca').addEventListener('input', evento => {
+            clearTimeout(espera);
+            espera = setTimeout(() => { filtros.termo = evento.target.value; buscarProdutos(); }, 300);
+        });
+        form.addEventListener('submit', evento => {
+            evento.preventDefault();
+            clearTimeout(espera);
+            filtros.termo = document.getElementById('catalogoBusca').value;
+            buscarProdutos();
+        });
+        categoria.addEventListener('change', () => { filtros.categoria = categoria.value; buscarProdutos(); });
+        document.getElementById('catalogoOrdem').addEventListener('change', evento => {
+            filtros.ordem = evento.target.value;
+            buscarProdutos();
+        });
+        document.getElementById('catalogoMais')?.addEventListener('click', () => buscarProdutos({ proximaPagina: true }));
     }
 
     /* =========================================================================
@@ -231,13 +314,16 @@
         if (!container) return;
 
         if (!produtos || produtos.length === 0) {
+            const filtrando = Boolean(limparTermo(filtros.termo) || filtros.categoria);
             container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1; padding: 40px 20px; text-align: center;">
-                    <p style="font-size: 15px; font-weight: 600; color: #64748b; margin-bottom: 8px;">
-                        Nenhum produto disponível no momento.
+                <div class="empty-state catalogo-vazio" style="grid-column: 1 / -1; padding: 40px 20px; text-align: center;">
+                    <p class="catalogo-vazio-titulo">
+                        ${filtrando ? 'Nenhum produto encontrado com esses filtros.' : 'Nenhum produto disponível no momento.'}
                     </p>
-                    <small style="color: #94a3b8;">
-                        Novas ofertas e insumos são atualizados em tempo real pelos fornecedores da rede.
+                    <small>
+                        ${filtrando
+                            ? 'Tente outro nome ou segmento — ou <a href="cotacoes.html">peça uma cotação</a> e receba propostas dos fornecedores.'
+                            : 'Novas ofertas aparecem aqui assim que os fornecedores da rede cadastram.'}
                     </small>
                 </div>
             `;
@@ -377,20 +463,20 @@
                         </div>
                         <div>
                             <span style="font-size: 10px; color: #64748b; font-weight: 700;">ESTOQUE DISPONÍVEL</span><br>
-                            <strong style="color: ${prod.quantidade_estoque > 0 ? '#16A34A' : '#DC2626'};">${prod.quantidade_estoque || 0} unidades</strong>
+                            <strong style="color: ${prod.quantidade_estoque > 0 ? '#15803D' : '#B91C1C'};">${prod.quantidade_estoque || 0} unidades</strong>
                         </div>
                     </div>
 
                     <div style="text-align: right; margin-top: 15px;">
                         <span style="font-size: 10px; color: #64748b; display: block; font-weight: 700;">PREÇO DE ATACADO</span>
-                        <strong style="font-size: 22px; color: #f77f00;">${formatarMoedaBRL(prod.preco_atacado)}</strong>
+                        <strong style="font-size: 22px; color: #AD5309;">${formatarMoedaBRL(prod.preco_atacado)}</strong>
                     </div>
                 </div>
             `,
             showCancelButton: true,
             cancelButtonText: 'Fechar',
             confirmButtonText: '🤝 Iniciar Negociação',
-            confirmButtonColor: '#f77f00',
+            confirmButtonColor: '#B4570B',
             cancelButtonColor: '#94a3b8'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -645,7 +731,7 @@
                 title: `Pedido #${pedido.id_pedido} Enviado!`,
                 html: `
                     <strong>${escaparHTML(prod.nome_produto)}</strong> (x${pedido.quantidade})<br>
-                    Total: <strong style="color: #f77f00;">${formatarMoedaBRL(pedido.valor_total)}</strong><br><br>
+                    Total: <strong style="color: #AD5309;">${formatarMoedaBRL(pedido.valor_total)}</strong><br><br>
                     O fornecedor foi notificado e o pedido aguarda confirmação.
                 `,
                 icon: 'success',
@@ -663,7 +749,7 @@
             Swal.fire({
                 ...swalConfig,
                 title: 'Erro ao Criar Pedido',
-                text: error.message || 'Falha de comunicação com o Supabase.',
+                text: window.SERFUtils.mensagemDeErro(error),
                 icon: 'error',
                 confirmButtonColor: '#d33'
             });
@@ -976,6 +1062,7 @@
         await verificarFornecedorAutenticado();
         await ajustarModosCatalogo();
         configurarModalNovoProduto();
+        configurarFiltros();
         configurarObservadorDeModo();
         atualizarVisibilidadeBotaoCadastro();
         await buscarProdutos();

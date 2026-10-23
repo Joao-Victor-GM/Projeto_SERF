@@ -14,7 +14,7 @@
     const swalConfig = Object.freeze({
         background: "#ffffff",
         color: "#1d2d5c",
-        confirmButtonColor: "#f77f00"
+        confirmButtonColor: "#B4570B"
     });
 
     // Status de pedido do banco → categoria usada em filtros/KPIs + rótulo
@@ -266,8 +266,25 @@
         "Outros"
     ]);
 
+    // A API do Supabase corta cada resposta em 1.000 linhas (db-max-rows) SEM
+    // avisar. Dados que precisam vir completos (relatórios, histórico) passam
+    // por aqui: busca em páginas até acabar. montarConsulta() devolve uma
+    // consulta NOVA a cada chamada, com ordenação estável (com desempate por id).
+    // Devolve { data, error }, como o próprio Supabase.
+    async function buscarTodasAsPaginas(montarConsulta, { tamanho = 1000, maximo = 50000 } = {}) {
+        const linhas = [];
+        for (let inicio = 0; inicio < maximo; inicio += tamanho) {
+            const { data, error } = await montarConsulta().range(inicio, inicio + tamanho - 1);
+            if (error) return { data: null, error };
+            linhas.push(...(data || []));
+            if (!data || data.length < tamanho) break;
+        }
+        return { data: linhas, error: null };
+    }
+
     window.SERFUtils = Object.freeze({
         CATEGORIAS_PRODUTO,
+        buscarTodasAsPaginas,
         mensagemDeErro,
         swalConfig,
         STATUS_PEDIDO,

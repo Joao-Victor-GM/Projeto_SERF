@@ -37,7 +37,7 @@
     height: 18px;
     padding: 0 5px;
     border-radius: 999px;
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
     font-size: 11px;
     font-weight: 800;
@@ -129,7 +129,7 @@
 }
 
 .notif-item.nao-lida .notif-simbolo {
-    background: var(--serf-laranja);
+    background: var(--serf-laranja-acao);
     color: #FFFFFF;
 }
 

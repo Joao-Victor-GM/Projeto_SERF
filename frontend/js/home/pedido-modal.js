@@ -463,7 +463,7 @@ export async function abrirDetalhesPedido(pedido) {
         elementos.chatMensagens.innerHTML = `
             <p class="chat-vazio" style="color:#DC2626;">
                 Não foi possível carregar as mensagens.<br>
-                <small>${escaparHTML(erro.message || "Erro de comunicação com o Supabase")}</small>
+                <small>${escaparHTML(window.SERFUtils.mensagemDeErro(erro))}</small>
             </p>
         `;
     }

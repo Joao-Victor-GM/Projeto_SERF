@@ -80,3 +80,33 @@ test("transições de status: estados finais não têm saída", () => {
     assert.deepEqual(simples(U.TRANSICOES_STATUS.ENTREGUE), []);
     assert.deepEqual(simples(U.TRANSICOES_STATUS.CANCELADO), []);
 });
+
+test("buscarTodasAsPaginas: junta páginas até acabar (a API corta em 1.000 linhas)", async () => {
+    const janela = carregarScripts(["utils.js"], { obterSupabase: () => null });
+    const total = 2350;
+    const pedidos = [];
+    const consulta = () => ({
+        range: async (inicio, fim) => {
+            pedidos.push([inicio, fim]);
+            return { data: Array.from({ length: Math.max(0, Math.min(fim, total - 1) - inicio + 1) }, (_, i) => inicio + i), error: null };
+        }
+    });
+
+    const { data, error } = await janela.SERFUtils.buscarTodasAsPaginas(consulta);
+    assert.equal(error, null);
+    assert.equal(data.length, total);
+    assert.equal(new Set(data).size, total, "sem repetir linha entre páginas");
+    assert.deepEqual(simples(pedidos), [[0, 999], [1000, 1999], [2000, 2999]]);
+});
+
+test("buscarTodasAsPaginas: erro em qualquer página devolve o erro (nunca dados pela metade)", async () => {
+    const janela = carregarScripts(["utils.js"], { obterSupabase: () => null });
+    let chamada = 0;
+    const consulta = () => ({ range: async () => (++chamada === 2
+        ? { data: null, error: { message: "timeout" } }
+        : { data: Array(1000).fill(1), error: null }) });
+
+    const { data, error } = await janela.SERFUtils.buscarTodasAsPaginas(consulta);
+    assert.equal(data, null);
+    assert.equal(error.message, "timeout");
+});
