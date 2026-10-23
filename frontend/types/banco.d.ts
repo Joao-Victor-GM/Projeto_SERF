@@ -958,10 +958,6 @@ export interface Database {
                 Args: { p_id_pedido: number };
                 Returns: string;
             };
-            pagamento_libera_envio: {
-                Args: { p_id_pedido: number };
-                Returns: boolean;
-            };
             pagamentos_modo: {
                 Args: Record<PropertyKey, never>;
                 Returns: string;

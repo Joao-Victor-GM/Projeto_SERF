@@ -38,7 +38,7 @@ BEGIN
        AND p.proname IN ('anonimizar_conta', 'pedidos_em_andamento_da_conta', 'registrar_cobranca_pix',
                          'confirmar_pagamento_provedor', 'registrar_nfe_enviada', 'atualizar_nfe_provedor',
                          'reservar_emails', 'notificar', 'enfileirar_email', 'enfileirar_somente_email',
-                         'limpar_notificacoes_antigas')
+                         'limpar_notificacoes_antigas', 'pagamento_libera_envio')
        AND (has_function_privilege('anon', p.oid, 'EXECUTE') OR has_function_privilege('authenticated', p.oid, 'EXECUTE'));
 
     IF v_lista IS NOT NULL THEN
@@ -55,5 +55,30 @@ BEGIN
 
     IF v_lista IS NOT NULL THEN
         RAISE EXCEPTION 'Políticas que deixam visitante sem login escrever: %', v_lista;
+    END IF;
+
+    -- 5. Views são só leitura para o navegador. Uma view simples é
+    --    atualizável e roda com os privilégios do dono (ignora o RLS):
+    --    escrita nela = escrever em qualquer linha da tabela (falha da 028)
+    SELECT string_agg(DISTINCT g.table_name || ':' || g.grantee || ':' || g.privilege_type, ', ') INTO v_lista
+      FROM information_schema.role_table_grants g
+      JOIN pg_views v ON v.schemaname = g.table_schema AND v.viewname = g.table_name
+     WHERE g.table_schema = 'public'
+       AND g.grantee IN ('anon', 'authenticated')
+       AND g.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE');
+
+    IF v_lista IS NOT NULL THEN
+        RAISE EXCEPTION 'Views com escrita liberada ao navegador: %', v_lista;
+    END IF;
+
+    -- 6. TRUNCATE ignora o RLS: nenhum papel do navegador pode
+    SELECT string_agg(DISTINCT g.table_name || ':' || g.grantee, ', ') INTO v_lista
+      FROM information_schema.role_table_grants g
+     WHERE g.table_schema = 'public'
+       AND g.grantee IN ('anon', 'authenticated')
+       AND g.privilege_type = 'TRUNCATE';
+
+    IF v_lista IS NOT NULL THEN
+        RAISE EXCEPTION 'TRUNCATE liberado ao navegador: %', v_lista;
     END IF;
 END $$;
