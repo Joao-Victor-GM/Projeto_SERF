@@ -933,6 +933,7 @@ Digite EXCLUIR para confirmar:`) || "").trim().toUpperCase() === "EXCLUIR";
             if (!(await confirmarExclusao())) return;
 
             await window.SERFDados.empresa.excluirConta("EXCLUIR");
+            window.serfLimparDadosLocais?.();
             try { await obterSupabase()?.auth.signOut(); } catch { /* o login já não existe */ }
             window.location.replace("../public/index.html");
         } catch (erro) {
@@ -973,9 +974,13 @@ Digite EXCLUIR para confirmar:`) || "").trim().toUpperCase() === "EXCLUIR";
         renderizarTudo();
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciarPerfil);
-    } else {
+    // Scripts com defer rodam com readyState já "interactive", ANTES dos
+    // defer seguintes (dados/empresa.repositorio.js...). Iniciar na hora fazia
+    // as seções que dependem deles (avisos por e-mail) às vezes não aparecerem.
+    // DOMContentLoaded só dispara depois de todos os scripts defer.
+    if (document.readyState === "complete") {
         iniciarPerfil();
+    } else {
+        document.addEventListener("DOMContentLoaded", iniciarPerfil);
     }
 })();

@@ -122,6 +122,10 @@ test("avisos por e-mail: desligar grava a preferência", async ({ page }) => {
     const { chamadas } = await abrir(page, "/pages/app/perfil.html");
     const caixa = page.locator("#prefEmail");
 
+    // A seção só aparece depois que a preferência foi lida e aplicada à caixa.
+    // (Sem esta espera o teste era instável com a máquina carregada: o Perfil
+    // faz várias consultas antes e os 5 s padrão às vezes não bastavam.)
+    await expect(page.locator("#notificacoes")).toBeVisible({ timeout: 15000 });
     await expect(caixa).toBeChecked();          // padrão: recebe
     await caixa.uncheck();
 
