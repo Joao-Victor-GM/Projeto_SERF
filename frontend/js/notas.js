@@ -380,7 +380,7 @@
 </style>
 </head>
 <body>
-<div class="acoes"><button type="button" onclick="window.print()">Imprimir / Salvar PDF</button></div>
+<div class="acoes"><button type="button" data-imprimir>Imprimir / Salvar PDF</button></div>
 <div class="folha">
   <div class="marca"><span>SEM VALOR FISCAL<br>DOCUMENTO SIMULADO${cancelada ? "<br>CANCELADA" : ""}</span></div>
 
@@ -443,6 +443,8 @@
 </body>
 </html>`);
         janela.document.close();
+        // Sem onclick no HTML gerado: a janela herda a CSP (sem script inline)
+        janela.document.querySelector("[data-imprimir]")?.addEventListener("click", () => janela.print());
     }
 
 

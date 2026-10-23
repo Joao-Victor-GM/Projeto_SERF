@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta name="robots" content="noindex">
     <title>S.E.R.F. - Parar de receber e-mails</title>
     <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
@@ -74,53 +76,8 @@
         <p id="erro" role="alert" hidden></p>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
     <script src="../../js/supabase-client.js"></script>
-    <script>
-        "use strict";
-
-        (function () {
-            const token = new URLSearchParams(location.search).get("t");
-            const confirmar = document.getElementById("confirmar");
-            const feito = document.getElementById("feito");
-            const erro = document.getElementById("erro");
-            const botao = document.getElementById("botaoConfirmar");
-
-            function mostrarErro(texto) {
-                erro.textContent = texto;
-                erro.hidden = false;
-            }
-
-            if (!token) {
-                confirmar.hidden = true;
-                mostrarErro("Link incompleto. Use o link “Parar de receber” do próprio e-mail, ou desative em Perfil → Avisos por e-mail.");
-                return;
-            }
-
-            // Só descadastra com o clique: pré-visualizações de link não fazem isso
-            botao.addEventListener("click", async () => {
-                const cliente = window.obterSupabase?.();
-                if (!cliente) return mostrarErro("Não foi possível conectar. Tente novamente em instantes.");
-
-                botao.disabled = true;
-                erro.hidden = true;
-
-                const { error } = await cliente.functions.invoke("descadastrar", { body: { t: token } });
-
-                if (error) {
-                    botao.disabled = false;
-                    const status = error.context?.status;
-                    mostrarErro(status === 400
-                        ? "Este link de descadastro é inválido. Desative em Perfil → Avisos por e-mail."
-                        : "Não foi possível concluir agora. Tente novamente em instantes.");
-                    return;
-                }
-
-                confirmar.hidden = true;
-                feito.hidden = false;
-                feito.querySelector("h1").focus?.();
-            });
-        })();
-    </script>
+    <script src="../../js/descadastro.js"></script>
 </body>
 </html>

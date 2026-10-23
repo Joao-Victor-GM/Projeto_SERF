@@ -587,7 +587,9 @@ depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (carrinho), 019 (primeiros passos e homologação), 020 (e-mails), 021
 (segmentos do radar), 022 (categorias oficiais; converte categorias antigas
 fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
-024 (cotações), 025 (LGPD) e 026 (Pix real) e 027 (NF-e real; ambos desligados por padrão). Sem 018–027
+024 (cotações), 025 (LGPD) e 026 (Pix real), 027 (NF-e real; ambos desligados por padrão) e **028
+(correção de segurança crítica: escrita pelas views — aplique o quanto
+antes; ver `docs/seguranca.md`)**. Sem 018–027
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas

@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Catálogo B2B de Produtos</title>
 
@@ -17,7 +19,7 @@
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
     <script src="../../js/auth-check.js"></script>
@@ -373,7 +375,7 @@
     </div>
 
     <!-- Dependências Supabase e SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
 
     <!-- Scripts de interface e catálogo -->
     <!-- Avisos, camada de dados, gestão de produtos e carrinho -->
@@ -386,33 +388,7 @@
     <script src="../../js/catalogo.js" defer></script>
 
     <!-- Script leve para menu responsivo e perfil na página de catálogo -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Menu responsivo (☰): js/ui/layout.js
-
-            // Exibe nome da empresa do localStorage se disponível
-            const usuarioSalvo = localStorage.getItem('usuario_logado');
-            if (usuarioSalvo) {
-                try {
-                    const dados = JSON.parse(usuarioSalvo);
-                    if (dados.razaoSocial) {
-                        const el = document.getElementById('empresaAtiva');
-                        if (el) el.textContent = dados.razaoSocial;
-                        const av = document.querySelector('.profile-avatar');
-                        if (av) av.textContent = dados.razaoSocial.trim().charAt(0).toUpperCase();
-                    }
-                } catch(e){}
-            }
-
-            // Acesso ao perfil corporativo
-            const btnPerfil = document.getElementById('btnPerfil');
-            if (btnPerfil) {
-                btnPerfil.addEventListener('click', () => {
-                    window.location.href = 'perfil.html';
-                });
-            }
-        });
-    </script>
+    <script src="../../js/catalogo-topo.js"></script>
 
     <!-- Camada de dados (alertas) usada pelo contador do menu -->
     <script src="../../js/dados/pendencias.repositorio.js" defer></script>

@@ -47,7 +47,7 @@ export function linksDeDescadastro(token: string, urlApp: string, urlSupabase: s
     const t = encodeURIComponent(token);
     return {
         // Página que pede confirmação (link no corpo do e-mail)
-        pagina: `${urlApp.replace(/\/$/, "")}/frontend/pages/public/descadastro.html?t=${t}`,
+        pagina: `${urlApp.replace(/\/$/, "")}/pages/public/descadastro.html?t=${t}`,
         // POST direto (cabeçalho List-Unsubscribe: o Gmail/Yahoo chamam sozinhos)
         umClique: `${urlSupabase.replace(/\/$/, "")}/functions/v1/descadastrar?t=${t}`
     };
@@ -80,7 +80,7 @@ export async function tratarDescadastro(req: Request, { segredo, urlApp, desliga
 
     if (req.method === "GET") {
         if (!token) return json(400, { erro: "Link incompleto." });
-        const destino = `${urlApp.replace(/\/$/, "")}/frontend/pages/public/descadastro.html?t=${encodeURIComponent(token)}`;
+        const destino = `${urlApp.replace(/\/$/, "")}/pages/public/descadastro.html?t=${encodeURIComponent(token)}`;
         return new Response(null, { status: 303, headers: { ...CORS, Location: destino } });
     }
 

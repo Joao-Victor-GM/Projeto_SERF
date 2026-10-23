@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Painel de Controle</title>
 
@@ -20,7 +22,7 @@
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
     <script src="../../js/pedidos.js"></script>
@@ -786,28 +788,18 @@
     ====================================================== -->
 
     <!-- Dependências Supabase e SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
 
     <!-- Scripts de controle da interface e catálogo -->
     <!-- QR Code do Pix (pagamento simulado) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous"></script>
     <script src="../../js/pagamentos.js" defer></script>
     <script src="../../js/notas.js" defer></script>
     <!-- Home em módulos (scripts clássicos, escopo compartilhado): a ORDEM importa -->
     <!-- Home em módulos ES (js/home/): a entrada importa o resto, na ordem certa.
          Módulos não carregam de file:// — abra por um servidor (npm run servidor, Live Server). -->
     <script type="module" src="../../js/home/inicializacao.js"></script>
-    <script>
-        if (location.protocol === "file:") {
-            document.addEventListener("DOMContentLoaded", () => {
-                const aviso = document.createElement("div");
-                aviso.setAttribute("role", "alert");
-                aviso.style.cssText = "position:fixed;inset:16px 16px auto;z-index:9999;padding:14px 18px;border-radius:8px;background:#B91C1C;color:#fff;font:600 14px/1.5 system-ui,sans-serif";
-                aviso.textContent = "A Home precisa ser aberta por um servidor local (ex.: npm run servidor ou a extensão Live Server), não direto do arquivo.";
-                document.body.prepend(aviso);
-            });
-        }
-    </script>
+    <script src="../../js/ui/aviso-servidor.js"></script>
     <script src="../../js/catalogo.js" defer></script>
     <script src="../../js/radar-oportunidades.js" defer></script>
     <script src="../../js/produtos-gestao.js" defer></script>

@@ -339,7 +339,7 @@
     function sucesso(titulo, pagamento) {
         Swal.fire({
             ...swalConfig,
-            title: titulo,
+            titleText: titulo,
             html: `${escaparHTML(descricaoMetodo(pagamento))}<br>Transação <strong>${escaparHTML(pagamento.transacao_id || "")}</strong>`,
             icon: "success",
             timer: 2600,

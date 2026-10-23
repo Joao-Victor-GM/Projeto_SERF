@@ -167,7 +167,7 @@ const RODAPE_DESCADASTRO = "Você recebe estes avisos porque sua empresa usa o S
 // sem ele (segredo não configurado), o rodapé indica o Perfil.
 export function montarEmail(tipo: string, dados: Record<string, any>, urlApp: string, linkDescadastro?: string): Email {
     const c = conteudo(tipo, dados || {});
-    const link = `${urlApp.replace(/\/$/, "")}/frontend/pages/app/${c.caminho}`;
+    const link = `${urlApp.replace(/\/$/, "")}/pages/app/${c.caminho}`;
 
     const rodapeTexto = linkDescadastro
         ? `${RODAPE_DESCADASTRO} Parar de receber: ${linkDescadastro}`

@@ -20,7 +20,7 @@ test("pedido recebido (carrinho): lista os itens, soma e leva aos alertas", () =
     assert.match(email.texto, /5 un\. de Arroz \(pedido #10\)/);
     assert.match(email.texto, /Total: R\$\s80,50/);
     assert.match(email.texto, /Entregar pela manhã/);
-    assert.match(email.texto, /https:\/\/serf\.exemplo\.com\/frontend\/pages\/app\/alertas\.html/);
+    assert.match(email.texto, /https:\/\/serf\.exemplo\.com\/pages\/app\/alertas\.html/);
 });
 
 test("pedido único leva direto ao pedido", () => {
@@ -76,11 +76,11 @@ test("produto novo no segmento: um ou vários produtos, leva ao catálogo", () =
 });
 
 test("com link de descadastro, o rodapé oferece parar em um clique", () => {
-    const link = "https://serf.exemplo.com/frontend/pages/public/descadastro.html?t=u.x&y";
+    const link = "https://serf.exemplo.com/pages/public/descadastro.html?t=u.x&y";
     const email = montarEmail("MENSAGEM_NOVA", { id_pedido: 1, remetente: "A", trecho: "Oi" }, APP, link);
 
-    assert.match(email.texto, /Parar de receber: https:\/\/serf\.exemplo\.com\/frontend\/pages\/public\/descadastro\.html\?t=u\.x&y/);
-    assert.match(email.html, /href="https:\/\/serf\.exemplo\.com\/frontend\/pages\/public\/descadastro\.html\?t=u\.x&amp;y"/);
+    assert.match(email.texto, /Parar de receber: https:\/\/serf\.exemplo\.com\/pages\/public\/descadastro\.html\?t=u\.x&y/);
+    assert.match(email.html, /href="https:\/\/serf\.exemplo\.com\/pages\/public\/descadastro\.html\?t=u\.x&amp;y"/);
     assert.doesNotMatch(email.texto, /desative os e-mails no seu Perfil/);
 });
 

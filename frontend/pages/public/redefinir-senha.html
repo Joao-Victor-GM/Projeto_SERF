@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>SERF - Redefinir Senha</title>
     <!-- Fonte moderna de alta tecnologia -->
     <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
@@ -90,6 +92,17 @@
             margin-top: 10px;
         }
 
+        .mensagem-erro {
+            margin: 4px 0 8px;
+            color: #b91c1c;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .mensagem-erro[hidden] {
+            display: none;
+        }
+
         .btn-salvar:hover {
             background-color: #ff8c00;
             transform: translateY(-1px);
@@ -99,64 +112,26 @@
 <body>
     <div class="card-redefinir">
         <h2>Nova Senha</h2>
-        <p>Crie uma senha forte com no mínimo 6 caracteres para reestabelecer o acesso à sua conta.</p>
+        <p>Crie uma senha com 8 ou mais caracteres, misturando letras e números.</p>
 
         <form id="formRedefinir">
             <div class="input-grupo">
                 <label for="novaSenha">Nova Senha</label>
-                <input type="password" id="novaSenha" placeholder="Digite sua nova senha" required minlength="6">
+                <input type="password" id="novaSenha" placeholder="Digite sua nova senha" required minlength="8" maxlength="72" autocomplete="new-password">
             </div>
             <div class="input-grupo">
                 <label for="confirmaNovaSenha">Confirmar Nova Senha</label>
-                <input type="password" id="confirmaNovaSenha" placeholder="Confirme a senha" required minlength="6">
+                <input type="password" id="confirmaNovaSenha" placeholder="Confirme a senha" required minlength="8" maxlength="72" autocomplete="new-password">
             </div>
+            <p class="mensagem-erro" id="erroRedefinir" role="alert" hidden></p>
             <button type="submit" class="btn-salvar">Atualizar Senha</button>
         </form>
     </div>
 
     <!-- SDK do Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
     <script src="../../js/supabase-client.js"></script>
-    <script>
-        // Cliente Supabase compartilhado (supabaseClient) vem de supabase-client.js
-
-        const form = document.getElementById('formRedefinir');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const novaSenha = document.getElementById('novaSenha').value;
-            const confirmaNovaSenha = document.getElementById('confirmaNovaSenha').value;
-
-            if (novaSenha !== confirmaNovaSenha) {
-                alert('As senhas digitadas não coincidem. Por favor, verifique!');
-                return;
-            }
-
-            try {
-                const btn = form.querySelector('button');
-                btn.innerText = 'Salvando...';
-                btn.disabled = true;
-
-                // O Supabase Auth detecta os tokens hash da URL automaticamente para autenticar essa alteração
-                const { error } = await supabaseClient.auth.updateUser({
-                    password: novaSenha
-                });
-
-                if (error) throw error;
-
-                alert('Senha alterada com sucesso! Você já pode acessar a plataforma.');
-                window.location.href = 'login-cadastro.html'; // Redireciona para o login
-
-            } catch (error) {
-                console.error('Erro na redefinição:', error);
-                alert('Erro ao redefinir a senha: ' + error.message);
-
-                const btn = form.querySelector('button');
-                btn.innerText = 'Atualizar Senha';
-                btn.disabled = false;
-            }
-        });
-    </script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/redefinir-senha.js"></script>
 </body>
 </html>

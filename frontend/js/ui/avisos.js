@@ -3,6 +3,8 @@
    Diálogos padronizados (SweetAlert2 com a identidade do
    S.E.R.F.; sem a biblioteca, cai nos diálogos do navegador).
    Substitui os alert()/confirm() soltos pelas telas.
+   Títulos e textos são sempre TEXTO (titleText/text), nunca HTML: podem
+   conter nome de empresa ou produto digitado por outro usuário.
 
      await SERFAvisos.erro("Não foi possível cancelar", erro);
      SERFAvisos.sucesso("Produto atualizado");
@@ -26,7 +28,7 @@
             return;
         }
 
-        await Swal.fire({ ...config(), title: titulo, text: texto, icon: "error", confirmButtonText: "Entendi" });
+        await Swal.fire({ ...config(), titleText: titulo, text: texto, icon: "error", confirmButtonText: "Entendi" });
     }
 
     // Aviso informativo (sem bloquear a tela por muito tempo)
@@ -35,7 +37,7 @@
             window.alert(texto ? `${titulo}\n\n${texto}` : titulo);
             return;
         }
-        await Swal.fire({ ...config(), title: titulo, text: texto, icon: "info", confirmButtonText: "Ok" });
+        await Swal.fire({ ...config(), titleText: titulo, text: texto, icon: "info", confirmButtonText: "Ok" });
     }
 
     // Confirmação rápida no canto (não interrompe o fluxo)
@@ -46,7 +48,7 @@
             toast: true,
             position: "top-end",
             icon: "success",
-            title: titulo,
+            titleText: titulo,
             text: texto,
             timer: 2600,
             timerProgressBar: true,
@@ -59,7 +61,7 @@
 
         const resultado = await Swal.fire({
             ...config(),
-            title: titulo,
+            titleText: titulo,
             text: texto,
             icon: perigo ? "warning" : "question",
             showCancelButton: true,

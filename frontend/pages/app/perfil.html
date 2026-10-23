@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Meu Perfil Corporativo</title>
 
@@ -17,7 +19,7 @@
     <!-- Tema claro/escuro aplicado antes da pintura -->
     <script src="../../js/tema.js"></script>
     <!-- Proteção de rota: exige sessão ativa no Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
     <script src="../../js/pedidos.js"></script>
@@ -511,51 +513,14 @@
     </div>
 
     <!-- Dependências Supabase, SweetAlert2 e Particles.js -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" integrity="sha384-qzrow8+R9k2/XKVt7fpdI3hp6ocDhtrCzBsdbcw7/VRkwEXYcsTTAEeFvhlgiGBW" crossorigin="anonymous"></script>
 
     <!-- Lógica do perfil corporativo -->
     <script src="../../js/perfil.js" defer></script>
 
     <!-- Menu responsivo, atalho de edição e partículas da capa -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Menu responsivo (☰): js/ui/layout.js
-
-            // "Editar dados" abre a aba de dados cadastrais
-            const btnEditar = document.getElementById('btnEditarPerfil');
-            if (btnEditar) {
-                btnEditar.addEventListener('click', () => {
-                    const abaDados = document.querySelector('.profile-tab-btn[data-tab="dados"]');
-                    if (abaDados) {
-                        abaDados.click();
-                        abaDados.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            }
-
-            // Partículas laranjas na capa, mesma identidade do login
-            if (typeof particlesJS === 'function') {
-                particlesJS('perfilParticles', {
-                    particles: {
-                        number: { value: 45, density: { enable: true, value_area: 700 } },
-                        color: { value: '#F47A20' },
-                        shape: { type: 'circle' },
-                        opacity: { value: 0.6, random: true },
-                        size: { value: 2.2, random: true },
-                        line_linked: { enable: true, distance: 130, color: '#F47A20', opacity: 0.3, width: 1 },
-                        move: { enable: true, speed: 1.2, random: true, out_mode: 'out' }
-                    },
-                    interactivity: {
-                        detect_on: 'canvas',
-                        events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: false }, resize: true },
-                        modes: { grab: { distance: 120, line_linked: { opacity: 0.6 } } }
-                    },
-                    retina_detect: true
-                });
-            }
-        });
-    </script>
+    <script src="../../js/perfil-capa.js"></script>
 
     <!-- Camada de dados (alertas) usada pelo contador do menu -->
     <script src="../../js/ui/avisos.js" defer></script>

@@ -10,7 +10,8 @@
 //   CRON_SECRET     segredo compartilhado com o agendamento
 //   RESEND_API_KEY  chave da API do Resend (https://resend.com)
 //   EMAIL_REMETENTE ex.: "S.E.R.F. <avisos@seudominio.com.br>"
-//   APP_URL         endereço público do front-end (ex.: https://usuario.github.io/SERF-PROJETO-ACEX)
+//   APP_URL         endereço onde fica a pasta pages/ do site publicado
+//                   (publicando a pasta frontend/: ex. https://serf.pages.dev)
 //   DESCADASTRO_SECRET  (opcional, recomendado) assina o link "parar de receber";
 //                   com ele, cada e-mail leva List-Unsubscribe em um clique (exigido
 //                   por Gmail/Yahoo para envio em volume). Mesmo valor na função descadastrar.
@@ -22,9 +23,17 @@ import { gerarToken, linksDeDescadastro } from "../_shared/descadastro.ts";
 const json = (status: number, corpo: unknown) =>
     new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json" } });
 
+// Comparação em tempo constante (o tempo de resposta não revela o segredo)
+function iguais(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    let diferenca = 0;
+    for (let i = 0; i < a.length; i++) diferenca |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diferenca === 0;
+}
+
 Deno.serve(async (req: Request) => {
     const segredo = Deno.env.get("CRON_SECRET");
-    if (!segredo || req.headers.get("x-cron-secret") !== segredo) {
+    if (!segredo || !iguais(req.headers.get("x-cron-secret") || "", segredo)) {
         return json(401, { erro: "Não autorizado." });
     }
 

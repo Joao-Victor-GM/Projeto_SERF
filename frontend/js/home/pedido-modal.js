@@ -187,7 +187,7 @@ async function pedirMotivoCancelamento(pedido, exigeMotivo) {
 
     const resultado = await Swal.fire({
         ...(window.SERFUtils.swalConfig || {}),
-        title: titulo,
+        titleText: titulo,
         text: texto,
         icon: "warning",
         input: "textarea",

@@ -33,7 +33,7 @@ test("token assinado: lê o próprio usuário; adulterado ou de outro segredo, n
 
 test("links: página de confirmação no app e POST direto na função", async () => {
     const links = linksDeDescadastro("a.b", "https://serf.exemplo.com/", "https://projeto.supabase.co");
-    assert.equal(links.pagina, "https://serf.exemplo.com/frontend/pages/public/descadastro.html?t=a.b");
+    assert.equal(links.pagina, "https://serf.exemplo.com/pages/public/descadastro.html?t=a.b");
     assert.equal(links.umClique, `${FUNCAO}?t=a.b`);
 });
 
@@ -69,7 +69,7 @@ test("GET (pré-visualização de link) NÃO descadastra: só leva à página de
     const resposta = await tratar(new Request(`${FUNCAO}?t=abc.def`));
 
     assert.equal(resposta.status, 303);
-    assert.equal(resposta.headers.get("location"), "https://serf.exemplo.com/frontend/pages/public/descadastro.html?t=abc.def");
+    assert.equal(resposta.headers.get("location"), "https://serf.exemplo.com/pages/public/descadastro.html?t=abc.def");
     assert.deepEqual(desligados, []);
 });
 

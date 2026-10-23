@@ -352,7 +352,8 @@
 
         Swal.fire({
             ...swalConfig,
-            title: prod.nome_produto,
+            // titleText: o nome vem de outro fornecedor e não pode virar HTML
+            titleText: prod.nome_produto,
             html: `
                 <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #172536; padding: 6px 0;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">

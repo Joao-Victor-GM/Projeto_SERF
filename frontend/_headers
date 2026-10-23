@@ -1,0 +1,30 @@
+# Cabeçalhos de segurança (Cloudflare Pages e Netlify leem este arquivo na
+# pasta publicada — publique a pasta frontend/). Explicação: docs/seguranca.md
+#
+# A CSP abaixo é a MESMA da <meta> de cada página, mais o que a <meta> não
+# suporta (frame-ancestors, upgrade-insecure-requests). Mudou um domínio?
+# Mude aqui e nas <meta>: tests/unit/seguranca.test.mjs confere as duas.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Páginas internas e de conta: fora dos buscadores
+/pages/app/*
+  X-Robots-Tag: noindex, nofollow
+
+/pages/public/login-cadastro.html
+  X-Robots-Tag: noindex
+
+/pages/public/redefinir-senha.html
+  X-Robots-Tag: noindex
+  Referrer-Policy: no-referrer
+
+/pages/public/descadastro.html
+  X-Robots-Tag: noindex
+  Referrer-Policy: no-referrer

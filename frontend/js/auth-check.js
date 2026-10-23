@@ -101,8 +101,15 @@
         return window.confirm("Deseja sair da sua conta?");
     }
 
+    // Dados de exibição da empresa (CNPJ, e-mail): não ficam no navegador
+    // depois de sair — computador compartilhado é comum em empresa.
+    function limparDadosLocais() {
+        try { localStorage.removeItem("usuario_logado"); } catch { /* sem armazenamento */ }
+    }
+
     async function sair() {
         if (!(await confirmarSaida())) return;
+        limparDadosLocais();
 
         try {
             await client.auth.signOut();
@@ -115,6 +122,7 @@
     }
 
     window.serfSair = sair;
+    window.serfLimparDadosLocais = limparDadosLocais;
 
     // Delegação: funciona para botões presentes ou criados depois.
     document.addEventListener("click", evento => {
