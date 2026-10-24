@@ -175,30 +175,17 @@ test.describe("Radar de Oportunidades", () => {
     });
 });
 
+// O item "Oportunidades" saiu do menu: o radar já está na Home.
 test.describe("menu lateral", () => {
     for (const pagina of ["home", "catalogo", "empresas", "relatorios", "perfil", "alertas"]) {
-        test(`${pagina}: "Oportunidades" logo abaixo de "Alertas"`, async ({ page }) => {
+        test(`${pagina}: sem item "Oportunidades" no menu`, async ({ page }) => {
             await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
             await page.goto(`/pages/app/${pagina}.html`);
 
-            const itens = page.locator("#sidebar .sidebar-nav .nav-item");
-            const paginas = await itens.evaluateAll(links => links.map(a => a.dataset.page));
-            expect(paginas.indexOf("oportunidades")).toBe(paginas.indexOf("alertas") + 1);
-
-            const destino = pagina === "home" ? "#radar-oportunidades" : "home.html#radar-oportunidades";
-            await expect(page.locator('#sidebar a[data-page="oportunidades"]')).toHaveAttribute("href", destino);
+            await expect(page.locator("#sidebar .sidebar-nav .nav-item").first()).toBeVisible();
+            await expect(page.locator('#sidebar a[data-page="oportunidades"]')).toHaveCount(0);
         });
     }
-
-    test("de outra página, o item leva à Home já no radar", async ({ page }) => {
-        await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
-        await page.goto("/pages/app/relatorios.html");
-
-        await page.locator('#sidebar a[data-page="oportunidades"]').click();
-
-        await expect(page).toHaveURL(/home\.html#radar-oportunidades/);
-        await expect(page.locator("#radar-oportunidades")).toBeInViewport();
-    });
 });
 
 test.describe("Radar: filtro por segmento", () => {
