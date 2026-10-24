@@ -48,14 +48,7 @@ Deno.serve(async (req: Request) => {
     });
 
     // 2. Cadastro da empresa (fornecedor e/ou comprador)
-    const [fornecedor] = await (await rest(`fornecedores?auth_user_id=eq.${uid}&select=id_fornecedor,cnpj,razao_social,homologacao_em`)).json();
-
-    // Limite: uma consulta à Receita a cada 2 minutos por empresa (a BrasilAPI
-    // é gratuita e bloqueia quem abusa — inclusive o S.E.R.F. inteiro)
-    const ultima = fornecedor?.homologacao_em ? new Date(fornecedor.homologacao_em).getTime() : 0;
-    if (Date.now() - ultima < 2 * 60 * 1000) {
-        return responder(429, { erro: "Você acabou de verificar. Aguarde 2 minutos para consultar a Receita de novo." });
-    }
+    const [fornecedor] = await (await rest(`fornecedores?auth_user_id=eq.${uid}&select=id_fornecedor,cnpj,razao_social`)).json();
     const [comprador] = await (await rest(`usuarios?auth_user_id=eq.${uid}&select=id_usuario,cnpj,nome_empresa`)).json();
 
     const cnpj = normalizarCnpj(fornecedor?.cnpj || comprador?.cnpj);
