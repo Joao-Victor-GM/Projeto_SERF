@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Catálogo B2B de Produtos</title>
 
@@ -228,34 +228,13 @@
                 <div class="panel-heading">
                     <div>
                         <h2>Produtos Disponíveis</h2>
-                        <p>Preços de atacado dos fornecedores da rede S.E.R.F.</p>
+                        <p>Itens cadastrados com fornecedores verificados em Santo André e região</p>
                     </div>
                 </div>
-
-                <!-- Busca, segmento e ordenação: tudo filtrado no servidor (catalogo.js) -->
-                <form class="catalogo-filtros" id="catalogoFiltros" role="search" aria-label="Buscar no catálogo">
-                    <label class="sr-only" for="catalogoBusca">Buscar produto pelo nome</label>
-                    <input type="search" id="catalogoBusca" placeholder="Buscar produto (ex.: arroz, chapa de aço)"
-                           maxlength="80" autocomplete="off" enterkeyhint="search">
-                    <label class="sr-only" for="catalogoCategoria">Segmento</label>
-                    <select id="catalogoCategoria">
-                        <option value="">Todos os segmentos</option>
-                    </select>
-                    <label class="sr-only" for="catalogoOrdem">Ordenar por</label>
-                    <select id="catalogoOrdem">
-                        <option value="recentes">Mais recentes</option>
-                        <option value="menor_preco">Menor preço</option>
-                        <option value="maior_preco">Maior preço</option>
-                    </select>
-                </form>
-                <p class="catalogo-resumo" id="catalogoResumo" role="status" aria-live="polite"></p>
 
                 <!-- Grade dinâmica de cards de produtos renderizados via catalogo.js -->
                 <div id="listaProdutos" class="produtos-grid">
                     <p class="empty-state">Carregando catálogo de produtos...</p>
-                </div>
-                <div class="catalogo-mais">
-                    <button type="button" class="btn-secondary" id="catalogoMais" hidden>Carregar mais produtos</button>
                 </div>
             </section>
 

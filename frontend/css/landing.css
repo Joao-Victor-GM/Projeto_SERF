@@ -102,8 +102,8 @@ html:has(body.lp) {
 
 .lp-btn-grande { min-height: 50px; padding: 0 24px; font-size: 15px; }
 
-.lp-btn.lp-btn-primario { background: var(--lp-laranja); color: #082B4C; box-shadow: 0 10px 24px rgba(244, 122, 32, 0.28); }
-.lp-btn.lp-btn-primario:hover { background: var(--lp-laranja-claro); transform: translateY(-1px); }
+.lp-btn-primario { background: var(--lp-laranja); color: #FFFFFF; box-shadow: 0 10px 24px rgba(244, 122, 32, 0.28); }
+.lp-btn-primario:hover { background: var(--lp-laranja-claro); transform: translateY(-1px); }
 
 .lp-btn-secundario { background: #1268B3; color: #FFFFFF; }
 .lp-btn-secundario:hover { background: #1A7BD0; transform: translateY(-1px); }
@@ -385,7 +385,7 @@ html:has(body.lp) {
 }
 
 .lp-demo-chat .recebida { background: rgba(255, 255, 255, 0.08); color: var(--lp-texto); }
-.lp-demo-chat .enviada { align-self: flex-end; background: var(--lp-laranja); color: #082B4C; }
+.lp-demo-chat .enviada { align-self: flex-end; background: var(--lp-laranja); color: #FFFFFF; }
 
 .lp-demo figcaption {
     margin-top: 12px;

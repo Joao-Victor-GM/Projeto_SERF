@@ -110,19 +110,15 @@
 
         // Histórico completo das duas perspectivas: "novo x recorrente" e o
         // período anterior (deltas) dependem de pedidos fora do período atual.
-        // Em páginas: a API corta em 1.000 linhas e os totais sairiam errados
-        const { buscarTodasAsPaginas } = window.SERFUtils;
-        const consultaPedidos = buscarTodasAsPaginas(() => window.SERFPedidos.consultar(client)
-            .order("data_pedido", { ascending: true })
-            .order("id_pedido", { ascending: true }));
+        const consultaPedidos = window.SERFPedidos.consultar(client)
+            .order("data_pedido", { ascending: true });
 
         const consultaProdutos = empresa.idFornecedor === null
             ? Promise.resolve({ data: [], error: null })
-            : buscarTodasAsPaginas(() => client
+            : client
                 .from("produtos")
                 .select("id_produto, nome_produto, categoria, quantidade_estoque, quantidade_minima, ativo")
-                .eq("id_fornecedor", empresa.idFornecedor)
-                .order("id_produto"));
+                .eq("id_fornecedor", empresa.idFornecedor);
 
         const [resPedidos, resProdutos] = await Promise.all([consultaPedidos, consultaProdutos]);
 
@@ -308,7 +304,7 @@
     }
 
     function atributosTooltip(valor, rotulo, detalhe = "") {
-        return `tabindex="0" role="img" data-tip-valor="${escaparHTML(valor)}" data-tip-rotulo="${escaparHTML(rotulo)}" data-tip-detalhe="${escaparHTML(detalhe)}" aria-label="${escaparHTML(`${rotulo}: ${valor}${detalhe ? `, ${detalhe}` : ""}`)}"`;
+        return `tabindex="0" data-tip-valor="${escaparHTML(valor)}" data-tip-rotulo="${escaparHTML(rotulo)}" data-tip-detalhe="${escaparHTML(detalhe)}" aria-label="${escaparHTML(`${rotulo}: ${valor}${detalhe ? `, ${detalhe}` : ""}`)}"`;
     }
 
 
@@ -1171,7 +1167,7 @@
         } catch (erro) {
             console.error("[SERF:Relatorios] Falha ao carregar dados:", erro);
             exibirEmpresa();
-            mostrarAviso("Não foi possível carregar os relatórios.", window.SERFUtils.mensagemDeErro(erro));
+            mostrarAviso("Não foi possível carregar os relatórios.", erro.message || "Erro de comunicação com o Supabase.");
             return;
         } finally {
             el("relConteudo").classList.remove("carregando");

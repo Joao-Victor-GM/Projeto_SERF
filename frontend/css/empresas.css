@@ -133,6 +133,20 @@
     font-weight: 800;
 }
 
+/* Logo da empresa (migration 030): fundo branco, imagem inteira no quadro */
+.emp-avatar.com-logo {
+    overflow: hidden;
+    border: 1px solid var(--serf-borda);
+    background: #FFFFFF;
+}
+
+.emp-avatar.com-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .emp-nome {
     color: var(--serf-azul-principal);
     font-size: 15px;
@@ -187,13 +201,13 @@
 
 .emp-favorito:hover {
     border-color: var(--serf-laranja);
-    color: var(--serf-laranja-texto);
+    color: var(--serf-laranja);
 }
 
 .emp-favorito[aria-pressed="true"] {
     border-color: var(--serf-laranja);
     background: var(--serf-tint-laranja);
-    color: var(--serf-laranja-texto);
+    color: var(--serf-laranja);
 }
 
 .emp-favorito:active {
@@ -396,7 +410,7 @@
 }
 
 .emp-produto-preco {
-    color: var(--serf-laranja-texto);
+    color: var(--serf-laranja);
     font-size: 17px;
     font-weight: 800;
 }
@@ -451,6 +465,7 @@
 :root[data-theme="dark"] .emp-chip.homologado { color: #7DDCA4; }
 :root[data-theme="dark"] .emp-dado .alerta { color: #F7B57A; }
 :root[data-theme="dark"] .emp-avatar { background: linear-gradient(135deg, #1F5C99, #3987e5); }
+:root[data-theme="dark"] .emp-avatar.com-logo { background: #FFFFFF; }
 
 /* O atributo hidden precisa vencer o display dos componentes */
 .rel-filtros[hidden],

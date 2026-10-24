@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Meu Perfil Corporativo</title>
 
@@ -190,7 +190,15 @@
 
                 <div class="profile-hero-body">
                     <div class="profile-hero-left">
-                        <div class="profile-hero-avatar" id="heroAvatar">E</div>
+                        <!-- Logo da empresa (perfil.js → Storage "logos", migration 030) -->
+                        <div class="profile-hero-avatar-area">
+                            <div class="profile-hero-avatar" id="heroAvatar">E</div>
+                            <button type="button" class="profile-hero-avatar-editar" id="btnAlterarLogo"
+                                    aria-label="Alterar logo da empresa" title="Alterar logo da empresa" hidden>📷</button>
+                            <button type="button" class="profile-hero-avatar-remover" id="btnRemoverLogo"
+                                    aria-label="Remover logo da empresa" title="Remover logo" hidden>✕</button>
+                            <input type="file" id="inputLogo" accept="image/png,image/jpeg,image/webp" hidden>
+                        </div>
 
                         <div class="profile-hero-info">
                             <h2>
@@ -237,7 +245,7 @@
                             Calculando a partir dos seus pedidos...
                         </p>
 
-                        <div class="thermometer-bar" id="repTermometro" role="img" aria-label="Nível de reputação">
+                        <div class="thermometer-bar" id="repTermometro" aria-label="Nível de reputação">
                             <span class="thermometer-step step-1"></span>
                             <span class="thermometer-step step-2"></span>
                             <span class="thermometer-step step-3"></span>

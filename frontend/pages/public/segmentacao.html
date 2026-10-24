@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>S.E.R.F. - Triagem e Segmentação B2B</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -55,7 +55,6 @@
 
         .logo-triagem {
             width: 110px;
-            height: auto;
             margin-bottom: 15px;
         }
 
@@ -83,7 +82,7 @@
 
         p.descricao {
             font-size: 14px;
-            color: #526476;
+            color: #718096;
             margin-bottom: 30px;
             max-width: 600px;
             margin-left: auto;
@@ -124,7 +123,7 @@
         .card-perf.selecionado {
             background-color: #fffaf0;
             border-color: #f77f00;
-            color: #ad5309;
+            color: #f77f00;
         }
 
         .card-perf .icone-grande {
@@ -140,7 +139,7 @@
         }
 
         .card-perf.selecionado h3 {
-            color: #ad5309;
+            color: #f77f00;
         }
 
         .card-perf p {
@@ -184,7 +183,7 @@
         .card-nicho.selecionado {
             background-color: #fff3e0;
             border-color: #f77f00;
-            color: #ad5309;
+            color: #f77f00;
             font-weight: 600;
         }
 
@@ -198,7 +197,7 @@
         }
 
         .card-nicho.selecionado span.nome-nicho {
-            color: #ad5309;
+            color: #f77f00;
         }
 
         /* ==================== BOTÕES E BARRA DE PROGRESSO ==================== */
@@ -214,7 +213,7 @@
         .barra-progresso {
             width: 50%; /* Controlada via JS (50% no passo 1, 100% no passo 2) */
             height: 100%;
-            background-color: #b4570b;
+            background-color: #f77f00;
             border-radius: 10px;
             transition: width 0.3s ease;
         }
@@ -245,7 +244,7 @@
         }
 
         .btn-acao-principal {
-            background-color: #b4570b;
+            background-color: #f77f00;
             color: #ffffff;
             border: none;
             padding: 12px 40px;
@@ -281,7 +280,7 @@
 <div id="particles-js"></div>
 
 <div class="container-triagem">
-    <img src="../../assets/images/serflogo.png" alt="Logo S.E.R.F." class="logo-triagem" width="120" height="120" />
+    <img src="../../assets/images/serflogo.png" alt="Logo S.E.R.F." class="logo-triagem" />
 
     <!-- BARRA DE PROGRESSO -->
     <div class="progresso-container">

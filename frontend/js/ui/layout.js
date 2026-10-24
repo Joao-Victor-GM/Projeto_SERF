@@ -33,11 +33,7 @@
         },
         { pagina: "cotacoes", icone: "⇄", rotulo: "Cotações", href: "cotacoes.html" },
         { pagina: "relatorios", icone: "▥", rotulo: "Relatórios", href: "relatorios.html" },
-        { pagina: "alertas", icone: "⚑", rotulo: "Alertas", href: "alertas.html", contadorAlertas: true },
-        {
-            pagina: "oportunidades", icone: "◎", rotulo: "Oportunidades", href: "home.html#radar-oportunidades",
-            naHome: { href: "#radar-oportunidades" }
-        }
+        { pagina: "alertas", icone: "⚑", rotulo: "Alertas", href: "alertas.html", contadorAlertas: true }
     ];
 
     function criar(tag, atributos = {}, texto) {

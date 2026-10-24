@@ -67,8 +67,7 @@
     }
 
     async function carregarDiretorio(client) {
-        const { buscarTodasAsPaginas } = window.SERFUtils;
-        const resposta = await buscarTodasAsPaginas(() => client.from("fornecedores_vitrine").select("*").order("id_fornecedor"));
+        const resposta = await client.from("fornecedores_vitrine").select("*");
 
         if (!resposta.error) {
             fornecedores = resposta.data || [];
@@ -80,10 +79,9 @@
         console.warn("[SERF:Empresas] Vitrine indisponível, usando dados públicos:", resposta.error.message);
         vitrineCompleta = false;
 
-        const basico = await buscarTodasAsPaginas(() => client
+        const basico = await client
             .from("fornecedores_publicos")
-            .select("id_fornecedor, razao_social, nome_fantasia, cidade, estado, nicho")
-            .order("id_fornecedor"));
+            .select("id_fornecedor, razao_social, nome_fantasia, cidade, estado, nicho");
 
         if (basico.error) throw basico.error;
 
@@ -108,23 +106,20 @@
     async function carregarPedidos(client) {
         // View pedidos_painel (migration 014): uma linha por pedido, com nomes
         // e os papéis da empresa logada já calculados pelo banco.
-        const { buscarTodasAsPaginas } = window.SERFUtils;
-        const { data, error } = await buscarTodasAsPaginas(() => client
+        const { data, error } = await client
             .from("pedidos_painel")
             .select(`
                 id_pedido, id_usuario, id_fornecedor, valor_total, status_pedido, data_pedido,
                 fornecedor_razao_social, fornecedor_nome_fantasia, fornecedor_cidade, fornecedor_estado,
                 comprador_nome, sou_comprador, sou_fornecedor
             `)
-            .order("data_pedido", { ascending: false })
-            .order("id_pedido", { ascending: false }));
+            .order("data_pedido", { ascending: false });
 
         if (error) throw error;
         pedidos = data || [];
 
         // Pagamentos (migration 009): opcional
-        const pagamentos = await buscarTodasAsPaginas(() => client
-            .from("pagamentos").select("id_pedido, status, metodo, valor, vencimento").order("id_pedido"));
+        const pagamentos = await client.from("pagamentos").select("id_pedido, status, metodo, valor, vencimento");
         pagamentosPorPedido = new Map((pagamentos.data || []).map(p => [p.id_pedido, p]));
     }
 
@@ -171,6 +166,14 @@
 
     function inicial(nome) {
         return (nome || "?").trim().charAt(0).toUpperCase();
+    }
+
+    // Logo da empresa (migration 030) ou, sem logo, a inicial do nome.
+    // Se a imagem não carregar, volta para a inicial (ver configurarEventos).
+    function avatarHTML(nome, logo) {
+        const letra = escaparHTML(inicial(nome));
+        if (!logo) return `<div class="emp-avatar" aria-hidden="true">${letra}</div>`;
+        return `<div class="emp-avatar com-logo" aria-hidden="true" data-inicial="${letra}"><img src="${escaparHTML(logo)}" alt="" loading="lazy"></div>`;
     }
 
 
@@ -236,7 +239,7 @@
                 ` : ""}
 
                 <div class="emp-card-topo">
-                    <div class="emp-avatar" aria-hidden="true">${escaparHTML(inicial(nome))}</div>
+                    ${avatarHTML(nome, f.logo_url)}
                     <div>
                         <h3 class="emp-nome">${escaparHTML(nome)}</h3>
                         <p class="emp-local">${escaparHTML(localDe(f) || "Localização não informada")}</p>
@@ -307,7 +310,7 @@
             renderizarDiretorio();
         } catch (erro) {
             console.error("[SERF:Empresas] Falha ao favoritar:", erro);
-            Swal.fire({ ...window.SERFUtils.swalConfig, title: "Não foi possível salvar", text: window.SERFUtils.mensagemDeErro(erro), icon: "error" });
+            Swal.fire({ ...window.SERFUtils.swalConfig, title: "Não foi possível salvar", text: erro.message, icon: "error" });
             botao.disabled = false;
         }
     }
@@ -343,7 +346,7 @@
             .order("nome_produto");
 
         if (error) {
-            corpo.innerHTML = `<p class="rel-vazio">Não foi possível carregar os produtos: ${escaparHTML(window.SERFUtils.mensagemDeErro(error))}</p>`;
+            corpo.innerHTML = `<p class="rel-vazio">Não foi possível carregar os produtos: ${escaparHTML(error.message)}</p>`;
             return;
         }
 
@@ -423,6 +426,7 @@
                     ? (fornecedor.nome_fantasia || fornecedor.razao_social || "Fornecedor")
                     : (p.comprador_nome || "Cliente"),
                 local: comoComprador ? localDe(fornecedor) : "",
+                logo: comoComprador ? fornecedores.find(f => f.id_fornecedor === p.id_fornecedor)?.logo_url || null : null,
                 pedidos: 0,
                 abertos: 0,
                 total: 0,
@@ -482,7 +486,7 @@
             return `
                 <article class="emp-parceiro">
                     <div class="emp-parceiro-id">
-                        <div class="emp-avatar" aria-hidden="true">${escaparHTML(inicial(p.nome))}</div>
+                        ${avatarHTML(p.nome, p.logo)}
                         <div>
                             <strong title="${escaparHTML(p.nome)}">${escaparHTML(p.nome)}</strong>
                             <span class="emp-local">${escaparHTML(p.local || `Último pedido ${tempoRelativo(p.ultimo.data_pedido)}`)}</span>
@@ -532,6 +536,15 @@
     }
 
     function configurarEventos() {
+        // Logo que não carregou (removido, sem internet): mostra a inicial.
+        // "error" não borbulha: escuta na fase de captura.
+        document.addEventListener("error", evento => {
+            const avatar = evento.target instanceof HTMLImageElement && evento.target.closest(".emp-avatar.com-logo");
+            if (!avatar) return;
+            avatar.classList.remove("com-logo");
+            avatar.textContent = avatar.dataset.inicial || "?";
+        }, true);
+
         document.querySelector(".emp-abas").addEventListener("click", evento => {
             const botao = evento.target.closest("[data-aba]");
             if (botao) mostrarAba(botao.dataset.aba);
@@ -626,7 +639,7 @@
             renderizarParceiros();
         } catch (erro) {
             console.error("[SERF:Empresas] Falha ao carregar:", erro);
-            el("gradeFornecedores").innerHTML = `<p class="rel-vazio">Não foi possível carregar as empresas: ${escaparHTML(window.SERFUtils.mensagemDeErro(erro))}</p>`;
+            el("gradeFornecedores").innerHTML = `<p class="rel-vazio">Não foi possível carregar as empresas: ${escaparHTML(erro.message)}</p>`;
             el("listaParceiros").innerHTML = "";
         }
     }

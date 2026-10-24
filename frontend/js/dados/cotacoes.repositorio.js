@@ -14,11 +14,14 @@
     const COLUNAS_PROPOSTA = "id_proposta, id_cotacao, id_fornecedor, id_produto, fornecedor_nome, produto_nome, preco_unitario, prazo_entrega_dias, observacao, status, criada_em, atualizada_em";
     const COLUNAS_COTACAO = "id_cotacao, id_usuario, comprador_nome, titulo, descricao, categoria, quantidade, unidade, preco_alvo, valida_ate, status, id_proposta_aceita, criada_em, encerrada_em";
 
-    // Comprador: as próprias cotações, com as propostas recebidas
+    // Comprador: as próprias cotações, com as propostas recebidas.
+    // cotacoes e propostas têm DUAS ligações (propostas.id_cotacao e
+    // cotacoes.id_proposta_aceita): sem dizer qual usar, o PostgREST recusa
+    // a consulta (PGRST201). A ligação certa é a das propostas da cotação.
     async function minhasCotacoes(idUsuario) {
         return dadosOuErro(await cliente()
             .from("cotacoes")
-            .select(`${COLUNAS_COTACAO}, propostas ( ${COLUNAS_PROPOSTA} )`)
+            .select(`${COLUNAS_COTACAO}, propostas!fk_propostas_cotacoes ( ${COLUNAS_PROPOSTA} )`)
             .eq("id_usuario", idUsuario)
             .order("criada_em", { ascending: false })
             .limit(50)) || [];

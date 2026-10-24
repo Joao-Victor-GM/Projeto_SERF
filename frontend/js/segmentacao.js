@@ -161,7 +161,7 @@ async function finalizarCadastroOnboarding() {
         Swal.fire({
             ...swalConfig,
             title: 'Erro Crítico',
-            text: 'Não foi possível salvar as preferências. ' + window.SERFUtils.mensagemDeErro(error),
+            text: 'Não foi possível salvar as preferências: ' + error.message,
             icon: 'error',
             confirmButtonColor: '#d33'
         });

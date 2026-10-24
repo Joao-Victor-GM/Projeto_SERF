@@ -105,7 +105,7 @@ export async function recarregarPedidos() {
     } catch (erro) {
         console.error("[SERF:Home] Falha ao buscar pedidos:", erro);
         estado.carregamento = "erro";
-        estado.mensagemErro = window.SERFUtils.mensagemDeErro(erro);
+        estado.mensagemErro = erro.message || "Erro de comunicação com o Supabase";
     }
 
     // Conversas dependem dos pedidos carregados; falha aqui não derruba o painel.
