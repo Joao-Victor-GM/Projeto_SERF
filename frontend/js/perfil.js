@@ -92,7 +92,9 @@
 
         // Capa e topbar
         definirTexto("heroRazaoSocial", razaoSocial);
-        definirTexto("heroAvatar", inicial);
+        const logo = c?.logo_url || f?.logo_url || null;
+        mostrarAvatar(document.getElementById("heroAvatar"), logo, inicial);
+        window.serfAtualizarLogoTopo?.(logo);
         definirTexto("heroCnpj", `CNPJ: ${formatarCNPJ(cnpj)}`);
         definirTexto("heroNicho", nicho);
         definirTexto("heroPerfil", `Perfil: ${perfil || "pendente"}`);
@@ -145,6 +147,175 @@
         }
 
         renderizarSelos();
+
+        // Alterar logo: com o cadastro carregado. Remover: só se há logo.
+        const btnLogo = document.getElementById("btnAlterarLogo");
+        if (btnLogo) btnLogo.hidden = !(c || f);
+        const btnRemover = document.getElementById("btnRemoverLogo");
+        if (btnRemover) btnRemover.hidden = !logo;
+    }
+
+    /* =========================================================================
+       1b. LOGO DA EMPRESA (migration 031)
+       A imagem é reduzida no navegador (até 256 px) e vai para o Storage em
+       logos/<auth.uid()>/logo; o endereço público fica em logo_url do
+       cadastro (usuarios e/ou fornecedores) e aparece na área de Empresas.
+       ========================================================================= */
+    const LOGO_TIPOS = ["image/png", "image/jpeg", "image/webp"];
+    const LOGO_MAX_ORIGINAL = 5 * 1024 * 1024;   // arquivo escolhido
+    const LOGO_MAX_ENVIO = 1024 * 1024;          // depois de reduzido (limite do bucket)
+    const LOGO_LADO = 256;
+
+    // Logo (se houver) ou a inicial; imagem que falhar volta para a inicial
+    function mostrarAvatar(elemento, logo, inicial) {
+        if (!elemento) return;
+
+        if (!logo) {
+            elemento.classList.remove("com-logo");
+            elemento.textContent = inicial;
+            return;
+        }
+
+        const img = document.createElement("img");
+        img.alt = "Logo da empresa";
+        img.addEventListener("error", () => mostrarAvatar(elemento, null, inicial), { once: true });
+        img.src = logo;
+
+        elemento.classList.add("com-logo");
+        elemento.replaceChildren(img);
+    }
+
+    // Reduz para no máximo LOGO_LADO px (mantendo a proporção) em WebP;
+    // navegador sem WebP no canvas → PNG.
+    function reduzirImagem(arquivo) {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(arquivo);
+            const img = new Image();
+
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const escala = Math.min(1, LOGO_LADO / Math.max(img.naturalWidth, img.naturalHeight));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(img.naturalWidth * escala));
+                canvas.height = Math.max(1, Math.round(img.naturalHeight * escala));
+                canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(webp => {
+                    if (webp && webp.type === "image/webp") return resolve(webp);
+                    canvas.toBlob(png => (png ? resolve(png) : reject(new Error("Não foi possível processar a imagem."))), "image/png");
+                }, "image/webp", 0.9);
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error("Não foi possível ler esta imagem. Use um arquivo PNG, JPEG ou WebP."));
+            };
+
+            img.src = url;
+        });
+    }
+
+    async function enviarLogo(arquivo) {
+        if (!LOGO_TIPOS.includes(arquivo.type)) {
+            await window.SERFAvisos.info("Formato não aceito", "Envie o logo em PNG, JPEG ou WebP.");
+            return;
+        }
+        if (arquivo.size > LOGO_MAX_ORIGINAL) {
+            await window.SERFAvisos.info("Imagem muito grande", "Escolha uma imagem de até 5 MB.");
+            return;
+        }
+
+        const client = obterSupabase();
+        const botao = document.getElementById("btnAlterarLogo");
+        if (botao) botao.disabled = true;
+
+        try {
+            const imagem = await reduzirImagem(arquivo);
+            if (imagem.size > LOGO_MAX_ENVIO) throw new Error("A imagem continua grande demais. Tente outro arquivo.");
+
+            // Um arquivo por empresa: o novo substitui o anterior
+            const caminho = `${empresa.authUserId}/logo`;
+            const envio = await client.storage.from("logos")
+                .upload(caminho, imagem, { upsert: true, contentType: imagem.type, cacheControl: "3600" });
+            if (envio.error) throw envio.error;
+
+            // ?v= força o navegador (e o cache do Storage) a buscar a imagem nova
+            const { data } = client.storage.from("logos").getPublicUrl(caminho);
+            const logoUrl = `${data.publicUrl}?v=${Date.now()}`;
+
+            await gravarLogoNoCadastro(client, logoUrl);
+
+            await carregarEmpresa(client);
+            renderizarEmpresa();
+            window.SERFAvisos.sucesso("Logo atualizado", empresa.fornecedor
+                ? "Ele aparece no seu perfil e na área de Empresas."
+                : "Ele aparece no seu perfil.");
+        } catch (erro) {
+            await window.SERFAvisos.erro("Não foi possível atualizar o logo", erro);
+        } finally {
+            if (botao) botao.disabled = false;
+        }
+    }
+
+    // Grava o mesmo logo (ou null) nos cadastros da empresa
+    async function gravarLogoNoCadastro(client, logoUrl) {
+        const atualizacoes = [];
+        if (empresa.comprador) {
+            atualizacoes.push(client.from("usuarios").update({ logo_url: logoUrl })
+                .eq("id_usuario", empresa.comprador.id_usuario));
+        }
+        if (empresa.fornecedor) {
+            atualizacoes.push(client.from("fornecedores").update({ logo_url: logoUrl })
+                .eq("id_fornecedor", empresa.fornecedor.id_fornecedor));
+        }
+
+        const falha = (await Promise.all(atualizacoes)).find(r => r.error);
+        if (falha) throw falha.error;
+    }
+
+    async function removerLogo() {
+        const ok = await window.SERFAvisos.confirmar({
+            titulo: "Remover o logo da empresa?",
+            texto: "No lugar dele volta a aparecer a inicial do nome. Você pode enviar outro logo quando quiser.",
+            botao: "Remover logo",
+            cancelar: "Manter",
+            perigo: true
+        });
+        if (!ok) return;
+
+        const client = obterSupabase();
+        const botao = document.getElementById("btnRemoverLogo");
+        if (botao) botao.disabled = true;
+
+        try {
+            // Primeiro o cadastro (o que as telas leem); depois o arquivo
+            await gravarLogoNoCadastro(client, null);
+            const { error } = await client.storage.from("logos").remove([`${empresa.authUserId}/logo`]);
+            if (error) console.warn("[SERF:Perfil] Logo removido do cadastro; arquivo ficou no Storage:", error.message || error);
+
+            await carregarEmpresa(client);
+            renderizarEmpresa();
+            window.SERFAvisos.sucesso("Logo removido");
+        } catch (erro) {
+            await window.SERFAvisos.erro("Não foi possível remover o logo", erro);
+        } finally {
+            if (botao) botao.disabled = false;
+        }
+    }
+
+    function configurarLogo() {
+        document.getElementById("btnRemoverLogo")?.addEventListener("click", removerLogo);
+
+        const botao = document.getElementById("btnAlterarLogo");
+        const entrada = document.getElementById("inputLogo");
+        if (!botao || !entrada) return;
+
+        botao.addEventListener("click", () => entrada.click());
+        entrada.addEventListener("change", () => {
+            const arquivo = entrada.files?.[0];
+            entrada.value = "";   // permite escolher o mesmo arquivo de novo
+            if (arquivo) enviarLogo(arquivo);
+        });
     }
 
     function renderizarSelos() {
@@ -959,6 +1130,7 @@ Digite EXCLUIR para confirmar:`) || "").trim().toUpperCase() === "EXCLUIR";
         configurarFormularioCadastro();
         configurarSeguranca();
         configurarPrivacidade();
+        configurarLogo();
 
         const client = obterSupabase();
         if (!client) return;

@@ -20,54 +20,64 @@
 -- "Security Definer View": esperado.
 -- ==========================================================
 
-CREATE OR REPLACE VIEW public.fornecedores_vitrine AS
-WITH estatisticas AS (
-    SELECT pr.id_fornecedor,
-           COUNT(*) FILTER (WHERE pe.status_pedido = 'ENTREGUE')                  AS pedidos_entregues,
-           COUNT(*) FILTER (WHERE pe.status_pedido = 'CANCELADO')                 AS pedidos_cancelados,
-           COUNT(DISTINCT pe.id_usuario) FILTER (WHERE pe.status_pedido <> 'CANCELADO') AS clientes_atendidos,
-           AVG(EXTRACT(EPOCH FROM (pe.data_resposta - pe.data_pedido)) / 3600.0)
-               FILTER (WHERE pe.data_resposta IS NOT NULL AND pe.data_resposta >= pe.data_pedido)
-                                                                                  AS tempo_resposta_horas,
-           AVG(EXTRACT(EPOCH FROM (pe.data_entrega - pe.data_pedido)) / 86400.0)
-               FILTER (WHERE pe.data_entrega IS NOT NULL AND pe.data_entrega >= pe.data_pedido)
-                                                                                  AS prazo_entrega_dias
-      FROM public.pedidos pe
-      JOIN public.produtos pr ON pr.id_produto = pe.id_produto
-     GROUP BY pr.id_fornecedor
-),
-catalogo AS (
-    SELECT id_fornecedor,
-           COUNT(*)                     AS produtos_ativos,
-           array_agg(DISTINCT categoria) FILTER (WHERE categoria IS NOT NULL) AS categorias,
-           MIN(preco_atacado)           AS menor_preco
-      FROM public.produtos
-     WHERE ativo
-     GROUP BY id_fornecedor
-)
-SELECT f.id_fornecedor,
-       f.razao_social,
-       f.nome_fantasia,
-       f.cidade,
-       f.estado,
-       f.nicho,
-       (f.status_cadastro = 'APROVADO')                         AS homologado,
-       f.data_cadastro,
-       COALESCE(c.produtos_ativos, 0)                           AS produtos_ativos,
-       COALESCE(c.categorias, ARRAY[]::VARCHAR[])               AS categorias,
-       c.menor_preco,
-       COALESCE(e.pedidos_entregues, 0)                         AS pedidos_entregues,
-       COALESCE(e.pedidos_cancelados, 0)                        AS pedidos_cancelados,
-       COALESCE(e.clientes_atendidos, 0)                        AS clientes_atendidos,
-       CASE WHEN COALESCE(e.pedidos_entregues, 0) + COALESCE(e.pedidos_cancelados, 0) > 0
-            THEN round(e.pedidos_entregues::NUMERIC / (e.pedidos_entregues + e.pedidos_cancelados), 4)
-       END                                                      AS taxa_entrega,
-       round(e.tempo_resposta_horas::NUMERIC, 1)                AS tempo_resposta_horas,
-       round(e.prazo_entrega_dias::NUMERIC, 1)                  AS prazo_entrega_dias
-  FROM public.fornecedores f
-  LEFT JOIN catalogo c     ON c.id_fornecedor = f.id_fornecedor
-  LEFT JOIN estatisticas e ON e.id_fornecedor = f.id_fornecedor
- WHERE f.ativo;
+-- [031] Depois da 031 a view também tem logo_url; recriá-la aqui sem a
+-- coluna falharia ("cannot drop columns from view") ao rodar de novo.
+DO $do$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = 'fornecedores_vitrine' AND column_name = 'logo_url') THEN
+        EXECUTE $v$
+        CREATE OR REPLACE VIEW public.fornecedores_vitrine AS
+        WITH estatisticas AS (
+            SELECT pr.id_fornecedor,
+                   COUNT(*) FILTER (WHERE pe.status_pedido = 'ENTREGUE')                  AS pedidos_entregues,
+                   COUNT(*) FILTER (WHERE pe.status_pedido = 'CANCELADO')                 AS pedidos_cancelados,
+                   COUNT(DISTINCT pe.id_usuario) FILTER (WHERE pe.status_pedido <> 'CANCELADO') AS clientes_atendidos,
+                   AVG(EXTRACT(EPOCH FROM (pe.data_resposta - pe.data_pedido)) / 3600.0)
+                       FILTER (WHERE pe.data_resposta IS NOT NULL AND pe.data_resposta >= pe.data_pedido)
+                                                                                          AS tempo_resposta_horas,
+                   AVG(EXTRACT(EPOCH FROM (pe.data_entrega - pe.data_pedido)) / 86400.0)
+                       FILTER (WHERE pe.data_entrega IS NOT NULL AND pe.data_entrega >= pe.data_pedido)
+                                                                                          AS prazo_entrega_dias
+              FROM public.pedidos pe
+              JOIN public.produtos pr ON pr.id_produto = pe.id_produto
+             GROUP BY pr.id_fornecedor
+        ),
+        catalogo AS (
+            SELECT id_fornecedor,
+                   COUNT(*)                     AS produtos_ativos,
+                   array_agg(DISTINCT categoria) FILTER (WHERE categoria IS NOT NULL) AS categorias,
+                   MIN(preco_atacado)           AS menor_preco
+              FROM public.produtos
+             WHERE ativo
+             GROUP BY id_fornecedor
+        )
+        SELECT f.id_fornecedor,
+               f.razao_social,
+               f.nome_fantasia,
+               f.cidade,
+               f.estado,
+               f.nicho,
+               (f.status_cadastro = 'APROVADO')                         AS homologado,
+               f.data_cadastro,
+               COALESCE(c.produtos_ativos, 0)                           AS produtos_ativos,
+               COALESCE(c.categorias, ARRAY[]::VARCHAR[])               AS categorias,
+               c.menor_preco,
+               COALESCE(e.pedidos_entregues, 0)                         AS pedidos_entregues,
+               COALESCE(e.pedidos_cancelados, 0)                        AS pedidos_cancelados,
+               COALESCE(e.clientes_atendidos, 0)                        AS clientes_atendidos,
+               CASE WHEN COALESCE(e.pedidos_entregues, 0) + COALESCE(e.pedidos_cancelados, 0) > 0
+                    THEN round(e.pedidos_entregues::NUMERIC / (e.pedidos_entregues + e.pedidos_cancelados), 4)
+               END                                                      AS taxa_entrega,
+               round(e.tempo_resposta_horas::NUMERIC, 1)                AS tempo_resposta_horas,
+               round(e.prazo_entrega_dias::NUMERIC, 1)                  AS prazo_entrega_dias
+          FROM public.fornecedores f
+          LEFT JOIN catalogo c     ON c.id_fornecedor = f.id_fornecedor
+          LEFT JOIN estatisticas e ON e.id_fornecedor = f.id_fornecedor
+         WHERE f.ativo
+        $v$;
+    END IF;
+END $do$;
 
 REVOKE ALL ON public.fornecedores_vitrine FROM PUBLIC, anon;
 GRANT SELECT ON public.fornecedores_vitrine TO authenticated;

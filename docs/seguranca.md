@@ -70,7 +70,7 @@ versionada (histórico verificado).
 
 ## Ao publicar (checklist)
 
-**Banco:** aplique as migrations até a **030**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
+**Banco:** aplique as migrations até a **031**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
 
 **Hospedagem (Cloudflare Pages ou Netlify):**
 - Publicar a pasta **`frontend/`**. O `_headers` e o `_redirects` já estão nela; publicar a raiz do repositório exporia `tests/`, `docs/` e o código das funções.
@@ -151,6 +151,21 @@ O modo `REAL` precisa da função `enviar-emails` configurada (Resend).
   é aceitável (é alguém de confiança da empresa).
 - Fornecedor que ligar a NF-e real já provou a posse com o certificado A1 na
   Focus: dá para verificá-lo automaticamente no futuro.
+
+## Logo da empresa e sessão (migration 031)
+
+- **Logo:** cada empresa só grava na própria pasta do bucket `logos`
+  (políticas em `storage.objects`); só PNG, JPEG ou WebP de até 1 MB (SVG,
+  que pode carregar script, é recusado). No banco, `logo_url` só aceita o
+  endereço do **próprio** arquivo no Supabase
+  (`…/logos/<auth_user_id>/logo?v=<número>`): ninguém aponta o cadastro para
+  o logo de outra empresa nem para imagem externa. A CSP libera `img-src` só
+  para o domínio do Supabase do projeto.
+- **Sessão:** sem "Manter conectado", a sessão fica no `sessionStorage` e
+  some ao fechar o navegador; com a opção, fica no `localStorage`. Saída
+  automática após **30 min** sem uso (7 dias com "Manter conectado"), com
+  aviso 2 min antes; ao abrir uma página já além do limite, sai antes de
+  mostrar dados. Em computador compartilhado, **não** marque a opção.
 
 ## Como manter
 

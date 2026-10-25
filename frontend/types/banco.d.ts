@@ -158,6 +158,7 @@ export interface Database {
                     homologacao_motivo: string | null;
                     homologacao_em: string | null;
                     regime_tributario: string;
+                    logo_url: string | null;
                 };
                 Insert: {
                     auth_user_id?: string | null;
@@ -175,6 +176,7 @@ export interface Database {
                     homologacao_motivo?: string | null;
                     homologacao_em?: string | null;
                     regime_tributario?: string;
+                    logo_url?: string | null;
                 };
                 Update: {
                     auth_user_id?: string | null;
@@ -192,6 +194,7 @@ export interface Database {
                     homologacao_motivo?: string | null;
                     homologacao_em?: string | null;
                     regime_tributario?: string;
+                    logo_url?: string | null;
                 };
                 Relationships: [];
             };
@@ -742,6 +745,7 @@ export interface Database {
                     municipio: string | null;
                     uf: string | null;
                     inscricao_estadual: string | null;
+                    logo_url: string | null;
                 };
                 Insert: {
                     auth_user_id?: string | null;
@@ -763,6 +767,7 @@ export interface Database {
                     municipio?: string | null;
                     uf?: string | null;
                     inscricao_estadual?: string | null;
+                    logo_url?: string | null;
                 };
                 Update: {
                     auth_user_id?: string | null;
@@ -784,6 +789,7 @@ export interface Database {
                     municipio?: string | null;
                     uf?: string | null;
                     inscricao_estadual?: string | null;
+                    logo_url?: string | null;
                 };
                 Relationships: [];
             };
@@ -814,6 +820,7 @@ export interface Database {
                     cidade: string | null;
                     estado: string | null;
                     nicho: string | null;
+                    logo_url: string | null;
                 };
                 Relationships: [];
             };
@@ -836,6 +843,7 @@ export interface Database {
                     taxa_entrega: number | null;
                     tempo_resposta_horas: number | null;
                     prazo_entrega_dias: number | null;
+                    logo_url: string | null;
                 };
                 Relationships: [];
             };

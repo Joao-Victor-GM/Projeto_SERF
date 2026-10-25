@@ -162,6 +162,113 @@
     box-shadow: 0 0 0 3px rgba(244, 122, 32, 0.35), 0 8px 20px rgba(0, 31, 63, 0.25);
 }
 
+/* Logo da empresa: área do avatar com o botão "alterar" (perfil.js) */
+.profile-hero-avatar-area {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    margin-top: -52px;
+}
+
+.profile-hero-avatar-area .profile-hero-avatar {
+    margin-top: 0;
+}
+
+.profile-hero-avatar.com-logo {
+    overflow: hidden;
+    background: #FFFFFF;
+}
+
+.profile-hero-avatar.com-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    object-fit: contain;
+}
+
+.profile-hero-avatar-editar {
+    position: absolute;
+    right: 0;
+    bottom: 2px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--serf-branco);
+    border-radius: 50%;
+    background: var(--perfil-noite-2);
+    color: #FFFFFF;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 31, 63, 0.3);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+/* "Remover logo": canto superior direito, só quando há logo */
+.profile-hero-avatar-remover {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 2px solid var(--serf-branco);
+    border-radius: 50%;
+    background: var(--serf-superficie);
+    color: var(--status-cancelado);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 31, 63, 0.3);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.profile-hero-avatar-remover:hover {
+    background: var(--status-cancelado);
+    color: #FFFFFF;
+}
+
+.profile-hero-avatar-remover:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
+
+.profile-hero-avatar-editar[hidden],
+.profile-hero-avatar-remover[hidden] {
+    display: none;
+}
+
+.profile-hero-avatar-remover:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.profile-hero-avatar-editar:hover {
+    background: var(--serf-laranja);
+}
+
+.profile-hero-avatar-editar:active {
+    transform: scale(0.94);
+}
+
+.profile-hero-avatar-editar:focus-visible {
+    outline: 2px solid var(--serf-azul-interacao);
+    outline-offset: 2px;
+}
+
+.profile-hero-avatar-editar:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
 .profile-hero-info {
     min-width: 0;
     padding-top: 14px;
@@ -797,6 +904,16 @@
         height: 84px;
         margin-top: -42px;
         font-size: 32px;
+    }
+
+    .profile-hero-avatar-area {
+        margin-top: -42px;
+    }
+
+    .profile-hero-avatar-editar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 
     .perfil-coluna-lateral,

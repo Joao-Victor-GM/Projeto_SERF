@@ -209,14 +209,24 @@ CREATE POLICY fornecedores_select_proprio
     TO authenticated
     USING (auth_user_id = auth.uid());
 
-CREATE OR REPLACE VIEW public.fornecedores_publicos AS
-    SELECT id_fornecedor,
-           razao_social,
-           nome_fantasia,
-           cidade,
-           estado,
-           nicho
-      FROM public.fornecedores;
+-- [031] Depois da 031 a view também tem logo_url; recriá-la aqui sem a
+-- coluna falharia ("cannot drop columns from view") ao rodar de novo.
+DO $do$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = 'fornecedores_publicos' AND column_name = 'logo_url') THEN
+        EXECUTE $v$
+        CREATE OR REPLACE VIEW public.fornecedores_publicos AS
+            SELECT id_fornecedor,
+                   razao_social,
+                   nome_fantasia,
+                   cidade,
+                   estado,
+                   nicho
+              FROM public.fornecedores
+        $v$;
+    END IF;
+END $do$;
 
 REVOKE ALL ON public.fornecedores_publicos FROM PUBLIC, anon;
 GRANT SELECT ON public.fornecedores_publicos TO authenticated;

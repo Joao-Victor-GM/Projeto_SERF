@@ -1,3 +1,6 @@
 node_modules/
 test-results/
 playwright-report/
+
+# Arquivos locais do Supabase CLI (login, versão)
+supabase/.temp/

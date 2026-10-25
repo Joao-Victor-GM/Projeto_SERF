@@ -501,6 +501,13 @@ a {
     font-weight: 700;
 }
 
+/* Logo da empresa no avatar do topo (auth-check.js, migration 031) */
+.profile-avatar.com-logo {
+    border: 1px solid var(--serf-borda);
+    background: #FFFFFF var(--serf-logo-empresa) center / contain no-repeat;
+    color: transparent;
+}
+
 
 /* ==========================================================
    05 — CONTEÚDO PRINCIPAL
@@ -1306,16 +1313,35 @@ a {
     color: var(--serf-texto-secundario);
 }
 
+/* Nome do fornecedor: ocupa o espaço que sobra ao lado das etiquetas,
+   quebra em até 2 linhas (sem partir palavras) e termina em "..." se
+   ainda faltar espaço. O nome completo fica no title do elemento. */
 .produto-fornecedor {
     font-size: 11px;
     color: var(--serf-texto-secundario);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    justify-content: flex-end;
     gap: 4px;
-    max-width: 140px;
-    white-space: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 60%;
+    text-align: right;
+}
+
+.fornecedor-icone {
+    flex-shrink: 0;
+}
+
+.fornecedor-nome {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    line-height: 1.35;
 }
 
 .produto-nome {

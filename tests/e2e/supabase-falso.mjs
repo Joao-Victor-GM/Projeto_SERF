@@ -37,6 +37,10 @@ function sessaoFalsa(usuario) {
     };
 }
 
+// Pares de tabelas com DUAS FKs entre si (024: propostas.id_cotacao e
+// cotacoes.id_proposta_aceita): o embed precisa nomear a FK.
+const EMBUTIDOS_AMBIGUOS = { cotacoes: ["propostas"], propostas: ["cotacoes"] };
+
 // Condição PostgREST "op.valor" (eq, gte, lte, in) sobre uma coluna.
 // Operadores desconhecidos não filtram (null = ignorar).
 function atende(linha, coluna, expressao) {
@@ -217,6 +221,15 @@ export async function simularSupabase(page, { usuario, tabelas = {}, rpc = {}, f
             const filtradas = metodo === "GET" ? ordenadas.slice(offset, offset + limite) : ordenadas;
 
             chamadas.push({ tipo: "rest", tabela, metodo, parametros, corpo });
+
+            // Como o PostgREST real: embutir uma tabela ligada por mais de uma
+            // FK sem dizer qual (tabela!nome_da_fk) é recusado (PGRST201).
+            const selecao = (url.searchParams.get("select") || "").replace(/\s+/g, " ");
+            const embutidaAmbigua = (EMBUTIDOS_AMBIGUOS[tabela] || [])
+                .find(outra => new RegExp(`(^|[,( ])${outra} ?\\(`).test(selecao));
+            if (embutidaAmbigua) {
+                return responder(300, { code: "PGRST201", message: `Could not embed because more than one relationship was found for '${tabela}' and '${embutidaAmbigua}'` });
+            }
 
             if (falhas[tabela]) return responder(400, { message: falhas[tabela], code: "42P01" });
 

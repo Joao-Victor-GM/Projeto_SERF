@@ -250,6 +250,34 @@ a:focus-visible {
     outline-offset: 2px;
 }
 
+/* "Manter conectado" (login) */
+.manter-conectado {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    gap: 8px;
+    margin-top: 8px;
+    color: var(--login-texto-2);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.manter-conectado input {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--login-laranja);
+    cursor: pointer;
+}
+
+.manter-conectado-dica {
+    padding-left: 26px;
+}
+
 .forgot-pass {
     display: block;
     margin: 15px 0;

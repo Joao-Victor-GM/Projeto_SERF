@@ -205,6 +205,11 @@ if (formCadastro) {
                 }
             });
 
+            // Conta nova: sessão só até fechar o navegador (pode marcar
+            // "Manter conectado" no próximo login) e relógio de inatividade zerado
+            window.SERFSessao?.definirManterConectado(false);
+            window.SERFSessao?.marcarAtividade();
+
             // Cadastra no Supabase Auth. CNPJ e razão social vão nos metadados e
             // o registro em 'usuarios' é criado pelo trigger do banco (migration 005).
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
@@ -294,6 +299,11 @@ if (formLogin) {
                     Swal.showLoading();
                 }
             });
+
+            // "Manter conectado": decide ONDE a sessão será guardada (ver
+            // supabase-client.js) e zera o relógio de inatividade.
+            window.SERFSessao?.definirManterConectado(Boolean(document.getElementById('manterConectado')?.checked));
+            window.SERFSessao?.marcarAtividade();
 
             // ETAPA A: Autentica com E-mail + Senha no Supabase Auth.
             // Erro genérico: não revela se o e-mail existe.
@@ -442,3 +452,26 @@ if (formRecuperar) {
         }
     });
 }
+
+
+// =========================================================================
+// FUNCIONALIDADE 6: AVISO DE SESSÃO ENCERRADA POR INATIVIDADE
+// O auth-check.js manda para cá com ?motivo=inatividade.
+// =========================================================================
+(function avisarSaidaPorInatividade() {
+    const parametros = new URLSearchParams(window.location.search);
+    if (parametros.get('motivo') !== 'inatividade') return;
+
+    // Tira o motivo da URL (recarregar a página não repete o aviso)
+    parametros.delete('motivo');
+    const resto = parametros.toString();
+    history.replaceState(null, '', window.location.pathname + (resto ? `?${resto}` : '') + window.location.hash);
+
+    if (typeof Swal === 'undefined') return;
+    Swal.fire({
+        ...swalConfig,
+        title: 'Sessão encerrada',
+        text: 'Você ficou um tempo sem usar o S.E.R.F. e, por segurança, sua sessão foi encerrada. Entre novamente para continuar.',
+        icon: 'info'
+    });
+})();

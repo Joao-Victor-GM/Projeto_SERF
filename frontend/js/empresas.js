@@ -173,6 +173,14 @@
         return (nome || "?").trim().charAt(0).toUpperCase();
     }
 
+    // Logo da empresa (migration 031) ou, sem logo, a inicial do nome.
+    // Se a imagem não carregar, volta para a inicial (ver configurarEventos).
+    function avatarHTML(nome, logo) {
+        const letra = escaparHTML(inicial(nome));
+        if (!logo) return `<div class="emp-avatar" aria-hidden="true">${letra}</div>`;
+        return `<div class="emp-avatar com-logo" aria-hidden="true" data-inicial="${letra}"><img src="${escaparHTML(logo)}" alt="" loading="lazy"></div>`;
+    }
+
 
     /* =====================================================================
        3. ABA 1 · DIRETÓRIO
@@ -236,7 +244,7 @@
                 ` : ""}
 
                 <div class="emp-card-topo">
-                    <div class="emp-avatar" aria-hidden="true">${escaparHTML(inicial(nome))}</div>
+                    ${avatarHTML(nome, f.logo_url)}
                     <div>
                         <h3 class="emp-nome">${escaparHTML(nome)}</h3>
                         <p class="emp-local">${escaparHTML(localDe(f) || "Localização não informada")}</p>
@@ -423,6 +431,7 @@
                     ? (fornecedor.nome_fantasia || fornecedor.razao_social || "Fornecedor")
                     : (p.comprador_nome || "Cliente"),
                 local: comoComprador ? localDe(fornecedor) : "",
+                logo: comoComprador ? fornecedores.find(f => f.id_fornecedor === p.id_fornecedor)?.logo_url || null : null,
                 pedidos: 0,
                 abertos: 0,
                 total: 0,
@@ -482,7 +491,7 @@
             return `
                 <article class="emp-parceiro">
                     <div class="emp-parceiro-id">
-                        <div class="emp-avatar" aria-hidden="true">${escaparHTML(inicial(p.nome))}</div>
+                        ${avatarHTML(p.nome, p.logo)}
                         <div>
                             <strong title="${escaparHTML(p.nome)}">${escaparHTML(p.nome)}</strong>
                             <span class="emp-local">${escaparHTML(p.local || `Último pedido ${tempoRelativo(p.ultimo.data_pedido)}`)}</span>
@@ -532,6 +541,15 @@
     }
 
     function configurarEventos() {
+        // Logo que não carregou (removido, sem internet): mostra a inicial.
+        // "error" não borbulha: escuta na fase de captura.
+        document.addEventListener("error", evento => {
+            const avatar = evento.target instanceof HTMLImageElement && evento.target.closest(".emp-avatar.com-logo");
+            if (!avatar) return;
+            avatar.classList.remove("com-logo");
+            avatar.textContent = avatar.dataset.inicial || "?";
+        }, true);
+
         document.querySelector(".emp-abas").addEventListener("click", evento => {
             const botao = evento.target.closest("[data-aba]");
             if (botao) mostrarAba(botao.dataset.aba);

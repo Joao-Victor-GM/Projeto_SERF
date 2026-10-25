@@ -8,10 +8,11 @@ conversam pelo chat do pedido, pagam (simulado) e recebem NF-e (simulada).
 ```
 Navegador (HTML + JS puro, sem build)
   supabase-js (CDN, versão fixa) → supabase-client.js → utils.js → auth-check.js → <página>.js
-        │ PostgREST (.from / .rpc)          │ Realtime (postgres_changes)
-        ▼                                   ▼
+        │ PostgREST (.from / .rpc)   │ Realtime (postgres_changes)   │ Storage (logos)
+        ▼                            ▼                               ▼
 Supabase / PostgreSQL
   RLS + GRANT por coluna + triggers + funções SECURITY DEFINER
+  Edge Functions (Deno) só para o que exige segredo: Pix, NF-e, CNPJ, e-mails, LGPD
 ```
 
 **Não há backend próprio.** A pasta `backend/` está reservada. Toda regra que
@@ -34,6 +35,7 @@ auth.users ──┬── usuarios (papel COMPRADOR) ────────�
                                                                        ├─ notas_fiscais
                                                                        └─ pedidos_historico_status
 views: fornecedores_publicos (catálogo), fornecedores_vitrine (diretório + reputação)
+storage: bucket "logos" (logo de cada empresa; usuarios/fornecedores.logo_url, migration 031)
 ```
 
 - O front-end lê pedidos pela view **`pedidos_painel`** (migration 014): uma linha
@@ -96,8 +98,8 @@ como lido; quando a empresa resolve a pendência, o alerta some.
 
 ## Radar de Oportunidades (migration 016)
 
-Seção de destaque no topo da Home (`#radar-oportunidades`), também acessível
-pelo item **Oportunidades** do menu lateral. Um radar animado anuncia, uma a
+Seção de destaque no topo da Home (`#radar-oportunidades`). Não há item
+próprio no menu lateral: o radar faz parte da Home. Um radar animado anuncia, uma a
 uma, oportunidades **reais** da view `oportunidades`: nenhum negócio é
 inventado; só a apresentação é cadenciada.
 
@@ -157,6 +159,14 @@ cotação" no Catálogo).
    `pedidos.id_proposta`. `pedidos_validar` confere a proposta (aceita, mesmo
    comprador, produto e quantidade) e usa o preço dela; o mínimo do catálogo
    não se aplica. Daí em diante: confirmação, pagamento, NF-e, envio.
+
+**Consulta das propostas (`minhasCotacoes`):** `cotacoes` e `propostas` têm
+DUAS FKs entre si (`propostas.id_cotacao` e `cotacoes.id_proposta_aceita`).
+Embutir `propostas ( … )` sem dizer qual usar faz o PostgREST recusar a
+consulta (HTTP 300, `PGRST201`), e a lista "Minhas cotações" não carrega.
+Use sempre `propostas!fk_propostas_cotacoes ( … )`. O Supabase simulado dos
+testes de interface ignora o `select`, então esse erro só aparece no servidor
+real: cuidado ao criar novos embeds entre tabelas com mais de uma FK.
 
 Aceitar continua possível depois do prazo (o prazo é para *receber*
 propostas). Tabelas só de leitura para o navegador; escrita pelas RPCs.
@@ -276,6 +286,68 @@ Perfil → **Privacidade e dados**.
   - A 025 trocou `mensagens_pedidos.id_remetente` para `ON DELETE SET NULL`:
     antes, apagar um login apagava as mensagens dele da conversa da outra
     empresa.
+
+## Logo da empresa (migration 031)
+
+Perfil → botão 📷 sobre o avatar (enviar ou trocar) e ✕ (remover, só quando
+há logo).
+
+- **Envio** (`perfil.js`): PNG, JPEG ou WebP de até 5 MB, reduzido no
+  navegador para no máximo 256 px (WebP; PNG se o navegador não gerar WebP) e
+  enviado ao bucket público `logos` em `logos/<auth.uid()>/logo` (upsert: um
+  arquivo por empresa). O endereço público, com `?v=<data>` para furar o
+  cache, vai para `logo_url` em `usuarios` e/ou `fornecedores`.
+- **Remoção:** `logo_url = null` nos cadastros e, depois, o arquivo sai do
+  Storage (se o arquivo falhar, o cadastro já está limpo).
+- **Onde aparece:** perfil; avatar do topo de todas as páginas internas
+  (`auth-check.js`, por classe `com-logo` + imagem de fundo, porque as páginas
+  reescrevem o texto do avatar com a inicial); cartões do diretório e "Meus
+  parceiros" em Empresas (só fornecedores: as views `fornecedores_publicos` e
+  `fornecedores_vitrine` expõem `logo_url`). Imagem que não carrega volta para
+  a inicial.
+- **Banco:** `GRANT UPDATE (logo_url)` nas duas tabelas (o RLS da 004 limita
+  ao próprio cadastro); `CHECK` aceita só endereços do bucket `logos`
+  (`https://…/storage/v1/object/public/logos/…`, até 500 caracteres).
+- **Storage:** bucket público (leitura), 1 MB, só PNG/JPEG/WebP; políticas em
+  `storage.objects` deixam cada empresa ler, gravar, trocar e apagar **só** na
+  própria pasta. A parte do Storage é pulada onde o schema `storage` não existe
+  (banco de testes).
+- **CSP:** `img-src` inclui o domínio do Supabase em todas as páginas e no
+  `_headers` (a política tem de ser igual em todas: `tests/unit/seguranca.test.mjs`).
+- Sem a 031: o envio falha com aviso e as telas mostram a inicial.
+
+## Sessão e inatividade
+
+Pensado para computador compartilhado de empresa.
+
+| Situação | Onde a sessão fica | Fecha o navegador | Sem uso |
+|---|---|---|---|
+| Login **sem** "Manter conectado" (padrão) | `sessionStorage` | sai | sai após **30 min** |
+| Login **com** "Manter conectado neste computador" | `localStorage` | continua | sai após **7 dias** |
+
+- **Onde guardar** (`supabase-client.js`): o cliente é criado com um
+  armazenamento próprio (`auth.storage`) que lê a escolha
+  (`serf-manter-conectado`, gravada pelo login antes de entrar, via
+  `SERFSessao.definirManterConectado`). Sem "Manter conectado", uma aba nova
+  pede a sessão às abas já abertas por `BroadcastChannel` (`serf-sessao`,
+  espera 250 ms): abrir um link em outra aba não exige novo login. O
+  `code-verifier` (login por link) fica sempre no `localStorage`.
+- **Inatividade** (`auth-check.js`): a última atividade
+  (`serf-ultima-atividade`, no `localStorage`) é compartilhada entre as abas;
+  clique, tecla, rolagem, toque e movimento do mouse contam (gravação no
+  máximo a cada 15 s). A cada 15 s e ao voltar para a aba, o tempo parado é
+  conferido: faltando 2 min aparece "Você ainda está aí?" ("Continuar
+  conectado"); no limite, `signOut({ scope: "local" })` (só este navegador) e
+  volta ao login com `?motivo=inatividade`, que mostra "Sessão encerrada" e
+  limpa a URL. Ao abrir uma página já além do limite (PC hibernado, aba
+  restaurada), sai antes de mostrar qualquer dado.
+- **Limites:** `LIMITE_INATIVIDADE` no topo de `supabase-client.js`.
+- Login e cadastro zeram o relógio (`SERFSessao.marcarAtividade()`); conta
+  nova começa sem "Manter conectado".
+- Logout em outra aba (`SIGNED_OUT`) apaga também a cópia da sessão no
+  `sessionStorage` desta aba (`SERFSessao.limparSessaoDaAba()`).
+- Limite conhecido: o Chrome com "Continuar de onde parou" pode restaurar o
+  `sessionStorage`; aí vale o limite de 30 min.
 
 ## Central de notificações (migration 023)
 
@@ -453,10 +525,10 @@ Regras que mantêm esses números (não desfazer sem medir):
 
 | Arquivo | Papel |
 |---|---|
-| `js/supabase-client.js` | Cria o cliente único (`window.supabaseClient`, `obterSupabase()`) |
+| `js/supabase-client.js` | Cria o cliente único (`window.supabaseClient`, `obterSupabase()`); onde a sessão fica e relógio de inatividade (`window.SERFSessao`) |
 | `js/utils.js` | Formatação, escape de HTML, status, transições, `obterEmpresaLogada()` |
 | `js/pedidos.js` | Leitura da view `pedidos_painel` e normalização canônica do pedido |
-| `js/auth-check.js` | Protege páginas internas; expõe `window.serfSessao`; logout via `[data-logout]` |
+| `js/auth-check.js` | Protege páginas internas; expõe `window.serfSessao`; logout via `[data-logout]`; saída por inatividade; logo no avatar do topo (`window.serfAtualizarLogoTopo`) |
 | `js/home/*.js` | Home dividida em 7 scripts (ver abaixo) |
 | `js/dominio/painel.js` | Regras puras do painel (filtros, KPIs, gráfico, radar, conversas) |
 | `js/dados/*.js` | Repositórios: única camada que acessa o Supabase |
@@ -465,13 +537,14 @@ Regras que mantêm esses números (não desfazer sem medir):
 | `js/dominio/alertas.js` | Texto, ação e prioridade de cada tipo de alerta (central e Home) |
 | `js/carrinho.js`, `js/produtos-gestao.js` | Carrinho de compras; edição/pausa de produtos |
 | `js/acoes-pendentes.js`, `js/primeiros-passos.js` | Blocos do topo da Home |
-| `supabase/functions/*` | Edge Functions (Deno): `homologar-fornecedor`, `enviar-emails` |
+| `supabase/functions/*` | Edge Functions (Deno): `homologar-fornecedor`, `verificar-cnpj`, `enviar-emails`, `descadastrar`, `excluir-conta`, `pix-criar`, `pix-webhook`, `nfe`, `nfe-webhook` |
 | `js/alertas.js` | Página de alertas: textos por tipo, filtros, agrupamento |
 | `js/alertas-contagem.js` | Contador de alertas no menu lateral (todas as páginas internas) |
 | `js/radar-oportunidades.js` | Radar de Oportunidades no topo da Home |
 | `js/catalogo.js` | Catálogo, cadastro de produto, negociação (carregado em home/catálogo/empresas) |
 | `js/pagamentos.js`, `js/notas.js` | Fluxos de pagamento e NF-e (usados pela home) |
-| `js/relatorios.js`, `js/empresas.js`, `js/perfil.js` | Páginas homônimas |
+| `js/cotacoes.js` + `js/dados/cotacoes.repositorio.js` | Cotação reversa (tela e consultas/RPCs) |
+| `js/relatorios.js`, `js/empresas.js`, `js/perfil.js` | Páginas homônimas (o perfil também envia e remove o logo) |
 
 Ordem obrigatória dos scripts nas páginas internas (no `<head>`, sem `defer`):
 
@@ -534,8 +607,12 @@ páginas e teste o fluxo completo (login → pedido → pagamento → NF → env
   a camada de dados (`SERFDados`), como a Home.
 - Realtime com `filter` por empresa (hoje o RLS filtra no servidor, mas cada
   mudança é avaliada para todos os assinantes).
-- Pagamento real: a confirmação deve vir de webhook do gateway, nunca do comprador.
-- Validar o CNPJ no servidor (Edge Function) em vez de confiar no navegador.
+- Logo dos compradores em "Meus parceiros" (visão de vendedor): exige expor
+  `logo_url` do comprador na view `pedidos_painel`.
+
+Já resolvidos (mantidos aqui como histórico): confirmação de pagamento pelo
+webhook do gateway (026) e validação do CNPJ no servidor, com prova de posse
+(019 e 029).
 
 ## Testes
 
@@ -591,9 +668,10 @@ fora da lista — veja o cabeçalho da migration), 023 (notificações no app) e
 024 (cotações), 025 (LGPD) e 026 (Pix real), 027 (NF-e real; ambos desligados por padrão) e **028
 (correção de segurança crítica: escrita pelas views — aplique o quanto
 antes; ver `docs/seguranca.md`)** e 029 (posse do CNPJ; modo demonstração
-por padrão; contas existentes ganham 30 dias para verificar) e 030 (índices
+por padrão; contas existentes ganham 30 dias para verificar), 030 (índices
 que faltavam, busca do catálogo por trigramas e limites de frequência em
-chat, produtos e cotações). Sem 018–027
+chat, produtos e cotações) e 031 (logo da empresa: colunas, views e bucket
+`logos`; sem ela o envio do logo falha e as telas mostram a inicial). Sem 018–027
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas
