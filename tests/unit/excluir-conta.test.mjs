@@ -6,11 +6,12 @@ import { tratarExclusao, ErroDeRegra } from "../../supabase/functions/excluir-co
 
 const URL_FUNCAO = "https://projeto.supabase.co/functions/v1/excluir-conta";
 
-function cenario({ usuario = { id: "u-1" }, anonimizar, apagarLogin } = {}) {
+function cenario({ usuario = { id: "u-1" }, anonimizar, apagarArquivos, apagarLogin } = {}) {
     const passos = [];
     const deps = {
         usuarioDoToken: async token => (token === "token-valido" ? usuario : null),
         anonimizar: anonimizar || (async uid => { passos.push(["anonimizar", uid]); }),
+        apagarArquivos: apagarArquivos || (async uid => { passos.push(["apagarArquivos", uid]); }),
         apagarLogin: apagarLogin || (async uid => { passos.push(["apagarLogin", uid]); })
     };
     const pedir = (corpo, token = "token-valido") => tratarExclusao(new Request(URL_FUNCAO, {
@@ -21,12 +22,28 @@ function cenario({ usuario = { id: "u-1" }, anonimizar, apagarLogin } = {}) {
     return { pedir, passos };
 }
 
-test("caminho feliz: anonimiza e depois apaga o login, nessa ordem", async () => {
+test("caminho feliz: anonimiza, apaga o logo do Storage e depois o login, nessa ordem", async () => {
     const { pedir, passos } = cenario();
     const resposta = await pedir({ confirmacao: "excluir " });
 
     assert.equal(resposta.status, 200);
-    assert.deepEqual(passos, [["anonimizar", "u-1"], ["apagarLogin", "u-1"]]);
+    assert.deepEqual(passos, [["anonimizar", "u-1"], ["apagarArquivos", "u-1"], ["apagarLogin", "u-1"]]);
+});
+
+test("falha ao apagar o arquivo do Storage não impede a exclusão do login", async () => {
+    const passos = [];
+    const { pedir } = cenario({
+        apagarArquivos: async () => { throw new Error("Storage 500"); },
+        apagarLogin: async uid => { passos.push(["apagarLogin", uid]); }
+    });
+    const erroOriginal = console.error;
+    console.error = () => {};
+    try {
+        assert.equal((await pedir({ confirmacao: "EXCLUIR" })).status, 200);
+    } finally {
+        console.error = erroOriginal;
+    }
+    assert.deepEqual(passos, [["apagarLogin", "u-1"]]);
 });
 
 test("sem sessão válida: 401 e nada acontece", async () => {

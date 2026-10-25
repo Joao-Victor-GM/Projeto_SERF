@@ -33,6 +33,17 @@ Deno.serve(req => {
             throw new Error(`PostgREST ${resposta.status}: ${JSON.stringify(erro)}`);
         },
 
+        apagarArquivos: async uid => {
+            // Storage: DELETE /object/<bucket> com a lista de caminhos
+            const resposta = await fetch(`${url}/storage/v1/object/logos`, {
+                method: "DELETE", headers: comoServico, body: JSON.stringify({ prefixes: [`${uid}/logo`] })
+            });
+            // 400/404: bucket ainda não existe (sem a migration 031)
+            if (!resposta.ok && resposta.status !== 400 && resposta.status !== 404) {
+                throw new Error(`Storage ${resposta.status}: ${await resposta.text()}`);
+            }
+        },
+
         apagarLogin: async uid => {
             const resposta = await fetch(`${url}/auth/v1/admin/users/${uid}`, { method: "DELETE", headers: comoServico });
             // 404: já apagado numa tentativa anterior

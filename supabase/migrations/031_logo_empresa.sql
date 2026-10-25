@@ -51,6 +51,36 @@ ALTER TABLE public.fornecedores ADD CONSTRAINT ck_fornecedores_logo_url CHECK (
 GRANT UPDATE (logo_url) ON public.usuarios TO authenticated;
 GRANT UPDATE (logo_url) ON public.fornecedores TO authenticated;
 
+-- Exclusão de conta (LGPD, anonimizar_conta da 025): o cadastro fica, sem
+-- vínculo com o login, para o histórico dos parceiros. O logo identifica a
+-- empresa, então sai junto (o arquivo é apagado pela função excluir-conta).
+CREATE OR REPLACE FUNCTION public.logo_sai_ao_anonimizar()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.auth_user_id IS NULL AND OLD.auth_user_id IS NOT NULL THEN
+        NEW.logo_url := NULL;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_usuarios_logo_anonimizar ON public.usuarios;
+CREATE TRIGGER trg_usuarios_logo_anonimizar
+    BEFORE UPDATE OF auth_user_id ON public.usuarios
+    FOR EACH ROW EXECUTE FUNCTION public.logo_sai_ao_anonimizar();
+
+DROP TRIGGER IF EXISTS trg_fornecedores_logo_anonimizar ON public.fornecedores;
+CREATE TRIGGER trg_fornecedores_logo_anonimizar
+    BEFORE UPDATE OF auth_user_id ON public.fornecedores
+    FOR EACH ROW EXECUTE FUNCTION public.logo_sai_ao_anonimizar();
+
+-- Contas já excluídas antes desta migration
+UPDATE public.usuarios SET logo_url = NULL WHERE auth_user_id IS NULL AND logo_url IS NOT NULL;
+UPDATE public.fornecedores SET logo_url = NULL WHERE auth_user_id IS NULL AND logo_url IS NOT NULL;
+
 
 -- ==========================================================
 -- 2. VIEWS PÚBLICAS (logo_url no fim: CREATE OR REPLACE só acrescenta)

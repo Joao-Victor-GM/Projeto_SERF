@@ -25,6 +25,8 @@ export class ErroDeRegra extends Error {}
 export interface Dependencias {
     usuarioDoToken: (token: string) => Promise<{ id: string } | null>;
     anonimizar: (uid: string) => Promise<void>;
+    // Arquivos da empresa no Storage (logo: logos/<uid>/logo, migration 031)
+    apagarArquivos: (uid: string) => Promise<void>;
     apagarLogin: (uid: string) => Promise<void>;
 }
 
@@ -47,6 +49,14 @@ export async function tratarExclusao(req: Request, deps: Dependencias): Promise<
         if (erro instanceof ErroDeRegra) return json(409, { erro: erro.message });
         console.error("[excluir-conta] anonimizar:", erro);
         return json(500, { erro: "Não foi possível excluir a conta agora. Tente novamente." });
+    }
+
+    // Melhor esforço: um arquivo que fica para trás não pode impedir a
+    // exclusão do login (fica no log para limpar à mão)
+    try {
+        await deps.apagarArquivos(usuario.id);
+    } catch (erro) {
+        console.error("[excluir-conta] apagar arquivos do Storage:", erro);
     }
 
     try {

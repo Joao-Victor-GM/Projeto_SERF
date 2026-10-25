@@ -56,3 +56,14 @@ test("a coluna nova não abre escrita em outras colunas", async () => {
     assert.match(await erroDe(db, fornecedor, "UPDATE fornecedores SET status_cadastro = 'APROVADO' WHERE id_fornecedor = $1", [fornecedor.idFornecedor]),
         /permission denied|permissão negada/i);
 });
+
+test("excluir a conta (LGPD) tira o logo do cadastro que fica para o histórico", async () => {
+    const db = await criarBanco();
+    const fornecedor = await criarEmpresa(db, "Fornecedor");
+    await como(db, fornecedor, "UPDATE fornecedores SET logo_url = $1 WHERE id_fornecedor = $2", [URL_LOGO(fornecedor.uid), fornecedor.idFornecedor]);
+
+    await lerComoAdmin(db, "SELECT anonimizar_conta($1)", [fornecedor.uid]);
+
+    const [linha] = await lerComoAdmin(db, "SELECT logo_url, auth_user_id FROM fornecedores WHERE id_fornecedor = $1", [fornecedor.idFornecedor]);
+    assert.deepEqual(linha, { logo_url: null, auth_user_id: null });
+});
