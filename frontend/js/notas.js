@@ -386,25 +386,25 @@
 
   <div class="tarja">DOCUMENTO SIMULADO DO PROJETO S.E.R.F. — SEM VALOR FISCAL — NÃO TRANSMITIDO À SEFAZ</div>
 
-  <div class="grade" style="grid-template-columns: 2fr 1fr 1fr;">
+  <div class="grade" data-css="grid-template-columns: 2fr 1fr 1fr;">
     <div class="c"><span class="r">Emitente</span><div class="v grande">${e(nota.emitente_razao_social)}</div>
       <div class="v">CNPJ ${e(formatarCNPJ(nota.emitente_cnpj))}${emitente ? ` · ${e(emitente)}` : ""}</div></div>
     <div class="c"><span class="r">DANFE</span><div class="v grande">Simulado</div><div class="v">Documento auxiliar da NF-e · 1 - Saída</div></div>
     <div class="c"><span class="r">Nº / Série</span><div class="v grande">${e(numeroFormatado(nota))}</div><div class="v">Série ${e(nota.serie)} · Folha 1/1</div></div>
   </div>
 
-  <div class="grade" style="grid-template-columns: 1fr;">
+  <div class="grade" data-css="grid-template-columns: 1fr;">
     <div class="c"><span class="r">Chave de acesso</span><div class="v chave">${e(chaveFormatada(nota.chave_acesso))}</div></div>
   </div>
 
-  <div class="grade" style="grid-template-columns: 2fr 1fr 1.4fr;">
+  <div class="grade" data-css="grid-template-columns: 2fr 1fr 1.4fr;">
     <div class="c"><span class="r">Natureza da operação</span><div class="v">${e(nota.natureza_operacao)}</div></div>
     <div class="c"><span class="r">CFOP</span><div class="v">${e(nota.cfop)}</div></div>
     <div class="c"><span class="r">Protocolo de autorização (simulado)</span><div class="v">${e(nota.protocolo)} · ${e(dataHora(nota.data_emissao))}</div></div>
   </div>
 
   <div class="titulo">Destinatário</div>
-  <div class="grade" style="grid-template-columns: 2fr 1fr 1fr;">
+  <div class="grade" data-css="grid-template-columns: 2fr 1fr 1fr;">
     <div class="c"><span class="r">Nome / Razão social</span><div class="v">${e(nota.destinatario_nome)}</div></div>
     <div class="c"><span class="r">CNPJ</span><div class="v">${e(formatarCNPJ(nota.destinatario_cnpj))}</div></div>
     <div class="c"><span class="r">Data de emissão</span><div class="v">${e(dataHora(nota.data_emissao))}</div></div>
@@ -421,7 +421,7 @@
   </table>
 
   <div class="titulo">Cálculo do imposto</div>
-  <div class="grade" style="grid-template-columns: repeat(4, 1fr);">
+  <div class="grade" data-css="grid-template-columns: repeat(4, 1fr);">
     <div class="c"><span class="r">Base de cálculo ICMS*</span><div class="v">${e(formatarMoeda(nota.valor_total))}</div></div>
     <div class="c"><span class="r">Valor do ICMS*</span><div class="v">${e(formatarMoeda(nota.valor_icms))}</div></div>
     <div class="c"><span class="r">Valor total dos produtos</span><div class="v">${e(formatarMoeda(nota.valor_total))}</div></div>
@@ -429,7 +429,7 @@
   </div>
 
   <div class="titulo">Informações adicionais</div>
-  <div class="grade" style="grid-template-columns: 1fr;">
+  <div class="grade" data-css="grid-template-columns: 1fr;">
     <div class="c"><div class="v">
       Pedido S.E.R.F. nº ${e(nota.id_pedido)}${nota.forma_pagamento ? ` · Pagamento: ${e(nota.forma_pagamento)}` : ""}.<br>
       * Valores de impostos ilustrativos (alíquota fixa de 18%), sem enquadramento tributário real.

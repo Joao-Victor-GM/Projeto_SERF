@@ -461,7 +461,7 @@ export async function abrirDetalhesPedido(pedido) {
         if (chat.pedido?.id !== pedido.id) return;
 
         elementos.chatMensagens.innerHTML = `
-            <p class="chat-vazio" style="color:#DC2626;">
+            <p class="chat-vazio" data-css="color:#DC2626;">
                 Não foi possível carregar as mensagens.<br>
                 <small>${escaparHTML(window.SERFUtils.mensagemDeErro(erro))}</small>
             </p>

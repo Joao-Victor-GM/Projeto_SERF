@@ -345,12 +345,12 @@
         const rotulosQueCabem = Math.max(2, Math.floor(larguraPlot / 52));
         const intervaloRotulo = Math.max(1, Math.ceil(pontos.length / rotulosQueCabem));
 
-        const grade = passos.map(v => `<div class="rel-grade-linha" style="bottom:${(v / topo) * 100}%"></div>`).join("");
-        const eixoY = passos.map(v => `<span style="bottom:${(v / topo) * 100}%">${escaparHTML(formatarEixo(v))}</span>`).join("");
+        const grade = passos.map(v => `<div class="rel-grade-linha" data-css="bottom:${(v / topo) * 100}%"></div>`).join("");
+        const eixoY = passos.map(v => `<span data-css="bottom:${(v / topo) * 100}%">${escaparHTML(formatarEixo(v))}</span>`).join("");
 
         const colunas = pontos.map(p => `
             <div class="rel-faixa" ${atributosTooltip(formatar(p.valor), p.rotuloLongo, p.detalhe)}>
-                <div class="rel-coluna" style="height:${(p.valor / topo) * 100}%"></div>
+                <div class="rel-coluna" data-css="height:${(p.valor / topo) * 100}%"></div>
             </div>
         `).join("");
 
@@ -385,7 +385,7 @@
                     <div class="rel-barra-linha" ${atributosTooltip(item.textoValor, item.rotulo, item.detalhe || "")}>
                         <span class="rel-barra-rotulo" title="${escaparHTML(item.rotulo)}">${escaparHTML(item.rotulo)}</span>
                         <span class="rel-barra-trilho">
-                            <span class="rel-barra ${item.classe || ""} ${item.valor ? "" : "zero"}" style="--fracao:${topo ? item.valor / topo : 0}"></span>
+                            <span class="rel-barra ${item.classe || ""} ${item.valor ? "" : "zero"}" data-css="--fracao:${topo ? item.valor / topo : 0}"></span>
                             <span class="rel-barra-valor">${escaparHTML(item.textoValor)}</span>
                         </span>
                     </div>

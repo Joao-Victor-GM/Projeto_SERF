@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Relatórios Comerciais</title>
 
@@ -24,6 +24,9 @@
     <script src="../../js/utils.js"></script>
     <script src="../../js/pedidos.js"></script>
     <script src="../../js/auth-check.js"></script>
+    <script src="../../js/monitor-erros.js"></script>
+    <!-- A CSP bloqueia o atributo de estilo inline: estilo calculado vai em data-css (ver o script) -->
+    <script src="../../js/ui/estilos-dinamicos.js"></script>
 </head>
 
 <body class="serf-home">
@@ -320,7 +323,8 @@
     <!-- Tooltip compartilhado pelos gráficos -->
     <div class="rel-tooltip" id="relTooltip" role="tooltip" hidden></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.css" integrity="sha384-dCW5imOdApH6OwpFau8cZNKjqVbJYnCA5q+8YsMYP3XwXKsV6Jfz1u6MZLnXaBsS" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.js" integrity="sha384-hW8ZCQHtRH+nVOAkHZ4amZvYsAtKn1ZOvMV6dNag1Rb1thWmLZMBKTRxFV0cOxiK" crossorigin="anonymous"></script>
     <script src="../../js/relatorios.js" defer></script>
 
     <!-- Camada de dados (alertas) usada pelo contador do menu -->

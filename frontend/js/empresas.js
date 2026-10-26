@@ -508,7 +508,7 @@
 
                     <div class="emp-parceiro-acoes">
                         ${temVitrine ? `<button type="button" class="btn-secondary" data-vitrine="${p.idFornecedor}">Produtos</button>` : ""}
-                        <a class="btn-primary" style="text-decoration:none"
+                        <a class="btn-primary" data-css="text-decoration:none"
                            href="home.html?pedido=${p.ultimo.id_pedido}"
                            title="Abre o pedido #${p.ultimo.id_pedido} com o chat">
                             Último pedido · ${escaparHTML(formatarData(dataLocalISO(p.ultimo.data_pedido)))}

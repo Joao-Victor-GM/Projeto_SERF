@@ -75,7 +75,7 @@
             </div>
             <div class="pp-progresso" role="progressbar" aria-label="Primeiros passos"
                  aria-valuemin="0" aria-valuemax="${aplicaveis.length}" aria-valuenow="${feitos}">
-                <span style="width:${Math.round((feitos / aplicaveis.length) * 100)}%"></span>
+                <span data-css="width:${Math.round((feitos / aplicaveis.length) * 100)}%"></span>
             </div>
             <ol class="pp-lista">
                 ${aplicaveis.map(passo => {

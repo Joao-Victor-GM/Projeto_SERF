@@ -461,9 +461,9 @@
        ========================================================================= */
     function estadoVazio(titulo, detalhe, cor = "#64748b") {
         return `
-            <div class="empty-state" style="padding: 40px; text-align: center; background: var(--serf-superficie); border: 1px solid var(--serf-borda); border-radius: 8px;">
-                <p style="font-size: 14px; font-weight: 600; color: ${cor}; margin-bottom: 6px;">${escaparHTML(titulo)}</p>
-                <small style="color: #94a3b8;">${escaparHTML(detalhe)}</small>
+            <div class="empty-state" data-css="padding: 40px; text-align: center; background: var(--serf-superficie); border: 1px solid var(--serf-borda); border-radius: 8px;">
+                <p data-css="font-size: 14px; font-weight: 600; color: ${cor}; margin-bottom: 6px;">${escaparHTML(titulo)}</p>
+                <small data-css="color: #94a3b8;">${escaparHTML(detalhe)}</small>
             </div>
         `;
     }
@@ -491,7 +491,7 @@
                         <div class="order-product-details">
                             <h4>${escaparHTML(pedido.produto)}</h4>
                             <p>${pedido.quantidade} unidades • ${formatarMoeda(pedido.valorUnitario)} / un.</p>
-                            ${pedido.observacao ? `<p style="font-size: 11px; margin-top: 2px;">Obs.: ${escaparHTML(pedido.observacao)}</p>` : ""}
+                            ${pedido.observacao ? `<p data-css="font-size: 11px; margin-top: 2px;">Obs.: ${escaparHTML(pedido.observacao)}</p>` : ""}
                         </div>
                     </div>
 
@@ -509,7 +509,7 @@
                                 Repetir compra
                             </button>
                         ` : `
-                            <a class="btn-primary" href="home.html#pedidos" style="text-decoration: none;">
+                            <a class="btn-primary" href="home.html#pedidos" data-css="text-decoration: none;">
                                 Gerenciar no painel
                             </a>
                         `}
@@ -626,39 +626,39 @@
             ...swalConfig,
             title: `Pedido #${pedido.id}`,
             html: `
-                <div style="text-align: left; font-size: 12px; line-height: 1.6; color: #172536;">
-                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 12px;">
+                <div data-css="text-align: left; font-size: 12px; line-height: 1.6; color: #172536;">
+                    <div data-css="display: flex; justify-content: space-between; border-bottom: 1px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 12px;">
                         <span><strong>Data:</strong> ${formatarData(pedido.data)}</span>
                         <span><strong>Status:</strong> ${escaparHTML(pedido.rotulo)}</span>
                     </div>
 
-                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-                        <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">
+                    <div data-css="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                        <span data-css="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">
                             ${isCompra ? "Fornecedor" : "Comprador"}
                         </span>
-                        <div style="font-size: 13px; font-weight: 700; color: #082B4C; margin-top: 2px;">
+                        <div data-css="font-size: 13px; font-weight: 700; color: #082B4C; margin-top: 2px;">
                             ${escaparHTML(parceiro)}
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 12px;">
-                        <span style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Itens do pedido</span>
-                        <div style="display: flex; justify-content: space-between; margin-top: 4px; padding: 6px 0; border-bottom: 1px dashed #E2E8F0;">
+                    <div data-css="margin-bottom: 12px;">
+                        <span data-css="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Itens do pedido</span>
+                        <div data-css="display: flex; justify-content: space-between; margin-top: 4px; padding: 6px 0; border-bottom: 1px dashed #E2E8F0;">
                             <span>${escaparHTML(pedido.produto)} (${pedido.quantidade} × ${formatarMoeda(pedido.valorUnitario)})</span>
                             <strong>${formatarMoeda(pedido.valorTotal)}</strong>
                         </div>
                     </div>
 
                     ${pedido.observacao ? `
-                        <div style="background: #FFF8F1; border: 1px solid #FED7AA; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                            <span style="font-size: 10px; color: #9A3412; font-weight: 700;">OBSERVAÇÃO</span>
-                            <p style="margin-top: 2px;">${escaparHTML(pedido.observacao)}</p>
+                        <div data-css="background: #FFF8F1; border: 1px solid #FED7AA; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                            <span data-css="font-size: 10px; color: #9A3412; font-weight: 700;">OBSERVAÇÃO</span>
+                            <p data-css="margin-top: 2px;">${escaparHTML(pedido.observacao)}</p>
                         </div>
                     ` : ""}
 
-                    <div style="text-align: right;">
-                        <span style="font-size: 11px; color: #64748b; display: block;">VALOR TOTAL</span>
-                        <strong style="font-size: 20px; color: #AD5309;">${formatarMoeda(pedido.valorTotal)}</strong>
+                    <div data-css="text-align: right;">
+                        <span data-css="font-size: 11px; color: #64748b; display: block;">VALOR TOTAL</span>
+                        <strong data-css="font-size: 20px; color: #AD5309;">${formatarMoeda(pedido.valorTotal)}</strong>
                     </div>
                 </div>
             `,
@@ -721,7 +721,7 @@
             await Swal.fire({
                 ...swalConfig,
                 title: `Pedido #${data.id_pedido} criado!`,
-                html: `Total: <strong style="color: #AD5309;">${formatarMoeda(data.valor_total)}</strong><br>O fornecedor foi notificado e o pedido aguarda confirmação.`,
+                html: `Total: <strong data-css="color: #AD5309;">${formatarMoeda(data.valor_total)}</strong><br>O fornecedor foi notificado e o pedido aguarda confirmação.`,
                 icon: "success"
             });
 

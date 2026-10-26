@@ -195,7 +195,7 @@
             console.error('[SERF:Catalogo] Falha ao buscar produtos:', error);
             if (container) {
                 container.innerHTML = `
-                    <div class="empty-state" style="color: #dc2626;">
+                    <div class="empty-state" data-css="color: #dc2626;">
                         <p><strong>Não foi possível carregar os produtos.</strong></p>
                         <small>${escaparHTML(window.SERFUtils.mensagemDeErro(error))}</small>
                     </div>
@@ -276,13 +276,13 @@
         const semEstoque = (Number(prod.quantidade_estoque) || 0) < (Number(prod.quantidade_minima) || 1);
 
         return `
-                    <div class="produto-card-footer" style="display: flex; gap: 8px;">
+                    <div class="produto-card-footer" data-css="display: flex; gap: 8px;">
                         <button
                             type="button"
                             class="btn-secondary btn-ver-detalhes"
                             data-id="${prod.id_produto}"
                             title="Visualizar todos os detalhes deste produto"
-                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
+                            data-css="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
                         >
                             Ver mais
                         </button>
@@ -291,7 +291,7 @@
                             class="btn-secondary btn-adicionar-carrinho"
                             data-id="${prod.id_produto}"
                             ${semEstoque ? 'disabled title="Sem estoque para o pedido mínimo"' : 'title="Adicionar ao carrinho"'}
-                            style="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
+                            data-css="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
                         >
                             🛒 Adicionar
                         </button>
@@ -302,7 +302,7 @@
                             data-preco="${prod.preco_atacado}"
                             data-nome="${escaparHTML(prod.nome_produto)}"
                             data-fornecedor="${escaparHTML(nomeFornecedor)}"
-                            style="flex: 1;"
+                            data-css="flex: 1;"
                         >
                             <span>🤝 Negociar</span>
                         </button>
@@ -316,7 +316,7 @@
         if (!produtos || produtos.length === 0) {
             const filtrando = Boolean(limparTermo(filtros.termo) || filtros.categoria);
             container.innerHTML = `
-                <div class="empty-state catalogo-vazio" style="grid-column: 1 / -1; padding: 40px 20px; text-align: center;">
+                <div class="empty-state catalogo-vazio" data-css="grid-column: 1 / -1; padding: 40px 20px; text-align: center;">
                     <p class="catalogo-vazio-titulo">
                         ${filtrando ? 'Nenhum produto encontrado com esses filtros.' : 'Nenhum produto disponível no momento.'}
                     </p>
@@ -441,35 +441,35 @@
             // titleText: o nome vem de outro fornecedor e não pode virar HTML
             titleText: prod.nome_produto,
             html: `
-                <div style="text-align: left; font-size: 13px; line-height: 1.6; color: #172536; padding: 6px 0;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                <div data-css="text-align: left; font-size: 13px; line-height: 1.6; color: #172536; padding: 6px 0;">
+                    <div data-css="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                         <span><strong>Marca:</strong> ${escaparHTML(prod.marca || '-')}</span>
                         <span><strong>Categoria:</strong> ${escaparHTML(prod.categoria || '-')}</span>
                     </div>
 
-                    <div style="margin-bottom: 12px;">
+                    <div data-css="margin-bottom: 12px;">
                         <strong>Fornecedor:</strong> ${escaparHTML(nomeFornecedor)} ${localFornecedor ? `(${escaparHTML(localFornecedor)})` : ''}
                     </div>
 
-                    <div style="margin-bottom: 12px;">
+                    <div data-css="margin-bottom: 12px;">
                         <strong>Descrição Técnica:</strong><br>
-                        <p style="color: #64748b; margin-top: 4px; white-space: pre-wrap;">${escaparHTML(prod.descricao || 'Sem descrição adicional cadastrada.')}</p>
+                        <p data-css="color: #64748b; margin-top: 4px; white-space: pre-wrap;">${escaparHTML(prod.descricao || 'Sem descrição adicional cadastrada.')}</p>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #edf2f7;">
+                    <div data-css="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #edf2f7;">
                         <div>
-                            <span style="font-size: 10px; color: #64748b; font-weight: 700;">QUANTIDADE MÍNIMA</span><br>
+                            <span data-css="font-size: 10px; color: #64748b; font-weight: 700;">QUANTIDADE MÍNIMA</span><br>
                             <strong>${prod.quantidade_minima || 1} unidades</strong>
                         </div>
                         <div>
-                            <span style="font-size: 10px; color: #64748b; font-weight: 700;">ESTOQUE DISPONÍVEL</span><br>
-                            <strong style="color: ${prod.quantidade_estoque > 0 ? '#15803D' : '#B91C1C'};">${prod.quantidade_estoque || 0} unidades</strong>
+                            <span data-css="font-size: 10px; color: #64748b; font-weight: 700;">ESTOQUE DISPONÍVEL</span><br>
+                            <strong data-css="color: ${prod.quantidade_estoque > 0 ? '#15803D' : '#B91C1C'};">${prod.quantidade_estoque || 0} unidades</strong>
                         </div>
                     </div>
 
-                    <div style="text-align: right; margin-top: 15px;">
-                        <span style="font-size: 10px; color: #64748b; display: block; font-weight: 700;">PREÇO DE ATACADO</span>
-                        <strong style="font-size: 22px; color: #AD5309;">${formatarMoedaBRL(prod.preco_atacado)}</strong>
+                    <div data-css="text-align: right; margin-top: 15px;">
+                        <span data-css="font-size: 10px; color: #64748b; display: block; font-weight: 700;">PREÇO DE ATACADO</span>
+                        <strong data-css="font-size: 22px; color: #AD5309;">${formatarMoedaBRL(prod.preco_atacado)}</strong>
                     </div>
                 </div>
             `,
@@ -731,7 +731,7 @@
                 title: `Pedido #${pedido.id_pedido} Enviado!`,
                 html: `
                     <strong>${escaparHTML(prod.nome_produto)}</strong> (x${pedido.quantidade})<br>
-                    Total: <strong style="color: #AD5309;">${formatarMoedaBRL(pedido.valor_total)}</strong><br><br>
+                    Total: <strong data-css="color: #AD5309;">${formatarMoedaBRL(pedido.valor_total)}</strong><br><br>
                     O fornecedor foi notificado e o pedido aguarda confirmação.
                 `,
                 icon: 'success',

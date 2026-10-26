@@ -73,23 +73,44 @@
         redirecionarParaLogin();
     }
 
+    // Faixa própria, e não um SweetAlert: o Swal.fire fecharia o diálogo que
+    // a pessoa deixou aberto (um formulário pela metade, por exemplo).
+    let faixaAviso = null;
+
+    function fecharAvisoInatividade() {
+        avisoAberto = false;
+        faixaAviso?.remove();
+        faixaAviso = null;
+    }
+
     function avisarInatividade() {
-        if (avisoAberto || typeof Swal === "undefined") return;
+        if (avisoAberto || !document.body) return;
         avisoAberto = true;
 
-        Swal.fire({
-            ...(window.SERFUtils?.swalConfig || {}),
-            titleText: "Você ainda está aí?",
-            text: "Por segurança, sua sessão será encerrada em 2 minutos por falta de uso.",
-            icon: "warning",
-            confirmButtonText: "Continuar conectado",
-            allowOutsideClick: false,
-            timer: Math.max(1000, sessaoLocal.limiteInatividade() - tempoParado()),
-            timerProgressBar: true
-        }).then(resultado => {
-            avisoAberto = false;
-            if (resultado.isConfirmed) sessaoLocal.marcarAtividade();
+        faixaAviso = document.createElement("div");
+        faixaAviso.className = "serf-aviso-inatividade";
+        faixaAviso.setAttribute("role", "alertdialog");
+        faixaAviso.setAttribute("aria-labelledby", "avisoInatividadeTitulo");
+        faixaAviso.setAttribute("aria-describedby", "avisoInatividadeTexto");
+
+        const titulo = document.createElement("strong");
+        titulo.id = "avisoInatividadeTitulo";
+        titulo.textContent = "Você ainda está aí?";
+        const texto = document.createElement("span");
+        texto.id = "avisoInatividadeTexto";
+        texto.textContent = "Por segurança, sua sessão será encerrada em 2 minutos por falta de uso.";
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.textContent = "Continuar conectado";
+        botao.addEventListener("click", () => {
+            sessaoLocal.marcarAtividade();
+            ultimaGravacao = Date.now();
+            fecharAvisoInatividade();
         });
+
+        faixaAviso.append(titulo, texto, botao);
+        document.body.append(faixaAviso);
+        botao.focus({ preventScroll: true });
     }
 
     function conferirInatividade() {
@@ -100,16 +121,29 @@
             encerrarPorInatividade();
         } else if (restante <= AVISO_ANTES_MS) {
             avisarInatividade();
-        } else if (avisoAberto && typeof Swal !== "undefined") {
+        } else if (avisoAberto) {
             // Usado em outra aba: o aviso desta aba não vale mais
-            Swal.close();
+            fecharAvisoInatividade();
         }
     }
 
     let ultimaGravacao = 0;
-    function registrarAtividade() {
+    // Com o aviso na tela, só um gesto de verdade (clique, toque, tecla)
+    // confirma; mover o mouse ou rolar não (o aviso sumiria ao ir clicar nele)
+    const GESTOS_PASSIVOS = new Set(["mousemove", "wheel", "scroll"]);
+
+    function registrarAtividade(evento) {
+        if (!sessaoLocal || motivoSaida) return;
+        if (avisoAberto) {
+            if (GESTOS_PASSIVOS.has(evento?.type)) return;
+            // Dentro da faixa quem decide é o botão; fechá-la no pointerdown
+            // faria o clique cair no que está embaixo dela
+            if (faixaAviso?.contains(evento?.target)) return;
+            ultimaGravacao = 0;
+            fecharAvisoInatividade();
+        }
         // Grava no máximo a cada 15 s (mousemove dispara centenas de vezes)
-        if (!sessaoLocal || motivoSaida || Date.now() - ultimaGravacao < 15000) return;
+        if (Date.now() - ultimaGravacao < 15000) return;
         ultimaGravacao = Date.now();
         sessaoLocal.marcarAtividade();
     }
@@ -186,24 +220,55 @@
         imagem.src = url;
     }
 
+    // Cache na aba ({ uid, logo }): o logo só muda pelo Perfil, que avisa
+    // por serfAtualizarLogoTopo. Sem isso, cada página fazia 2 consultas.
+    const CHAVE_LOGO = "serf-logo-topo";
+    let uidDaSessao = null;
+
+    function lerLogoGuardado(uid) {
+        try {
+            const guardado = JSON.parse(sessionStorage.getItem(CHAVE_LOGO) || "null");
+            return guardado && guardado.uid === uid ? guardado : null;
+        } catch { return null; }
+    }
+
+    function guardarLogo(logo) {
+        if (!uidDaSessao) return;
+        try { sessionStorage.setItem(CHAVE_LOGO, JSON.stringify({ uid: uidDaSessao, logo: logo || null })); } catch { /* sem armazenamento */ }
+    }
+
+    function mostrarQuandoPronto(logo) {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => mostrarLogoNoTopo(logo), { once: true });
+        } else {
+            mostrarLogoNoTopo(logo);
+        }
+    }
+
     // Sem a migration 031 a coluna não existe: a consulta falha e fica a inicial
     async function carregarLogoNoTopo(sessao) {
         if (!sessao) return;
+        uidDaSessao = sessao.user.id;
+
+        const guardado = lerLogoGuardado(uidDaSessao);
+        if (guardado) return mostrarQuandoPronto(guardado.logo);
+
         try {
             const consultas = ["usuarios", "fornecedores"].map(tabela =>
                 client.from(tabela).select("logo_url").eq("auth_user_id", sessao.user.id).maybeSingle());
             const [comprador, fornecedor] = await Promise.all(consultas);
             const logo = (!comprador.error && comprador.data?.logo_url) || (!fornecedor.error && fornecedor.data?.logo_url) || null;
-            if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", () => mostrarLogoNoTopo(logo), { once: true });
-            } else {
-                mostrarLogoNoTopo(logo);
-            }
+            if (!comprador.error || !fornecedor.error) guardarLogo(logo);
+            mostrarQuandoPronto(logo);
         } catch { /* sem logo: fica a inicial */ }
     }
 
     window.serfSessao.then(carregarLogoNoTopo);
-    window.serfAtualizarLogoTopo = mostrarLogoNoTopo;
+    // Perfil trocou ou removeu o logo: atualiza o topo e o cache
+    window.serfAtualizarLogoTopo = logo => {
+        guardarLogo(logo);
+        mostrarLogoNoTopo(logo);
+    };
 
     /* ------------------------------------------------------
        LOGOUT PADRONIZADO

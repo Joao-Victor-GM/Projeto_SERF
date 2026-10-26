@@ -269,9 +269,12 @@ export async function buscarPedidosSupabase() {
     const desde = new Date(Date.now() - janelaDoPainelDias() * 86400000).toISOString();
     const linhas = await SERFDados.pedidos.consultarPainel({ desde, limite: LIMITE_PEDIDOS_PAINEL });
 
-    if (linhas.length >= LIMITE_PEDIDOS_PAINEL) {
+    const noLimite = linhas.length >= LIMITE_PEDIDOS_PAINEL;
+    if (noLimite) {
         console.warn(`[SERF:Home] Limite de ${LIMITE_PEDIDOS_PAINEL} pedidos atingido: os mais antigos não aparecem no painel.`);
     }
+    const aviso = document.getElementById("avisoLimitePedidos");
+    if (aviso) aviso.hidden = !noLimite;
 
     pedidosCache = linhas.map(normalizarPedido);
     indexarPedidos();

@@ -32,6 +32,44 @@ for (const pagina of [...PUBLICAS.map(p => `public/${p}`), ...INTERNAS.map(p => 
     });
 }
 
+// Sem 'unsafe-inline' em style-src: diálogos e telas montados pelo JS
+// usam data-css (js/ui/estilos-dinamicos.js). Confere que nada é bloqueado
+// e que o estilo calculado chega mesmo ao elemento.
+test("estilos calculados em diálogos e modais funcionam sem estilo inline", async ({ page }) => {
+    await vigiarCsp(page);
+    await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+
+    // Detalhe do produto (SweetAlert com cor do estoque calculada)
+    await page.goto("/pages/app/catalogo.html?modo=comprar");
+    await page.locator('.produto-card[data-id="20"] .btn-ver-detalhes').click();
+    const estoque = page.locator(".swal2-html-container strong", { hasText: "unidades" }).nth(1);
+    await expect(estoque).toBeVisible();
+    expect(await estoque.evaluate(el => getComputedStyle(el).color)).toBe("rgb(21, 128, 61)");
+    expect(await page.locator("[data-css]").count()).toBe(0);   // tudo aplicado
+
+    // Modal de negociação (montado no JS) e gráfico da Home (alturas calculadas)
+    await page.keyboard.press("Escape");
+    await page.locator('.produto-card[data-id="20"] .btn-iniciar-negociacao').click();
+    await expect(page.locator("#modalNegociacao")).toBeVisible();
+
+    await page.goto("/pages/app/home.html");
+    const barra = page.locator(".grafico-producao-barra").first();
+    await expect(barra).toBeAttached();
+    expect(await barra.evaluate(el => el.style.height)).toMatch(/%$/);
+
+    expect(await page.evaluate(() => window.__violacoes)).toEqual([]);
+});
+
+// Modais começam escondidos por classe (.oculto-inicial), não por style=""
+for (const pagina of ["home.html", "catalogo.html?modo=vender", "empresas.html"]) {
+    test(`${pagina}: modais e botões começam escondidos`, async ({ page }) => {
+        await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+        await page.goto(`/pages/app/${pagina}`);
+        await page.waitForLoadState("networkidle");
+        for (const modal of await page.locator(".modal-serf").all()) await expect(modal).toBeHidden();
+    });
+}
+
 test("script injetado na página é bloqueado pelo navegador", async ({ page }) => {
     await vigiarCsp(page);
     await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });

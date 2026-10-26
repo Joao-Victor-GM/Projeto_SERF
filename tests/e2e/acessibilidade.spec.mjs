@@ -21,13 +21,16 @@ const PAGINAS = [
     "app/perfil.html"
 ];
 
-const TELAS = [["computador", 1366], ["celular", 390]];
+// O tema escuro (tema.js) só existe nas páginas internas
+const TELAS = [["computador", 1366, "light"], ["celular", 390, "light"], ["tema escuro", 1366, "dark"]];
 
 for (const pagina of PAGINAS) {
-    for (const [tela, largura] of TELAS) {
+    for (const [tela, largura, tema] of TELAS) {
+        if (tema === "dark" && !pagina.startsWith("app/")) continue;
         test(`${pagina} (${tela})`, async ({ page }) => {
             const logada = pagina.startsWith("app/") || pagina.includes("segmentacao");
             await page.setViewportSize({ width: largura, height: 850 });
+            await page.addInitScript(valor => { try { localStorage.setItem("serf-tema", valor); } catch { /* sem armazenamento */ } }, tema);
             await simularSupabase(page, { usuario: logada ? EMPRESA : null, tabelas: criarTabelas() });
             await page.goto(`/pages/${pagina}`);
             await page.waitForLoadState("networkidle");

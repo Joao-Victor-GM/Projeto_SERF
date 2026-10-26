@@ -116,7 +116,7 @@ function obterPedidosFiltrados() {
 function mensagemTabela(texto, cor = "") {
     elementos.pedidosTableBody.innerHTML = `
         <tr>
-            <td colspan="6" class="empty-state"${cor ? ` style="color:${cor};"` : ""}>
+            <td colspan="6" class="empty-state"${cor ? ` data-css="color:${cor};"` : ""}>
                 ${texto}
             </td>
         </tr>
@@ -283,84 +283,31 @@ function renderizarGrafico() {
     const { quantidade: quantidadeFaixas, faixas, maiorValor } =
         SERFPainel.faixasDoGrafico(obterPedidosDoModo(), estado.periodo, hojeDoPainel());
 
-    // Gráfico simples em HTML, sem bibliotecas externas.
-    elementos.graficoProducao.innerHTML = `
-        <div style="width:100%;">
+    // Gráfico simples em HTML, sem bibliotecas externas. Visual nas classes
+    // .grafico-producao* (home.css, com tema escuro); só o que é calculado
+    // vai em data-css (a CSP não permite style inline).
+    const altura = valor => Math.max(3, valor / maiorValor * 100);
 
-            <div style="
-                display:flex;
-                gap:18px;
-                margin-bottom:20px;
-                font-size:11px;
-                color:#66788A;
-            ">
-                <span>🔵 Criados</span>
-                <span>🟠 Concluídos</span>
+    elementos.graficoProducao.innerHTML = `
+        <div class="grafico-producao">
+            <div class="grafico-producao-legenda">
+                <span><i class="grafico-producao-marca criados" aria-hidden="true"></i>Criados</span>
+                <span><i class="grafico-producao-marca concluidos" aria-hidden="true"></i>Concluídos</span>
             </div>
 
-            <div style="
-                display:grid;
-                grid-template-columns:repeat(${quantidadeFaixas}, minmax(0,1fr));
-                gap:12px;
-                align-items:end;
-                height:170px;
-            ">
+            <div class="grafico-producao-faixas" data-css="grid-template-columns:repeat(${quantidadeFaixas}, minmax(0,1fr));">
                 ${faixas.map(faixa => `
-                    <div style="
-                        display:flex;
-                        flex-direction:column;
-                        align-items:center;
-                        justify-content:flex-end;
-                        height:100%;
-                        gap:8px;
-                    ">
-                        <div style="
-                            display:flex;
-                            align-items:flex-end;
-                            justify-content:center;
-                            gap:5px;
-                            width:100%;
-                            height:135px;
-                        ">
-                            <div
-                                title="${faixa.criados} pedidos criados"
-                                style="
-                                    width:22px;
-                                    max-width:40%;
-                                    height:${Math.max(
-                                        3,
-                                        faixa.criados / maiorValor * 100
-                                    )}%;
-                                    background:#1268B3;
-                                    border-radius:3px 3px 0 0;
-                                "
-                            ></div>
-
-                            <div
-                                title="${faixa.concluidos} pedidos concluídos"
-                                style="
-                                    width:22px;
-                                    max-width:40%;
-                                    height:${Math.max(
-                                        3,
-                                        faixa.concluidos / maiorValor * 100
-                                    )}%;
-                                    background:#F47A20;
-                                    border-radius:3px 3px 0 0;
-                                "
-                            ></div>
+                    <div class="grafico-producao-faixa">
+                        <div class="grafico-producao-barras">
+                            <div class="grafico-producao-barra criados" title="${faixa.criados} pedidos criados"
+                                 data-css="height:${altura(faixa.criados)}%;"></div>
+                            <div class="grafico-producao-barra concluidos" title="${faixa.concluidos} pedidos concluídos"
+                                 data-css="height:${altura(faixa.concluidos)}%;"></div>
                         </div>
-
-                        <small style="
-                            font-size:10px;
-                            color:#66788A;
-                        ">
-                            ${faixa.rotulo}
-                        </small>
+                        <small class="grafico-producao-rotulo">${faixa.rotulo}</small>
                     </div>
                 `).join("")}
             </div>
-
         </div>
     `;
 
@@ -543,7 +490,7 @@ export function renderizarConversas() {
                     </span>
                 </div>
 
-                <div style="
+                <div data-css="
                     display:flex;
                     align-items:center;
                     gap:12px;

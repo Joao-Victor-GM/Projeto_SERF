@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
 
     <title>S.E.R.F. | Catálogo B2B de Produtos</title>
 
@@ -23,6 +23,9 @@
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/utils.js"></script>
     <script src="../../js/auth-check.js"></script>
+    <script src="../../js/monitor-erros.js"></script>
+    <!-- A CSP bloqueia o atributo de estilo inline: estilo calculado vai em data-css (ver o script) -->
+    <script src="../../js/ui/estilos-dinamicos.js"></script>
 </head>
 
 <body class="serf-home">
@@ -192,11 +195,10 @@
                     <p id="produtosSubtitulo">Consulte produtos disponíveis ou gerencie seu catálogo de fornecedor</p>
                 </div>
 
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="acoes-cabecalho">
                     <a
                         href="cotacoes.html"
-                        class="btn-secondary"
-                        style="text-decoration: none; font-size: 11px; padding: 0 14px; display: inline-flex; align-items: center;"
+                        class="btn-secondary btn-compacto"
                         title="Peça propostas aos fornecedores do segmento"
                     >
                         Não achou? Peça uma cotação
@@ -204,8 +206,7 @@
 
                     <a
                         href="home.html"
-                        class="btn-secondary"
-                        style="text-decoration: none; font-size: 11px; padding: 0 14px; display: inline-flex; align-items: center;"
+                        class="btn-secondary btn-compacto"
                         title="Voltar para a visão geral e indicadores"
                     >
                         ← Voltar ao Painel Geral
@@ -214,9 +215,8 @@
                     <!-- Botão exibido dinamicamente se o usuário for Fornecedor -->
                     <button
                         type="button"
-                        class="btn-primary"
+                        class="btn-primary oculto-inicial"
                         id="btnNovoProduto"
-                        style="display: none;"
                     >
                         + Novo Produto
                     </button>
@@ -260,7 +260,7 @@
             </section>
 
             <!-- Modal de Cadastro de Produto para o Fornecedor -->
-            <div id="modalNovoProduto" class="modal-serf" style="display: none;">
+            <div id="modalNovoProduto" class="modal-serf oculto-inicial">
                 <div class="modal-serf-conteudo">
                     <div class="modal-serf-header">
                         <h3>Cadastrar Novo Produto no Catálogo</h3>
@@ -396,7 +396,8 @@
     </div>
 
     <!-- Dependências Supabase e SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.css" integrity="sha384-dCW5imOdApH6OwpFau8cZNKjqVbJYnCA5q+8YsMYP3XwXKsV6Jfz1u6MZLnXaBsS" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.js" integrity="sha384-hW8ZCQHtRH+nVOAkHZ4amZvYsAtKn1ZOvMV6dNag1Rb1thWmLZMBKTRxFV0cOxiK" crossorigin="anonymous"></script>
 
     <!-- Scripts de interface e catálogo -->
     <!-- Avisos, camada de dados, gestão de produtos e carrinho -->

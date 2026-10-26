@@ -121,6 +121,46 @@ export interface Database {
                 };
                 Relationships: [];
             };
+            erros_navegador: {
+                Row: {
+                    id: number;
+                    auth_user_id: string;
+                    criado_em: string;
+                    ultimo_em: string;
+                    quantidade: number;
+                    pagina: string;
+                    mensagem: string;
+                    origem: string | null;
+                    pilha: string | null;
+                    navegador: string | null;
+                    versao: string | null;
+                };
+                Insert: {
+                    auth_user_id?: string;
+                    criado_em?: string;
+                    ultimo_em?: string;
+                    quantidade?: number;
+                    pagina: string;
+                    mensagem: string;
+                    origem?: string | null;
+                    pilha?: string | null;
+                    navegador?: string | null;
+                    versao?: string | null;
+                };
+                Update: {
+                    auth_user_id?: string;
+                    criado_em?: string;
+                    ultimo_em?: string;
+                    quantidade?: number;
+                    pagina?: string;
+                    mensagem?: string;
+                    origem?: string | null;
+                    pilha?: string | null;
+                    navegador?: string | null;
+                    versao?: string | null;
+                };
+                Relationships: [];
+            };
             favoritos_fornecedores: {
                 Row: {
                     id_favorito: number;
@@ -809,6 +849,19 @@ export interface Database {
                     referencia: string | null;
                     vencimento: string | null;
                     detalhe: string | null;
+                };
+                Relationships: [];
+            };
+            erros_resumo: {
+                Row: {
+                    mensagem: string | null;
+                    pagina: string | null;
+                    ocorrencias: number | null;
+                    usuarios: number | null;
+                    primeira_vez: string | null;
+                    ultima_vez: string | null;
+                    origem: string | null;
+                    navegador: string | null;
                 };
                 Relationships: [];
             };

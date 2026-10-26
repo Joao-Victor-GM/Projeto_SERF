@@ -61,6 +61,30 @@ test("todo script de CDN tem integridade (SRI) e versão fixa", () => {
     }
 });
 
+test("CSP sem estilo inline: style-src não tem 'unsafe-inline'", () => {
+    const estilo = /style-src ([^;]+)/.exec(cspDoHost)[1];
+    assert.doesNotMatch(estilo, /'unsafe-inline'/);
+});
+
+test("nenhum atributo style= nas páginas nem no HTML montado pelo JS (use classe ou data-css)", () => {
+    // Inclui arquivos novos ainda não versionados (mas não os ignorados)
+    const arquivos = execSync("git ls-files --cached --others --exclude-standard -- pages js", { cwd: FRONT, encoding: "utf8" })
+        .split(/\r?\n/).filter(f => /\.(html|js)$/.test(f) && fs.existsSync(path.join(FRONT, f)));
+    for (const arquivo of arquivos) {
+        assert.doesNotMatch(ler(arquivo), /(?<![\w-])style=["']/, `${arquivo}: atributo style (bloqueado pela CSP)`);
+        assert.doesNotMatch(ler(arquivo), /setAttribute\(\s*["']style["']/, `${arquivo}: setAttribute("style") é bloqueado pela CSP`);
+    }
+});
+
+test("todo CSS de CDN tem integridade (SRI) e versão fixa", () => {
+    for (const pagina of paginas) {
+        for (const [tag] of ler(pagina).matchAll(/<link rel="stylesheet" href="https:\/\/cdn[^"]+"[^>]*>/g)) {
+            assert.match(tag, /integrity="sha384-[A-Za-z0-9+/=]{64}"/, `${pagina}: ${tag}`);
+            assert.match(tag, /@\d+\.\d+\.\d+\//, `${pagina}: versão não fixada`);
+        }
+    }
+});
+
 test("links que abrem outra aba usam rel=noopener", () => {
     const fontes = [...paginas.map(ler), ...fs.readdirSync(path.join(FRONT, "js"), { recursive: true })
         .filter(f => String(f).endsWith(".js")).map(f => ler(path.join("js", String(f))))];

@@ -1207,6 +1207,84 @@ a {
    Grid responsivo, cards de produtos e modal de cadastro
    ========================================================== */
 
+/* Home: gráfico de produção (dashboard.js) */
+.grafico-producao { width: 100%; }
+
+.grafico-producao-legenda {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 20px;
+    color: var(--serf-texto-secundario);
+    font-size: 11px;
+}
+
+.grafico-producao-legenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.grafico-producao-marca {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.grafico-producao-faixas {
+    display: grid;
+    align-items: end;
+    gap: 12px;
+    height: 170px;
+}
+
+.grafico-producao-faixa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    height: 100%;
+}
+
+.grafico-producao-barras {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    height: 135px;
+}
+
+.grafico-producao-barra {
+    width: 22px;
+    max-width: 40%;
+    border-radius: 3px 3px 0 0;
+}
+
+.grafico-producao-marca.criados,
+.grafico-producao-barra.criados { background: var(--serf-azul-interacao); }
+
+.grafico-producao-marca.concluidos,
+.grafico-producao-barra.concluidos { background: var(--serf-laranja); }
+
+.grafico-producao-rotulo {
+    color: var(--serf-texto-secundario);
+    font-size: 10px;
+}
+
+/* Home: painel no limite de pedidos (estado.js) */
+.aviso-limite-pedidos {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-left: 3px solid var(--serf-laranja);
+    border-radius: 4px;
+    background: var(--serf-tint-laranja);
+    color: var(--serf-texto-principal);
+    font-size: 12px;
+}
+
+.aviso-limite-pedidos[hidden] { display: none; }
+
 /* Busca, segmento e ordenação do catálogo */
 .catalogo-filtros {
     display: grid;

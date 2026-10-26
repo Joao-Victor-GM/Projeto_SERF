@@ -61,13 +61,61 @@ test.describe("sessão", () => {
         // 29 min sem uso: no próximo ciclo (15 s) aparece o aviso
         await page.evaluate(() => localStorage.setItem("serf-ultima-atividade", String(Date.now() - 29 * 60 * 1000)));
         await page.clock.fastForward(16000);
-        await expect(page.locator(".swal2-popup")).toContainText("Você ainda está aí?");
+        const aviso = page.getByRole("alertdialog", { name: "Você ainda está aí?" });
+        await expect(aviso).toBeVisible();
+        await expect(aviso.getByRole("button", { name: "Continuar conectado" })).toBeFocused();
 
-        await page.locator(".swal2-confirm").click();
+        await aviso.getByRole("button", { name: "Continuar conectado" }).click();
+        await expect(aviso).toHaveCount(0);
         const parado = await page.evaluate(() => Date.now() - Number(localStorage.getItem("serf-ultima-atividade")));
         expect(parado).toBeLessThan(5000);
         expect(page.url()).toContain("relatorios.html");
     });
+
+    test("o aviso de inatividade não fecha um diálogo que estava aberto", async ({ page }) => {
+        await page.clock.install();
+        await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+        await page.goto("/pages/app/catalogo.html?modo=vender");
+        await page.locator('.produto-card[data-id="11"] .btn-editar-produto').click();
+        await expect(page.locator(".swal2-popup")).toContainText("Editar produto");
+
+        await page.evaluate(() => localStorage.setItem("serf-ultima-atividade", String(Date.now() - 29 * 60 * 1000)));
+        await page.clock.fastForward(16000);
+
+        await expect(page.locator(".serf-aviso-inatividade")).toBeVisible();
+        await expect(page.locator(".swal2-popup")).toContainText("Editar produto");   // o formulário continua lá
+    });
+});
+
+test("logo do topo: consulta uma vez por aba, não a cada página", async ({ page }) => {
+    const { chamadas } = await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+    const consultasDeLogo = () => chamadas.filter(c => c.tipo === "rest" && c.metodo === "GET"
+        && c.parametros.some(([k, v]) => k === "select" && v === "logo_url")).length;
+
+    await page.goto("/pages/app/relatorios.html");
+    await expect.poll(consultasDeLogo).toBe(2);   // usuarios + fornecedores
+    await page.goto("/pages/app/alertas.html");
+    await expect(page.locator("#sidebar")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    expect(consultasDeLogo()).toBe(2);
+});
+
+test("Home avisa na tela quando o painel bate no limite de 1.000 pedidos", async ({ page }) => {
+    const tabelas = criarTabelas();
+    const base = tabelas.pedidos_painel[0];
+    tabelas.pedidos_painel = Array.from({ length: 1000 }, (_, i) => ({ ...base, id_pedido: 5000 + i }));
+    await simularSupabase(page, { usuario: EMPRESA, tabelas });
+    await page.goto("/pages/app/home.html");
+
+    await expect(page.locator("#avisoLimitePedidos")).toBeVisible();
+    await expect(page.locator('#avisoLimitePedidos a[href="relatorios.html"]')).toBeVisible();
+});
+
+test("Home com poucos pedidos não mostra o aviso de limite", async ({ page }) => {
+    await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+    await page.goto("/pages/app/home.html");
+    await expect(page.locator("#pedidosTableBody tr").first()).toBeVisible();
+    await expect(page.locator("#avisoLimitePedidos")).toBeHidden();
 });
 
 test.describe("logo da empresa", () => {
