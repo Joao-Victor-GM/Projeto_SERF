@@ -25,15 +25,10 @@
     // catálogo baixava a rede inteira (e a API corta em 1.000 linhas).
     const TAMANHO_PAGINA = 24;
     const filtros = { termo: "", categoria: "", ordem: "recentes", pagina: 0, total: null };
-    const ORDENS = {
-        recentes: ["id_produto", false],
-        menor_preco: ["preco_atacado", true],
-        maior_preco: ["preco_atacado", false]
-    };
     let buscaEmAndamento = 0;   // descarta respostas de buscas antigas (digitação rápida)
 
-    // % _ e caracteres de sintaxe do PostgREST não podem ir crus no ILIKE
-    const limparTermo = termo => String(termo || "").replace(/["\\%*_,()]/g, " ").replace(/\s+/g, " ").trim();
+    // A consulta fica na camada de dados (produtos.repositorio.js)
+    const limparTermo = termo => window.SERFDados.produtos.limparTermo(termo);
 
     /* =========================================================================
        2. VERIFICAÇÃO DE FORNECEDOR (Painel do Vendedor)
@@ -121,58 +116,32 @@
             // Detecta se a tela está no modo 'vender' (Painel Meus Produtos)
             const isModoVender = isModoVenderAtivo();
 
-            // Monta query no Supabase com join relacional da chave estrangeira fk_produtos_fornecedores
-            let query = client
-                .from('produtos')
-                .select(`
-                    id_produto,
-                    id_fornecedor,
-                    nome_produto,
-                    descricao,
-                    categoria,
-                    marca,
-                    preco_atacado,
-                    quantidade_minima,
-                    quantidade_estoque,
-                    ativo,
-                    data_cadastro,
-                    fornecedores:fornecedores_publicos (
-                        id_fornecedor,
-                        razao_social,
-                        nome_fantasia,
-                        cidade,
-                        estado
-                    )
-                `, { count: 'exact' });
+            // "Meus produtos" (vender): só os da empresa, inclusive pausados
+            const meusProdutos = isModoVender && fornecedorAtual && fornecedorAtual.id_fornecedor;
 
-            // Se for fornecedor e estiver no modo "vender" (Meus Produtos), filtra pelo seu id_fornecedor.
-            // Ali aparecem também os produtos pausados (ativo = false), para reativar.
-            if (isModoVender && fornecedorAtual && fornecedorAtual.id_fornecedor) {
-                query = query.eq('id_fornecedor', fornecedorAtual.id_fornecedor);
-
-                const titulo = document.getElementById('produtosTitulo');
-                const subtitulo = document.getElementById('produtosSubtitulo');
+            const titulo = document.getElementById('produtosTitulo');
+            const subtitulo = document.getElementById('produtosSubtitulo');
+            if (meusProdutos) {
                 if (titulo) titulo.textContent = 'Meus Produtos (Painel do Vendedor)';
                 if (subtitulo) subtitulo.textContent = `Itens cadastrados por ${fornecedorAtual.razao_social}`;
             } else {
-                query = query.eq('ativo', true);
-
-                const titulo = document.getElementById('produtosTitulo');
-                const subtitulo = document.getElementById('produtosSubtitulo');
                 if (titulo) titulo.textContent = 'Catálogo de Produtos';
                 if (subtitulo) subtitulo.textContent = 'Explore insumos industriais e mercadorias com preço de atacado';
             }
 
-            const termo = limparTermo(filtros.termo);
-            if (termo) query = query.ilike('nome_produto', `%${termo}%`);
-            if (filtros.categoria) query = query.eq('categoria', filtros.categoria);
-
-            const [coluna, crescente] = ORDENS[filtros.ordem] || ORDENS.recentes;
-            const inicio = filtros.pagina * TAMANHO_PAGINA;
-            query = query.order(coluna, { ascending: crescente });
-            if (coluna !== 'id_produto') query = query.order('id_produto', { ascending: false });   // desempate estável
-
-            const { data, error, count } = await query.range(inicio, inicio + TAMANHO_PAGINA - 1);
+            let resultado, error = null;
+            try {
+                resultado = await window.SERFDados.produtos.catalogo({
+                    termo: filtros.termo,
+                    categoria: filtros.categoria,
+                    ordem: filtros.ordem,
+                    pagina: filtros.pagina,
+                    tamanho: TAMANHO_PAGINA,
+                    idFornecedor: meusProdutos ? fornecedorAtual.id_fornecedor : null
+                });
+            } catch (erroConsulta) {
+                error = erroConsulta;
+            }
 
             if (minhaBusca !== buscaEmAndamento) return listaProdutosCache;   // chegou outra busca depois
 
@@ -180,9 +149,9 @@
                 throw error;
             }
 
-            const pagina = data || [];
+            const pagina = resultado.produtos;
             listaProdutosCache = proximaPagina ? [...listaProdutosCache, ...pagina] : pagina;
-            filtros.total = typeof count === 'number' ? count : null;
+            filtros.total = resultado.total;
 
             renderizarProdutos(listaProdutosCache);
             atualizarResumo(pagina.length);

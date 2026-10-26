@@ -79,3 +79,73 @@ jobs:
 
       - name: Gerador oficial de tipos do Supabase aceita o schema
         run: supabase gen types typescript --local > /dev/null
+
+  # A API DE VERDADE (PostgREST, Auth e Storage do Supabase), com as
+  # consultas da própria camada de dados do site (tests/api). Pega o que o
+  # Supabase simulado dos testes de interface deixa passar (ex.: PGRST201).
+  supabase-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+
+      - name: Subir o Supabase local (banco + migrations, API, Auth e Storage)
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
+
+      - name: Endereço e chaves do Supabase local
+        run: |
+          supabase status -o env | sed 's/"//g' > supabase.env
+          set -a; . ./supabase.env; set +a
+          test -n "$API_URL" && test -n "$ANON_KEY" && test -n "$SERVICE_ROLE_KEY"
+          {
+            echo "SUPABASE_API_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Fluxos do site contra a API real
+        run: npm run test:api
+        env:
+          EXIGIR_SUPABASE_API: "1"
+
+  # PORTÃO DO SITE: a hospedagem publica a branch "site", e só esta etapa
+  # a atualiza, depois de TODOS os testes passarem na main. Um push ruim na
+  # main (inclusive upload de arquivos antigos pelo GitHub) não chega ao ar.
+  publicar-site:
+    needs: [testes, supabase-real, supabase-api]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: publicar-site
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Atualizar a branch "site" com esta versão testada
+        run: |
+          # Dois pushes seguidos: a execução mais antiga não pode voltar o site
+          if git fetch origin site 2>/dev/null && git merge-base --is-ancestor HEAD FETCH_HEAD; then
+            echo "A branch site já tem esta versão ou uma mais nova."
+            exit 0
+          fi
+          git push --force origin HEAD:refs/heads/site
+          echo "Publicado: $(git log -1 --format='%h %s')" >> "$GITHUB_STEP_SUMMARY"

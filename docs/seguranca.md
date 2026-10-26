@@ -70,10 +70,13 @@ versionada (histórico verificado).
 
 ## Ao publicar (checklist)
 
-**Banco:** aplique as migrations até a **031**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
+**Banco:** aplique as migrations até a **032**. A 028 corrige a falha crítica, então aplique-a imediatamente, mesmo antes do resto.
 
 **Hospedagem (Cloudflare Pages ou Netlify):**
 - Publicar a pasta **`frontend/`**. O `_headers` e o `_redirects` já estão nela; publicar a raiz do repositório exporia `tests/`, `docs/` e o código das funções.
+- Publicar a branch **`site`**, não a `main`. Quem atualiza a `site` é a CI
+  (job `publicar-site`), e só depois de **todos** os testes passarem na
+  `main`, inclusive os da API real. Um push ruim na `main` não chega ao ar.
 - O GitHub Pages não aplica o `_headers`. A CSP em `<meta>` continua valendo lá, mas sem HSTS e sem bloqueio de iframe.
 
 **Supabase (painel):**
@@ -82,14 +85,15 @@ versionada (histórico verificado).
   - [ ] confirmação de e-mail ligada;
   - [ ] **senha mínima 8**;
   - [ ] "Leaked password protection".
-- [ ] Authentication → Attack Protection: **CAPTCHA** (Turnstile ou hCaptcha) no cadastro e no login. Se ligar, me avise: o front precisa mandar o token.
+- [ ] **CAPTCHA** (Cloudflare Turnstile, grátis) no cadastro, login e recuperação de senha. O front já está pronto e desligado; o passo a passo, **na ordem certa**, está no topo de `frontend/js/captcha.js` (ligar no Supabase antes de pôr a chave no site trava todos os logins).
 - [ ] Advisors → Security Advisor: resolver o que aparecer.
 - [ ] Segredos das funções: `APP_URL` = endereço onde fica a pasta `pages/` (ex.: `https://serf.pages.dev`).
 - [ ] Plano com **backup** antes de dinheiro e NF-e reais.
 
 **Contas:**
 - [ ] 2FA no GitHub, no Supabase, no Mercado Pago, na Focus e no e-mail dos administradores.
-- [ ] GitHub: proteger a branch principal (PR + CI verde); ativar o Dependabot.
+- [ ] GitHub: proteger a `main` (PR + CI verde). Em repositório **privado**, isso exige GitHub Pro, que é grátis para estudantes (GitHub Student Developer Pack); sem ele, o portão da branch `site` (acima) já impede que código com teste vermelho vá ao ar.
+- [ ] GitHub: ativar o Dependabot.
 
 **Antes do lançamento:**
 - [ ] Varredura OWASP ZAP (baseline) contra o site publicado.
@@ -102,9 +106,6 @@ versionada (histórico verificado).
   o fluxo, **não** prova nada. Para valer, mude para `REAL`.
 - **Limites de frequência existem no banco (030)**, mas por usuário: quem
   cria muitas contas contorna. Ligue o CAPTCHA no cadastro (checklist acima).
-- **`style-src 'unsafe-inline'`** continua na CSP, porque vários componentes
-  usam `style=`. É risco baixo (CSS não executa script) e pode ser removido
-  aos poucos.
 - **Pix e NF-e reais** foram testados contra simulações. Valide em sandbox e
   homologação antes de ligar.
 
@@ -166,6 +167,33 @@ O modo `REAL` precisa da função `enviar-emails` configurada (Resend).
   automática após **30 min** sem uso (7 dias com "Manter conectado"), com
   aviso 2 min antes; ao abrir uma página já além do limite, sai antes de
   mostrar dados. Em computador compartilhado, **não** marque a opção.
+
+## CSP sem estilo inline
+
+`style-src` não tem `'unsafe-inline'`: o atributo `style=""` e blocos
+`<style>` são ignorados pelo navegador. Estilo fixo vai em classe (`.css`);
+estilo calculado no JS vai em `data-css="..."`, que `js/ui/estilos-dinamicos.js`
+aplica pelo CSSOM (permitido). `tests/unit/seguranca.test.mjs` reprova
+`style=` e `setAttribute("style")` em qualquer página ou script.
+
+O CAPTCHA (Turnstile) é a única exceção ao SRI: a Cloudflare não permite
+fixar o arquivo. Por isso ele só é carregado nas telas de login, e só com o
+CAPTCHA ligado.
+
+## Monitoramento de erros (migration 032)
+
+`js/monitor-erros.js`, nas páginas internas, registra na tabela
+`erros_navegador` do próprio Supabase os erros de JavaScript, as promessas
+sem `catch` e as falhas que o código registra como `console.error("[SERF:...]")`.
+Sem serviço externo (nenhum dado de usuário sai do projeto).
+
+- Ver os erros: SQL Editor → `SELECT * FROM erros_resumo;` (últimos 7 dias,
+  agrupados) ou a tabela `erros_navegador`.
+- Só usuário logado grava, em nome próprio; **ninguém lê pela API**.
+- Mesmo erro na mesma hora vira contador; no máximo 30 erros diferentes por
+  usuário por hora; apagados após 30 dias.
+- Só o caminho da página, sem `?parâmetros` (o link de descadastro, por
+  exemplo, carrega um token).
 
 ## Como manter
 

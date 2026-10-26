@@ -658,6 +658,21 @@ npm run servidor                 # abre o front-end em http://localhost:4173
 
 ## Deploy
 
+**Portão do site:** a hospedagem publica a branch `site`. A CI
+(`.github/workflows/testes.yml`) só a atualiza, no job `publicar-site`,
+quando os três jobs passam na `main`:
+
+| Job | O que garante |
+|---|---|
+| `testes` | banco em memória (RLS e regras), unitários, tipos e interface (Supabase simulado, CSP, acessibilidade) |
+| `supabase-real` | migrations no Postgres do Supabase, lint do PL/pgSQL, invariantes de segurança e reaplicação |
+| `supabase-api` | `supabase start` + `tests/api`: as consultas da camada de dados do site contra PostgREST, Auth e Storage reais |
+
+Para rodar o `tests/api` na máquina: Docker + `supabase start`, e depois
+`npm run test:api` com `SUPABASE_API_URL`, `SUPABASE_ANON_KEY` e
+`SUPABASE_SERVICE_ROLE_KEY` (de `supabase status`). Nunca aponte para a
+produção: o teste cria contas.
+
 Ordem obrigatória: **primeiro o banco, depois o front-end**. O front-end atual
 depende das migrations 013 (`motivo_cancelamento`, RPC de cancelamento), 014
 (view `pedidos_painel`), 015 (view `alertas`), 016 (view `oportunidades`) e
@@ -671,7 +686,8 @@ antes; ver `docs/seguranca.md`)** e 029 (posse do CNPJ; modo demonstração
 por padrão; contas existentes ganham 30 dias para verificar), 030 (índices
 que faltavam, busca do catálogo por trigramas e limites de frequência em
 chat, produtos e cotações) e 031 (logo da empresa: colunas, views e bucket
-`logos`; sem ela o envio do logo falha e as telas mostram a inicial). Sem 018–027
+`logos`; sem ela o envio do logo falha e as telas mostram a inicial) e 032
+(monitor de erros; sem ela os relatos falham em silêncio). Sem 018–027
 a Home continua funcionando: só o envio do carrinho, o checklist, a
 verificação de CNPJ, os e-mails, o filtro por segmento e o sino ficam
 indisponíveis; a página de cotações e os botões de LGPD do Perfil mostram o erro. Publicar as páginas antes delas
