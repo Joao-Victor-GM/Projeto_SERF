@@ -195,6 +195,15 @@ if (formCadastro) {
             return;
         }
 
+        // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
+        let captchaToken;
+        try {
+            captchaToken = await window.SERFCaptcha?.token(formCadastro);
+        } catch (erroCaptcha) {
+            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            return;
+        }
+
         try {
             Swal.fire({
                 title: 'Criando Cadastro...',
@@ -216,6 +225,7 @@ if (formCadastro) {
                 email: email,
                 password: senha,
                 options: {
+                    captchaToken,
                     data: {
                         segmentacao_concluida: false,
                         cnpj: cnpj,
@@ -223,6 +233,7 @@ if (formCadastro) {
                     }
                 }
             });
+            window.SERFCaptcha?.renovar(formCadastro);
 
             if (authError) throw authError;
 
@@ -290,6 +301,15 @@ if (formLogin) {
             return;
         }
 
+        // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
+        let captchaToken;
+        try {
+            captchaToken = await window.SERFCaptcha?.token(formLogin);
+        } catch (erroCaptcha) {
+            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            return;
+        }
+
         try {
             Swal.fire({
                 title: 'Autenticando...',
@@ -309,8 +329,10 @@ if (formLogin) {
             // Erro genérico: não revela se o e-mail existe.
             const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
                 email: email,
-                password: senha
+                password: senha,
+                options: { captchaToken }
             });
+            window.SERFCaptcha?.renovar(formLogin);
 
             if (loginError) throw loginError;
 
@@ -397,6 +419,15 @@ if (formRecuperar) {
             return;
         }
 
+        // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
+        let captchaToken;
+        try {
+            captchaToken = await window.SERFCaptcha?.token(formRecuperar);
+        } catch (erroCaptcha) {
+            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            return;
+        }
+
         try {
             Swal.fire({
                 title: 'Processando pedido...',
@@ -411,8 +442,10 @@ if (formRecuperar) {
             // igual nos dois casos: a tela não revela quais e-mails estão cadastrados.
             const urlRedefinir = new URL('redefinir-senha.html', window.location.href).href;
             const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                redirectTo: urlRedefinir
+                redirectTo: urlRedefinir,
+                captchaToken
             });
+            window.SERFCaptcha?.renovar(formRecuperar);
 
             if (resetError) throw resetError;
 
@@ -475,3 +508,9 @@ if (formRecuperar) {
         icon: 'info'
     });
 })();
+
+
+// =========================================================================
+// FUNCIONALIDADE 7: CAPTCHA (desligado até configurar a chave em captcha.js)
+// =========================================================================
+[formCadastro, formLogin, formRecuperar].forEach(formulario => window.SERFCaptcha?.prepararFormulario(formulario));

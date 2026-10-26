@@ -642,3 +642,14 @@ a:focus-visible {
         animation: none !important;
     }
 }
+
+/* CAPTCHA (captcha.js): só ocupa espaço quando o Turnstile pede um clique */
+.captcha-caixa {
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+}
+
+.captcha-caixa:not(:empty) {
+    margin: 8px 0;
+}

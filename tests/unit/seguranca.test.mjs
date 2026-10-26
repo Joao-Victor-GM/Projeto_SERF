@@ -30,7 +30,9 @@ test("toda página tem a MESMA CSP em <meta>, e o _headers é ela + o que a meta
 
 test("CSP rígida: script só do site e dos CDNs fixados; sem eval nem inline", () => {
     const script = /script-src ([^;]+)/.exec(cspDoHost)[1];
-    assert.equal(script, "'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com");
+    // challenges.cloudflare.com: CAPTCHA (Turnstile), carregado só no login e só se ligado (captcha.js)
+    assert.equal(script, "'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com");
+    assert.equal(/frame-src ([^;]+)/.exec(cspDoHost)[1], "https://challenges.cloudflare.com");
     assert.doesNotMatch(cspDoHost, /'unsafe-eval'/);
     assert.match(cspDoHost, /object-src 'none'/);
     assert.match(cspDoHost, /base-uri 'self'/);
