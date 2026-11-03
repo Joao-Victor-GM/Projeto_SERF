@@ -1036,6 +1036,8 @@
     }
 
     function renderizarTudo() {
+        if (!carregadoEm) return;
+
         const lista = pedidosDaPerspectiva();
         const periodo = intervalos(lista);
         const atual = filtrarIntervalo(lista, periodo.inicio, periodo.fim);

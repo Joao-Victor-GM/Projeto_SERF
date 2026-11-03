@@ -7,54 +7,67 @@
     font-family: 'Poppins', sans-serif;
 }
 
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 body {
     background-color: #001f3f; /* Fundo escuro de alto contraste */
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    align-items: center;
+    align-items: safe center;
     justify-content: center;
     color: #ffffff;
     position: relative;
     overflow-x: hidden;
-    padding: 20px;
+    padding: 24px 16px;
 }
 
-/* Camada das Partículas de fundo para herdar o visual do login */
+/* Camada das Partículas fixa na janela para cobrir toda a página ao rolar no celular */
 #particles-js {
-    position: absolute;
+    position: fixed;
+    inset: 0;
     width: 100%;
     height: 100%;
-    top: 0;
-    left: 0;
     z-index: 1;
+    pointer-events: none;
 }
 
 .container-triagem {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    padding: 40px 50px;
-    width: 850px;
+    padding: 36px 42px;
+    width: 920px;
     max-width: 100%;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.3), 0 10px 10px rgba(0,0,0,0.25);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.25);
     color: #1d2d5c;
     text-align: center;
     position: relative;
     z-index: 10;
-    overflow: hidden;
-    transition: all 0.5s ease-in-out;
+    overflow: visible;
+    margin: auto 0;
 }
 
 .logo-triagem {
-    width: 110px;
+    width: 100px;
     height: auto;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 /* Controle das etapas (Passos do Onboarding) */
 .etapa {
     display: none;
-    animation: fadeIn 0.4s ease-in-out forwards;
+    animation: fadeIn 0.35s ease-in-out forwards;
 }
 
 .etapa.ativa {
@@ -62,110 +75,141 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 h2 {
-    font-size: 26px;
+    font-size: 25px;
     color: #1d2d5c;
     margin-bottom: 8px;
     font-weight: 700;
+    line-height: 1.25;
 }
 
 p.descricao {
     font-size: 14px;
-    color: #526476;
-    margin-bottom: 30px;
-    max-width: 600px;
+    color: #475569;
+    margin-bottom: 22px;
+    max-width: 650px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.5;
 }
 
 /* ==================== GRID DE OPÇÕES - PASSO 1 (PERFIS) ==================== */
 .perfis-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 35px;
-}
-
-.perfis-grid .card-perf {
-    min-width: 200px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
 }
 
 .card-perf {
-    flex: 1;
     background-color: #f8fafc;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #cbd5e1;
     border-radius: 12px;
-    padding: 30px 20px;
+    padding: 26px 18px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-width: 0;
 }
 
 .card-perf:hover {
-    transform: translateY(-5px);
-    border-color: #f77f00; /* Laranja SERF */
-    box-shadow: 0 8px 15px rgba(247, 127, 0, 0.1);
+    transform: translateY(-4px);
+    border-color: #f77f00;
+    box-shadow: 0 8px 15px rgba(247, 127, 0, 0.12);
 }
 
 .card-perf.selecionado {
-    background-color: #fffaf0;
-    border-color: #f77f00;
-    color: #ad5309;
+    background-color: #fff7ed;
+    border-color: #d97706;
+    color: #9a3412;
 }
 
 .card-perf .icone-grande {
-    font-size: 45px;
-    margin-bottom: 15px;
+    font-size: 40px;
+    margin-bottom: 12px;
 }
 
 .card-perf h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 17px;
+    margin-bottom: 8px;
     font-weight: 600;
     color: #1d2d5c;
 }
 
 .card-perf.selecionado h3 {
-    color: #ad5309;
+    color: #9a3412;
 }
 
 .card-perf p {
     font-size: 12px;
-    color: #64748b;
-    line-height: 1.6;
+    color: #475569;
+    line-height: 1.55;
 }
 
-/* ==================== GRID DE OPÇÕES - PASSO 2 (NICHOS) ==================== */
+/* ==================== BUSCA E GRID - PASSO 2 (NICHOS CNAE) ==================== */
+.busca-nicho-wrap {
+    max-width: 520px;
+    margin: 0 auto 16px;
+}
+
+.busca-nicho-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #1d2d5c;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.busca-nicho-input::placeholder {
+    color: #64748b;
+}
+
+.busca-nicho-input:focus {
+    border-color: #1268b3;
+    box-shadow: 0 0 0 3px rgba(18, 104, 179, 0.18);
+}
+
 .nichos-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 35px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 .card-perf:focus-visible,
 .card-nicho:focus-visible {
     outline: 3px solid #1268b3;
-    outline-offset: 3px;
+    outline-offset: 2px;
 }
 
 .card-nicho {
     background-color: #f8fafc;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #cbd5e1;
     border-radius: 10px;
-    padding: 15px 10px;
+    padding: 12px 10px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    touch-action: manipulation;
+}
+
+.card-nicho[hidden] {
+    display: none;
 }
 
 .card-nicho:hover {
@@ -174,23 +218,102 @@ p.descricao {
 }
 
 .card-nicho.selecionado {
-    background-color: #fff3e0;
-    border-color: #f77f00;
-    color: #ad5309;
-    font-weight: 600;
+    background-color: #ffedd5;
+    border-color: #d97706;
+    color: #9a3412;
+}
+
+.card-nicho-outros {
+    border-style: dashed;
+}
+
+.card-nicho-outros.selecionado {
+    border-style: solid;
 }
 
 .card-nicho .emoji {
-    font-size: 24px;
+    font-size: 22px;
+    line-height: 1.1;
 }
 
 .card-nicho span.nome-nicho {
-    font-size: 13px;
+    font-size: 12.5px;
+    font-weight: 600;
     color: #1d2d5c;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
 }
 
 .card-nicho.selecionado span.nome-nicho {
-    color: #ad5309;
+    color: #9a3412;
+}
+
+.card-nicho .cnae-ref {
+    font-size: 10.5px;
+    color: #475569;
+    line-height: 1.2;
+}
+
+.card-nicho.selecionado .cnae-ref {
+    color: #9a3412;
+}
+
+.nicho-sem-resultado {
+    font-size: 13px;
+    color: #475569;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+}
+
+/* Campo para digitar o nicho personalizado ao escolher "Outros" */
+.campo-outro-nicho {
+    text-align: left;
+    background-color: #fff7ed;
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.campo-outro-nicho[hidden] {
+    display: none;
+}
+
+.campo-outro-nicho label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1d2d5c;
+    margin-bottom: 8px;
+}
+
+.campo-outro-nicho input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #1d2d5c;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campo-outro-nicho input:focus {
+    border-color: #1268b3;
+    box-shadow: 0 0 0 3px rgba(18, 104, 179, 0.18);
+}
+
+.ajuda-outro-nicho {
+    display: block;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: #475569;
+    line-height: 1.4;
 }
 
 /* ==================== BOTÕES E BARRA DE PROGRESSO ==================== */
@@ -199,7 +322,7 @@ p.descricao {
     height: 6px;
     background-color: #e2e8f0;
     border-radius: 10px;
-    margin-bottom: 35px;
+    margin-bottom: 28px;
     overflow: hidden;
 }
 
@@ -215,13 +338,15 @@ p.descricao {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
 }
 
 .btn-aux {
     background-color: transparent;
-    color: #64748b;
-    border: 2px solid #cbd5e1;
-    padding: 10px 25px;
+    color: #475569;
+    border: 2px solid #94a3b8;
+    padding: 11px 24px;
+    min-height: 44px;
     font-size: 13px;
     font-weight: bold;
     border-radius: 8px;
@@ -229,18 +354,20 @@ p.descricao {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: 0.2s;
+    touch-action: manipulation;
 }
 
 .btn-aux:hover {
-    border-color: #64748b;
-    color: #1e293b;
+    border-color: #475569;
+    color: #0f172a;
 }
 
 .btn-acao-principal {
     background-color: #b4570b;
     color: #ffffff;
     border: none;
-    padding: 12px 40px;
+    padding: 12px 36px;
+    min-height: 44px;
     font-size: 14px;
     font-weight: bold;
     border-radius: 8px;
@@ -248,15 +375,16 @@ p.descricao {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: 0.25s;
+    touch-action: manipulation;
 }
 
 .btn-acao-principal:hover {
-    background-color: #e67e22;
+    background-color: #9a3412;
 }
 
 .btn-acao-principal:disabled {
     background-color: #cbd5e1;
-    color: #94a3b8;
+    color: #64748b;
     cursor: not-allowed;
 }
 
@@ -264,4 +392,119 @@ p.descricao {
 .invisivel {
     visibility: hidden;
     pointer-events: none;
+}
+
+/* ==================== RESPONSIVO (TABLET E CELULAR / iOS) ==================== */
+@media (max-width: 900px) {
+    .nichos-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px), (max-height: 780px) {
+    /* Evita cortar o topo do cartão quando o conteúdo passa da altura da tela */
+    body {
+        align-items: flex-start;
+        padding: max(16px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom));
+    }
+
+    .container-triagem {
+        margin: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-triagem {
+        padding: 22px 16px;
+        border-radius: 16px;
+    }
+
+    .logo-triagem {
+        width: 76px;
+        margin-bottom: 8px;
+    }
+
+    .progresso-container {
+        margin-bottom: 18px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    p.descricao {
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .perfis-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .card-perf {
+        padding: 16px 14px;
+    }
+
+    .card-perf:hover {
+        transform: none;
+    }
+
+    .card-perf .icone-grande {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+
+    .card-perf h3 {
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    .nichos-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .card-nicho {
+        padding: 11px 8px;
+    }
+
+    .card-nicho span.nome-nicho {
+        font-size: 12px;
+    }
+
+    /* 16px evita zoom forçado do Safari iOS ao tocar nos campos */
+    .busca-nicho-input,
+    .campo-outro-nicho input {
+        font-size: 16px;
+    }
+
+    .botoes-triagem {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.96);
+        padding-top: 10px;
+        padding-bottom: max(4px, env(safe-area-inset-bottom));
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn-aux {
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+
+    .btn-acao-principal {
+        flex: 1;
+        max-width: 220px;
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 350px) {
+    .nichos-grid {
+        grid-template-columns: 1fr;
+    }
 }

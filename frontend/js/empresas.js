@@ -198,8 +198,15 @@
         el("filtroFavoritos").closest(".emp-check").hidden = !favoritosDisponiveis;
     }
 
+    function normalizarBusca(texto) {
+        return String(texto || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    }
+
     function fornecedoresFiltrados() {
-        const busca = estado.busca.toLowerCase();
+        const busca = normalizarBusca(estado.busca);
 
         const lista = fornecedores.filter(f => {
             if (f.id_fornecedor === empresa.idFornecedor) return false; // não lista a própria empresa
@@ -208,8 +215,9 @@
             if (estado.soFavoritos && !favoritos.has(f.id_fornecedor)) return false;
 
             if (busca) {
-                const texto = [nomeDe(f), f.razao_social, f.nicho, localDe(f), ...(f.categorias || [])]
-                    .join(" ").toLowerCase();
+                const texto = normalizarBusca(
+                    [nomeDe(f), f.razao_social, f.nicho, localDe(f), ...(f.categorias || [])].join(" ")
+                );
                 if (!texto.includes(busca)) return false;
             }
 

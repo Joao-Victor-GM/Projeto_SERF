@@ -408,6 +408,24 @@ async function enviarAtualizacaoStatus(evento) {
     }
 }
 
+function sincronizarViewportModal() {
+    const vv = window.visualViewport;
+    if (!vv || !chat.pedido) return;
+    elementos.modalPedido.style.setProperty("--serf-vv-altura", `${Math.round(vv.height)}px`);
+    elementos.modalPedido.style.setProperty("--serf-vv-topo", `${Math.round(vv.offsetTop)}px`);
+}
+
+function limparViewportModal() {
+    window.visualViewport?.removeEventListener("resize", sincronizarViewportModal);
+    window.visualViewport?.removeEventListener("scroll", sincronizarViewportModal);
+    elementos.modalPedido.style.removeProperty("--serf-vv-altura");
+    elementos.modalPedido.style.removeProperty("--serf-vv-topo");
+}
+
+function dispositivoToqueOuTelaPequena() {
+    return Boolean(window.matchMedia?.("(pointer: coarse), (max-width: 768px)").matches);
+}
+
 export async function abrirDetalhesPedido(pedido) {
 
     // Encerra o canal de um pedido aberto anteriormente.
@@ -434,8 +452,16 @@ export async function abrirDetalhesPedido(pedido) {
     elementos.pedidoNota.hidden = true;
     carregarNota(pedido);
 
+    document.body.classList.add("modal-aberto");
     elementos.modalPedido.style.display = "flex";
-    elementos.chatInput.focus();
+    sincronizarViewportModal();
+    window.visualViewport?.addEventListener("resize", sincronizarViewportModal);
+    window.visualViewport?.addEventListener("scroll", sincronizarViewportModal);
+
+    // Em celulares/iOS não força foco ao abrir (evita bug do teclado no WebKit e permite ler o pedido)
+    if (!dispositivoToqueOuTelaPequena()) {
+        elementos.chatInput.focus();
+    }
 
     // Assina antes de buscar o histórico para não perder mensagens
     // enviadas nesse intervalo; o Map descarta repetidas.
@@ -483,10 +509,12 @@ function fecharCanalChat() {
 
 function fecharDetalhesPedido() {
     fecharCanalChat();
+    limparViewportModal();
 
     chat.pedido = null;
     chat.mensagens = new Map();
 
+    document.body.classList.remove("modal-aberto");
     elementos.modalPedido.style.display = "none";
 }
 
@@ -495,6 +523,14 @@ export function configurarChat() {
     elementos.btnFecharModalPedido.addEventListener("click", fecharDetalhesPedido);
     elementos.formStatusPedido.addEventListener("submit", enviarAtualizacaoStatus);
     elementos.btnCancelarPedido.addEventListener("click", cancelarPedidoComoComprador);
+
+    // Ao tocar no campo no celular/iOS, garante que a barra fique visível acima do teclado virtual
+    elementos.chatInput.addEventListener("focus", () => {
+        setTimeout(() => {
+            sincronizarViewportModal();
+            elementos.formChat.scrollIntoView({ block: "end", behavior: "smooth" });
+        }, 120);
+    });
 
     // Fecha ao clicar fora da janela ou pressionar Esc.
     elementos.modalPedido.addEventListener("click", evento => {

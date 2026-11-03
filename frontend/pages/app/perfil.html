@@ -406,16 +406,33 @@
                                 </div>
 
                                 <div class="campo-form">
-                                    <label for="cadNicho">Segmento / Nicho</label>
+                                    <label for="cadNicho">Segmento / Nicho (CNAE)</label>
                                     <select id="cadNicho">
+                                        <option value="">Selecione um segmento...</option>
                                         <option value="Metalurgia & Usinagem">Metalurgia & Usinagem</option>
                                         <option value="Alimentos & Bebidas">Alimentos & Bebidas</option>
                                         <option value="Construção Civil">Construção Civil</option>
                                         <option value="Automotivo & Peças">Automotivo & Peças</option>
                                         <option value="Embalagens & Logística">Embalagens & Logística</option>
-                                        <option value="Tecnologia & Escritório">Tecnologia & Escritório</option>
+                                        <option value="Tecnologia & Insumos">Tecnologia & Insumos</option>
+                                        <option value="Química & Plásticos">Química & Plásticos</option>
+                                        <option value="Máquinas & Ferramentas">Máquinas & Ferramentas</option>
+                                        <option value="Elétrica & Automação">Elétrica & Automação</option>
+                                        <option value="Têxtil & EPIs">Têxtil & EPIs</option>
+                                        <option value="Saúde & Higiene Profissional">Saúde & Higiene Profissional</option>
+                                        <option value="Papelaria & Gráfica">Papelaria & Gráfica</option>
+                                        <option value="Móveis & Equipamentos">Móveis & Equipamentos</option>
+                                        <option value="Agro & Jardinagem">Agro & Jardinagem</option>
+                                        <option value="Serviços & Manutenção B2B">Serviços & Manutenção B2B</option>
+                                        <option value="Outros">Outros (especificar)</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <!-- Nicho personalizado quando "Outros" é selecionado -->
+                            <div class="campo-form" id="campoOutroNichoPerfil" hidden>
+                                <label for="cadOutroNicho">Especificar segmento / ramo de atividade *</label>
+                                <input type="text" id="cadOutroNicho" maxlength="80" placeholder="Ex.: Refrigeração comercial, Instrumentação laboratorial...">
                             </div>
 
                             <!-- Dados comerciais exibidos no catálogo (somente fornecedores) -->

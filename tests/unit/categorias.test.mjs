@@ -33,3 +33,37 @@ for (const pagina of ["home.html", "catalogo.html"]) {
         assert.deepEqual(opcoesDoSelect(pagina), CATEGORIAS);
     });
 }
+
+test("segmentacao.html e perfil.html oferecem todos os segmentos da lista oficial (CNAE 2.0 + Outros)", () => {
+    const segHtml = fs.readFileSync(path.join(RAIZ, "frontend/pages/public/segmentacao.html"), "utf8");
+    const nichosOnboarding = [...segHtml.matchAll(/data-nicho="([^"]+)"/g)].map(m => m[1]);
+    assert.deepEqual(nichosOnboarding, CATEGORIAS);
+
+    const perfilHtml = fs.readFileSync(path.join(RAIZ, "frontend/pages/app/perfil.html"), "utf8");
+    const selectPerfil = /<select id="cadNicho"[^>]*>([\s\S]*?)<\/select>/.exec(perfilHtml);
+    assert.ok(selectPerfil, "perfil.html: #cadNicho não encontrado");
+    const nichosPerfil = [...selectPerfil[1].matchAll(/<option value="([^"]+)">/g)].map(m => m[1]);
+    assert.deepEqual(nichosPerfil, CATEGORIAS);
+});
+
+test("sugerirNichoPorCnae mapeia divisões CNAE 2.0 para os setores oficiais ou Outros", () => {
+    const sugerir = (...args) => simples(SERFUtils.sugerirNichoPorCnae(...args));
+    assert.deepEqual(sugerir(2599399), { nicho: "Metalurgia & Usinagem", outroTexto: "" });
+    assert.deepEqual(sugerir("22.29-3-01", "Artefatos plásticos"), { nicho: "Química & Plásticos", outroTexto: "" });
+    assert.deepEqual(sugerir("22.22-6-00", "Embalagens de material plástico"), { nicho: "Embalagens & Logística", outroTexto: "" });
+    assert.deepEqual(sugerir("20.62-2-00", "Produtos de limpeza"), { nicho: "Saúde & Higiene Profissional", outroTexto: "" });
+    assert.deepEqual(sugerir("27.10-4-01"), { nicho: "Elétrica & Automação", outroTexto: "" });
+    assert.deepEqual(sugerir("93.13-1-00", "Atividades de condicionamento físico"), {
+        nicho: "Outros",
+        outroTexto: "Atividades de condicionamento físico"
+    });
+    assert.equal(sugerir(""), null);
+});
+
+test("rastro do radar (oportunidades.css) decai atrás do giro horário (transparent no início até brilho em 360deg)", () => {
+    const css = fs.readFileSync(path.join(RAIZ, "frontend/css/oportunidades.css"), "utf8");
+    const bloco = /\.rop-varredura\s*\{([\s\S]*?)\}/.exec(css);
+    assert.ok(bloco, ".rop-varredura não encontrada");
+    assert.match(bloco[1], /transparent\s+0deg/);
+    assert.match(bloco[1], /360deg/);
+});

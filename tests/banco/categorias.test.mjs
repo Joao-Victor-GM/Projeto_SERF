@@ -82,3 +82,19 @@ test("dados antigos são convertidos antes da FK (sem perder produtos)", async (
     const segmentos = await como(db, comprador, "SELECT categoria FROM segmentos_interesse ORDER BY categoria");
     assert.deepEqual(segmentos.map(s => s.categoria), ["Alimentos & Bebidas", "Metalurgia & Usinagem"]);
 });
+
+test("segmentação da empresa aceita novos setores CNAE e nicho personalizado ('Outros'), normalizando espaços", async () => {
+    const db = await criarBanco();
+    const empresa = await criarEmpresa(db, "Ambos", "Indústria ABC");
+
+    await como(db, empresa, "SELECT atualizar_segmentacao_usuario('Ambos', 'Química & Plásticos')");
+    assert.deepEqual(await como(db, empresa, "SELECT nicho FROM usuarios"), [{ nicho: "Química & Plásticos" }]);
+    assert.deepEqual(await como(db, empresa, "SELECT nicho FROM fornecedores"), [{ nicho: "Química & Plásticos" }]);
+
+    await como(db, empresa, "SELECT atualizar_segmentacao_usuario('Ambos', '  Refrigeração   comercial  ')");
+    assert.deepEqual(await como(db, empresa, "SELECT nicho FROM usuarios"), [{ nicho: "Refrigeração comercial" }]);
+    assert.deepEqual(await como(db, empresa, "SELECT nicho FROM fornecedores"), [{ nicho: "Refrigeração comercial" }]);
+
+    assert.match(await erroDe(db, empresa, "SELECT atualizar_segmentacao_usuario('Ambos', '   ')"), /Selecione ou digite o nicho/);
+    assert.match(await erroDe(db, empresa, "SELECT atualizar_segmentacao_usuario('Ambos', $1)", ["x".repeat(101)]), /máximo 100 caracteres/);
+});

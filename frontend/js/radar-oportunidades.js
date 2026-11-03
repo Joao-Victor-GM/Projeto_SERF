@@ -29,6 +29,7 @@
     const el = seletor => raiz.querySelector(seletor);
     const elementos = {
         radar: el(".rop-radar"),
+        varredura: el(".rop-varredura"),
         pontos: el("#ropPontos"),
         conexoes: el("#ropConexoes"),
         cartoes: el("#ropCartoes"),
@@ -45,7 +46,9 @@
         btnTodosSegmentos: el("#ropTodosSegmentos")
     };
 
-    const INTERVALO_PING_MS = 3600;      // um novo "sinal" a cada 3,6 s
+    const PERIODO_GIRO_MS = 4500;        // mesmo período de rop-girar (4,5 s por volta de 360°)
+    const INTERVALO_PING_MS = 3600;      // fallback caso a Web Animations API não esteja disponível
+    const DURACAO_BRILHO_PONTO_MS = 2800;// decaimento de fósforo do ponto após a passagem do feixe
     const DURACAO_CARTAO_MS = 6500;      // tempo de cada notificação flutuante
     const MAX_CARTOES = 2;               // notificações simultâneas sobre o radar
     const MAX_FEED = 5;                  // últimos sinais na lista lateral
@@ -147,6 +150,11 @@
 
     const RAIO_POR_RELEVANCIA = { 4: 0.3, 3: 0.48, 2: 0.66, 1: 0.84 };
 
+    // Ângulo em graus no sentido horário a partir de 12h (mesmo referencial do conic-gradient)
+    function grausDoPonto(indice) {
+        return (((indice * 2.39996 * 180) / Math.PI) % 360 + 360) % 360;
+    }
+
     function posicao(indice, oportunidade) {
         const angulo = indice * 2.39996 - Math.PI / 2;
         const raio = (RAIO_POR_RELEVANCIA[oportunidade.relevancia] || 0.75) + ((indice % 3) - 1) * 0.04;
@@ -170,18 +178,23 @@
         return elemento;
     }
 
+    const timersBrilho = new WeakMap();
+
     function desenharPontos() {
         elementos.pontos.replaceChildren();
         elementos.conexoes.replaceChildren();
 
         estado.oportunidades.slice(0, MAX_PONTOS).forEach((o, indice) => {
             const { x, y } = posicao(indice, o);
+            const tipo = TIPOS[o.tipo];
             const ponto = criar("span", `rop-ponto tipo-${o.tipo.toLowerCase()}`);
 
             ponto.style.left = `${x}%`;
             ponto.style.top = `${y}%`;
             ponto.style.animationDelay = `${(indice % 7) * 0.35}s`;
             ponto.dataset.indice = String(indice);
+            ponto.title = `${tipo.rotulo(o)}: ${tipo.titulo(o)}`;
+            ponto.addEventListener("click", () => agir(o));
 
             elementos.pontos.appendChild(ponto);
         });
@@ -443,6 +456,32 @@
        4. CICLO DE SINAIS
        ===================================================================== */
 
+    // Lê o ângulo atual do ponteiro luminoso (.rop-varredura) pela Web Animations API
+    function anguloAtualDaVarredura() {
+        const animacao = elementos.varredura?.getAnimations?.()?.[0];
+        const tempo = Number(animacao?.currentTime);
+        if (!Number.isFinite(tempo)) return null;
+        return (((tempo % PERIODO_GIRO_MS) + PERIODO_GIRO_MS) % PERIODO_GIRO_MS / PERIODO_GIRO_MS) * 360;
+    }
+
+    // Calcula quantos ms faltam para o feixe cruzar exatamente o próximo ponto
+    function atrasoAteProximoPonto() {
+        const lista = estado.oportunidades;
+        if (lista.length === 0) return INTERVALO_PING_MS;
+
+        const atual = anguloAtualDaVarredura();
+        if (atual === null) return INTERVALO_PING_MS;
+
+        const indicePonto = (estado.proximo % lista.length) % MAX_PONTOS;
+        const alvo = grausDoPonto(indicePonto);
+        let deltaGraus = ((alvo - atual) % 360 + 360) % 360;
+
+        // Mantém espaçamento confortável entre notificações (~1 s a 5,5 s)
+        if (deltaGraus < 80) deltaGraus += 360;
+
+        return Math.round((deltaGraus / 360) * PERIODO_GIRO_MS);
+    }
+
     function pingar() {
         const lista = estado.oportunidades;
         if (lista.length === 0) return null;
@@ -456,9 +495,12 @@
 
         const ponto = elementos.pontos.querySelector(`[data-indice="${indicePonto}"]`);
         if (ponto) {
+            clearTimeout(timersBrilho.get(ponto));
             ponto.classList.remove("detectado");
-            void ponto.offsetWidth; // reinicia a animação
+            void ponto.offsetWidth; // reinicia a animação de onda
             ponto.classList.add("detectado");
+            // Decaimento de fósforo: volta suavemente ao estado normal após a varredura
+            timersBrilho.set(ponto, setTimeout(() => ponto.classList.remove("detectado"), DURACAO_BRILHO_PONTO_MS));
         }
 
         linhaAte(x, y, o.tipo);
@@ -469,6 +511,20 @@
 
     const emMovimento = () => !estado.pausadoPeloUsuario && estado.pausas.size === 0;
 
+    function agendarProximoPing() {
+        clearTimeout(estado.timer);
+        estado.timer = null;
+
+        if (!emMovimento() || estado.oportunidades.length === 0) return;
+
+        estado.timer = setTimeout(() => {
+            estado.timer = null;
+            if (!emMovimento() || estado.oportunidades.length === 0) return;
+            pingar();
+            agendarProximoPing();
+        }, atrasoAteProximoPonto());
+    }
+
     function sincronizarCiclo() {
         const deveRodar = emMovimento() && estado.oportunidades.length > 0;
 
@@ -477,9 +533,9 @@
         elementos.btnPausar.setAttribute("aria-pressed", String(estado.pausadoPeloUsuario));
 
         if (deveRodar && !estado.timer) {
-            estado.timer = setInterval(pingar, INTERVALO_PING_MS);
+            agendarProximoPing();
         } else if (!deveRodar && estado.timer) {
-            clearInterval(estado.timer);
+            clearTimeout(estado.timer);
             estado.timer = null;
         }
     }
@@ -570,6 +626,8 @@
         estado.oportunidades.slice(0, MAX_FEED).reverse().forEach(adicionarAoFeed);
         estado.proximo = Math.min(MAX_FEED, estado.oportunidades.length) % Math.max(1, estado.oportunidades.length);
 
+        clearTimeout(estado.timer);
+        estado.timer = null;
         if (emMovimento()) pingar();
         sincronizarCiclo();
     }

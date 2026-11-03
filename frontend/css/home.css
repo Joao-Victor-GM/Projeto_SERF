@@ -1660,9 +1660,37 @@ a {
    empresa à esquerda (cinza).
    ========================================================== */
 
+body.modal-aberto {
+    overflow: hidden;
+}
+
 .modal-pedido-conteudo {
     max-width: 640px;
     max-height: calc(100vh - 40px);
+    max-height: calc(var(--serf-vv-altura, 100dvh) - 40px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+#modalPedido {
+    top: var(--serf-vv-topo, 0px);
+    bottom: auto;
+    height: var(--serf-vv-altura, 100vh);
+    height: var(--serf-vv-altura, 100dvh);
+}
+
+.modal-pedido-conteudo > .modal-serf-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex-shrink: 0;
+}
+
+.modal-pedido-conteudo > .pedido-resumo,
+.modal-pedido-conteudo > .pedido-gestao,
+.modal-pedido-conteudo > .pedido-pagamento {
+    flex-shrink: 0;
 }
 
 .modal-pedido-subtitulo {
@@ -1816,9 +1844,8 @@ a {
 /* Container principal do chat */
 .chat-container {
     display: flex;
-    flex: 1;
+    flex: 1 0 auto;
     flex-direction: column;
-    min-height: 0;
 }
 
 .chat-cabecalho {
@@ -1857,13 +1884,14 @@ a {
 /* Área de rolagem do histórico */
 .chat-mensagens {
     display: flex;
-    flex: 1;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 8px;
-    height: 320px;
-    min-height: 180px;
+    min-height: 160px;
+    max-height: 280px;
     padding: 16px 24px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: var(--serf-superficie-2);
 }
 
@@ -1935,11 +1963,16 @@ a {
     color: var(--serf-azul-interacao);
 }
 
-/* Barra inferior: campo de texto + Enviar */
+/* Barra inferior: campo de texto + Enviar (fixa ao rodapé do modal, inclusive no iOS) */
 .chat-barra {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    flex-shrink: 0;
     display: flex;
+    align-items: center;
     gap: 10px;
-    padding: 14px 24px;
+    padding: 12px 24px max(12px, env(safe-area-inset-bottom));
     border-top: 1px solid var(--serf-borda);
     background: var(--serf-superficie);
 }
@@ -1950,9 +1983,15 @@ a {
     padding: 10px 14px;
     border: 1px solid var(--serf-borda-forte);
     border-radius: 20px;
+    background: var(--serf-superficie);
     color: var(--serf-texto-principal);
-    font-size: 13px;
+    font-size: 14px;
     outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: manipulation;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1963,7 +2002,10 @@ a {
 
 .chat-barra .btn-primary {
     border-radius: 20px;
+    min-height: 40px;
     padding: 0 20px;
+    flex-shrink: 0;
+    touch-action: manipulation;
 }
 
 .chat-barra .btn-primary:disabled {
@@ -1971,17 +2013,69 @@ a {
     cursor: not-allowed;
 }
 
+@media (max-width: 768px) {
+    /* 16px nos campos interativos impede o auto-zoom do Safari/Chrome no iOS,
+       que deslocava modais fixos e bloqueava a digitação no chat */
+    .chat-barra input,
+    .campo-form input,
+    .campo-form select,
+    .campo-form textarea,
+    .pedido-gestao select,
+    .filters-bar select,
+    .global-search input {
+        font-size: 16px;
+    }
+
+    /* Evita bug do WebKit iOS com caret/toque em input dentro de ancestral com transform */
+    .modal-serf {
+        animation: none;
+    }
+}
+
 @media (max-width: 600px) {
+    #modalPedido {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-pedido-conteudo {
+        max-width: 100%;
+        max-height: calc(100vh - 8px);
+        max-height: calc(var(--serf-vv-altura, 100dvh) - max(8px, env(safe-area-inset-top)));
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-pedido-conteudo > .modal-serf-header {
+        padding: 14px 16px;
+    }
+
     .pedido-resumo {
         grid-template-columns: 1fr 1fr;
-        padding: 14px 18px;
+        gap: 10px 14px;
+        padding: 12px 16px;
+    }
+
+    .pedido-gestao {
+        padding: 12px 16px;
     }
 
     .chat-cabecalho,
     .chat-mensagens,
     .chat-barra {
-        padding-left: 18px;
-        padding-right: 18px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .chat-mensagens {
+        min-height: 130px;
+        max-height: 220px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .chat-barra .btn-primary {
+        min-height: 44px;
+        padding: 0 18px;
     }
 
     .chat-balao {

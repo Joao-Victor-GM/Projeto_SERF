@@ -111,6 +111,15 @@ if (cnpjCadastro) {
                 // Insere a Razão Social no HTML
                 campoRazao.value = dadosEmpresa.razao_social;
 
+                // Guarda sugestão de nicho pelo CNAE principal da Receita para a etapa de segmentação
+                const sugestaoCnae = window.SERFUtils.sugerirNichoPorCnae?.(
+                    dadosEmpresa.cnae_fiscal,
+                    dadosEmpresa.cnae_fiscal_descricao
+                );
+                if (sugestaoCnae) {
+                    try { sessionStorage.setItem('serf-sugestao-cnae', JSON.stringify(sugestaoCnae)); } catch { /* sem armazenamento */ }
+                }
+
                 // Alerta elegante de sucesso na busca do CNPJ
                 Swal.fire({
                     ...swalConfig,
@@ -124,14 +133,19 @@ if (cnpjCadastro) {
             } catch (error) {
                 Swal.close();
                 tremerTela();
+                const indisponivel = /conexão|internet|indisponível/i.test(window.SERFUtils.mensagemDeErro(error));
                 Swal.fire({
                     ...swalConfig,
-                    title: 'Erro na Validação',
-                    text: window.SERFUtils.mensagemDeErro(error),
-                    icon: 'error',
-                    confirmButtonColor: '#d33'
+                    title: indisponivel ? 'Consulta automática indisponível' : 'Erro na Validação',
+                    text: indisponivel
+                        ? 'Não foi possível consultar a Receita agora. Você pode digitar a Razão Social manualmente para continuar.'
+                        : window.SERFUtils.mensagemDeErro(error),
+                    icon: indisponivel ? 'info' : 'error',
+                    confirmButtonColor: indisponivel ? '#1268b3' : '#d33'
                 });
-                cnpjCadastro.value = ''; 
+                if (!indisponivel) {
+                    cnpjCadastro.value = '';
+                }
                 campoRazao.value = '';
                 campoRazao.placeholder = 'Razão Social';
             }

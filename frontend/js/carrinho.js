@@ -22,6 +22,7 @@
     let chave = null;        // "serf-carrinho-<auth uid>"
     let itens = [];          // [{ id_produto, id_fornecedor, nome, fornecedor, preco, minimo, estoque, quantidade }]
     let podeComprar = false; // só empresas com papel de comprador
+    let observacaoRascunho = ""; // mantém a observação ao ajustar quantidades ou remover itens
 
     /* ---------------- ESTADO ---------------- */
 
@@ -173,11 +174,14 @@
                     </div>`).join("")}
             </section>`).join("");
 
+        const campoObsAnterior = rodape.querySelector("#carrinhoObservacao");
+        if (campoObsAnterior) observacaoRascunho = campoObsAnterior.value;
+
         const fornecedores = grupos.size;
         rodape.innerHTML = `
             <label class="carrinho-observacao">
                 <span>Observação para os fornecedores (opcional)</span>
-                <textarea id="carrinhoObservacao" maxlength="500" rows="2" placeholder="Ex.: entregar pela manhã"></textarea>
+                <textarea id="carrinhoObservacao" maxlength="500" rows="2" placeholder="Ex.: entregar pela manhã">${escaparHTML(observacaoRascunho)}</textarea>
             </label>
             <div class="carrinho-total">
                 <span>${quantidade} produto${quantidade === 1 ? "" : "s"} · ${fornecedores} fornecedor${fornecedores === 1 ? "" : "es"}</span>
@@ -188,6 +192,9 @@
             </button>
             <small class="carrinho-nota">Cada fornecedor confirma o próprio pedido; o pagamento é liberado após a confirmação.</small>`;
 
+        rodape.querySelector("#carrinhoObservacao").addEventListener("input", e => {
+            observacaoRascunho = e.target.value;
+        });
         rodape.querySelector("#carrinhoEnviar").addEventListener("click", enviar);
     }
 
@@ -219,6 +226,7 @@
 
             const fornecedores = new Set(itens.map(item => item.fornecedor)).size;
             itens = [];
+            observacaoRascunho = "";
             salvar();
             fechar();
 

@@ -226,7 +226,7 @@ test.describe("Radar: filtro por segmento", () => {
         await expect(botao).toHaveAttribute("aria-expanded", "true");
 
         const painel = radar(page).locator("#ropPainelSegmentos");
-        await expect(painel.getByRole("checkbox")).toHaveCount(7);   // a lista oficial
+        await expect(painel.getByRole("checkbox")).toHaveCount(16);  // a lista oficial (CNAE 2.0 + Outros)
         await painel.getByLabel(METAIS).check();
         await painel.getByRole("button", { name: "Aplicar" }).click();
 

@@ -12,6 +12,7 @@
 (function () {
     // obterSupabase() vem de supabase-client.js; utilitários de utils.js.
     const {
+        CATEGORIAS_PRODUTO,
         swalConfig,
         escaparHTML,
         formatarMoeda,
@@ -111,12 +112,17 @@
         );
 
         // Formulário
+        const nichoAtual = (c?.nicho || f?.nicho || "").trim();
+        const ehNichoPadrao = Boolean(nichoAtual) && nichoAtual !== "Outros" && CATEGORIAS_PRODUTO.includes(nichoAtual);
+        const usarOutros = Boolean(nichoAtual) && !ehNichoPadrao;
+
         const campos = {
             cadRazaoSocial: razaoSocial,
             cadCnpj: formatarCNPJ(cnpj),
             cadEmail: empresa.email || c?.email || f?.email || "",
             cadTelefone: c?.telefone || f?.telefone || "",
-            cadNicho: c?.nicho || f?.nicho || "",
+            cadNicho: usarOutros ? "Outros" : nichoAtual,
+            cadOutroNicho: usarOutros && nichoAtual !== "Outros" ? nichoAtual : "",
             cadNomeFantasia: f?.nome_fantasia || "",
             cadCidade: f?.cidade || "",
             cadEstado: f?.estado || ""
@@ -126,6 +132,9 @@
             const campo = document.getElementById(id);
             if (campo) campo.value = valor;
         });
+
+        const blocoOutroNicho = document.getElementById("campoOutroNichoPerfil");
+        if (blocoOutroNicho) blocoOutroNicho.hidden = !usarOutros;
 
         const camposFornecedor = document.getElementById("camposFornecedor");
         if (camposFornecedor) camposFornecedor.hidden = !f;
@@ -862,12 +871,38 @@
         if (!form) return;
         configurarBuscaCep();
 
+        const selectNicho = document.getElementById("cadNicho");
+        const blocoOutro = document.getElementById("campoOutroNichoPerfil");
+        const inputOutro = document.getElementById("cadOutroNicho");
+
+        if (selectNicho && blocoOutro) {
+            selectNicho.addEventListener("change", () => {
+                const ehOutros = selectNicho.value === "Outros";
+                blocoOutro.hidden = !ehOutros;
+                if (ehOutros) inputOutro?.focus();
+            });
+        }
+
         form.addEventListener("submit", async evento => {
             evento.preventDefault();
 
             const client = obterSupabase();
             const telefone = document.getElementById("cadTelefone").value.trim() || null;
-            const nicho = document.getElementById("cadNicho").value || null;
+            const nichoSelecionado = document.getElementById("cadNicho").value;
+            const nichoPersonalizado = (inputOutro?.value || "").trim().replace(/\s+/g, " ");
+
+            if (nichoSelecionado === "Outros" && nichoPersonalizado.length < 2) {
+                Swal.fire({
+                    ...swalConfig,
+                    title: "Especifique o segmento",
+                    text: "Digite o ramo de atividade da sua empresa (ao menos 2 caracteres) ou selecione um segmento da lista.",
+                    icon: "warning"
+                });
+                inputOutro?.focus();
+                return;
+            }
+
+            const nicho = nichoSelecionado === "Outros" ? nichoPersonalizado : (nichoSelecionado || null);
             const nomeFantasia = document.getElementById("cadNomeFantasia").value.trim() || null;
             const cidade = document.getElementById("cadCidade").value.trim() || null;
             const estado = document.getElementById("cadEstado").value.trim().toUpperCase() || null;

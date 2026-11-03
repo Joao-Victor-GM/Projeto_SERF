@@ -56,33 +56,117 @@
     <!-- 🛠️ ETAPA 2: ESCOLHA DO NICHO DE ATUAÇÃO -->
     <div class="etapa" id="etapa2">
         <h2>Qual o principal nicho da sua empresa?</h2>
-        <p class="descricao">Selecione o setor de mercado para que possamos filtrar os melhores chamados e produtos de Santo André para você.</p>
+        <p class="descricao">Setores organizados com base na <strong>CNAE 2.0 (IBGE / Receita Federal)</strong>. Se o seu ramo for específico, escolha <strong>Outros</strong> e escreva abaixo.</p>
 
-        <div class="nichos-grid" role="radiogroup" aria-label="Nicho da empresa">
+        <div class="busca-nicho-wrap">
+            <label for="buscaNicho" class="sr-only">Filtrar setores de atuação</label>
+            <input
+                type="search"
+                id="buscaNicho"
+                class="busca-nicho-input"
+                placeholder="Filtrar setor (ex.: plástico, elétrica, gráfica, alimentos)..."
+                maxlength="60"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="nichos-grid" id="gradeNichos" role="radiogroup" aria-label="Nicho da empresa">
             <div class="card-nicho" data-nicho="Metalurgia & Usinagem" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">⚙️</span>
+                <span class="emoji" aria-hidden="true">⚙️</span>
                 <span class="nome-nicho">Metalurgia & Usinagem</span>
+                <small class="cnae-ref">CNAE C 24–25</small>
             </div>
             <div class="card-nicho" data-nicho="Alimentos & Bebidas" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">🍞</span>
+                <span class="emoji" aria-hidden="true">🍞</span>
                 <span class="nome-nicho">Alimentos & Bebidas</span>
+                <small class="cnae-ref">CNAE C 10–11 · G 46.3</small>
             </div>
             <div class="card-nicho" data-nicho="Construção Civil" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">🧱</span>
+                <span class="emoji" aria-hidden="true">🧱</span>
                 <span class="nome-nicho">Construção Civil</span>
+                <small class="cnae-ref">CNAE F 41–43 · G 46.7</small>
             </div>
             <div class="card-nicho" data-nicho="Automotivo & Peças" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">🚗</span>
+                <span class="emoji" aria-hidden="true">🚗</span>
                 <span class="nome-nicho">Automotivo & Peças</span>
+                <small class="cnae-ref">CNAE C 29 · G 45</small>
             </div>
             <div class="card-nicho" data-nicho="Embalagens & Logística" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">📦</span>
+                <span class="emoji" aria-hidden="true">📦</span>
                 <span class="nome-nicho">Embalagens & Logística</span>
+                <small class="cnae-ref">CNAE C 17 · H 49–52</small>
             </div>
             <div class="card-nicho" data-nicho="Tecnologia & Insumos" role="radio" aria-checked="false" tabindex="0">
-                <span class="emoji">💻</span>
+                <span class="emoji" aria-hidden="true">💻</span>
                 <span class="nome-nicho">Tecnologia & Insumos</span>
+                <small class="cnae-ref">CNAE C 26 · J 62–63</small>
             </div>
+            <div class="card-nicho" data-nicho="Química & Plásticos" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🧪</span>
+                <span class="nome-nicho">Química & Plásticos</span>
+                <small class="cnae-ref">CNAE C 20 · 22</small>
+            </div>
+            <div class="card-nicho" data-nicho="Máquinas & Ferramentas" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🔧</span>
+                <span class="nome-nicho">Máquinas & Ferramentas</span>
+                <small class="cnae-ref">CNAE C 28 · 33</small>
+            </div>
+            <div class="card-nicho" data-nicho="Elétrica & Automação" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">⚡</span>
+                <span class="nome-nicho">Elétrica & Automação</span>
+                <small class="cnae-ref">CNAE C 27 · D 35</small>
+            </div>
+            <div class="card-nicho" data-nicho="Têxtil & EPIs" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🦺</span>
+                <span class="nome-nicho">Têxtil & EPIs</span>
+                <small class="cnae-ref">CNAE C 13–15 · 32.9</small>
+            </div>
+            <div class="card-nicho" data-nicho="Saúde & Higiene Profissional" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🧼</span>
+                <span class="nome-nicho">Saúde & Higiene Profissional</span>
+                <small class="cnae-ref">CNAE C 20.6–21 · Q 86</small>
+            </div>
+            <div class="card-nicho" data-nicho="Papelaria & Gráfica" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🖨️</span>
+                <span class="nome-nicho">Papelaria & Gráfica</span>
+                <small class="cnae-ref">CNAE C 17–18 · G 46.47</small>
+            </div>
+            <div class="card-nicho" data-nicho="Móveis & Equipamentos" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🪑</span>
+                <span class="nome-nicho">Móveis & Equipamentos</span>
+                <small class="cnae-ref">CNAE C 31 · G 46.65</small>
+            </div>
+            <div class="card-nicho" data-nicho="Agro & Jardinagem" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🌱</span>
+                <span class="nome-nicho">Agro & Jardinagem</span>
+                <small class="cnae-ref">CNAE A 01 · G 46.2</small>
+            </div>
+            <div class="card-nicho" data-nicho="Serviços & Manutenção B2B" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">🛠️</span>
+                <span class="nome-nicho">Serviços & Manutenção B2B</span>
+                <small class="cnae-ref">CNAE M 69–74 · N 77–82</small>
+            </div>
+            <div class="card-nicho card-nicho-outros" data-nicho="Outros" role="radio" aria-checked="false" tabindex="0">
+                <span class="emoji" aria-hidden="true">✏️</span>
+                <span class="nome-nicho">Outros (especificar)</span>
+                <small class="cnae-ref">Escreva seu ramo</small>
+            </div>
+        </div>
+
+        <p class="nicho-sem-resultado" id="nichoSemResultado" hidden>
+            Nenhum setor encontrado com esse termo. Você pode selecionar <strong>Outros (especificar)</strong> e digitar seu ramo abaixo.
+        </p>
+
+        <div class="campo-outro-nicho" id="campoOutroNicho" hidden>
+            <label for="outroNichoInput">Qual é o ramo ou nicho específico da sua empresa? *</label>
+            <input
+                type="text"
+                id="outroNichoInput"
+                maxlength="80"
+                placeholder="Ex.: Refrigeração comercial, Instrumentação laboratorial, Brinquedos..."
+                autocomplete="off"
+            >
+            <small class="ajuda-outro-nicho">Digite ao menos 2 caracteres (máx. 80). Esse nome aparecerá no seu perfil e nas buscas da rede.</small>
         </div>
     </div>
 

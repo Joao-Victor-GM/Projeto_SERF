@@ -25,9 +25,13 @@
     // Esconde o conteúdo até a sessão ser confirmada (evita "piscar" a página).
     document.documentElement.style.visibility = "hidden";
 
+    // Dados de exibição da empresa (CNPJ, e-mail) e item temporário: não ficam
+    // no navegador depois de sair — computador compartilhado é comum em empresa.
     function limparDadosLocais() {
-        localStorage.removeItem("usuario_logado");
-        localStorage.removeItem("produto_selecionado");
+        try {
+            localStorage.removeItem("usuario_logado");
+            localStorage.removeItem("produto_selecionado");
+        } catch { /* sem armazenamento */ }
     }
 
     let motivoSaida = null; // "inatividade" → o login explica por que saiu
@@ -291,12 +295,6 @@
         }
 
         return window.confirm("Deseja sair da sua conta?");
-    }
-
-    // Dados de exibição da empresa (CNPJ, e-mail): não ficam no navegador
-    // depois de sair — computador compartilhado é comum em empresa.
-    function limparDadosLocais() {
-        try { localStorage.removeItem("usuario_logado"); } catch { /* sem armazenamento */ }
     }
 
     async function sair() {
