@@ -1,2 +1,3 @@
 # Raiz do site → página inicial (Cloudflare Pages / Netlify)
-/   /pages/public/   302
+/ /pages/public/ 301
+/pages/public/landing.html /pages/public/ 301
