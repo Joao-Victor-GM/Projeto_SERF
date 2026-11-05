@@ -28,11 +28,14 @@
 (function () {
     const { swalConfig, escaparHTML, formatarMoeda } = window.SERFUtils;
 
+    const svg = caminhos =>
+        `<svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${caminhos}</svg>`;
+
     const METODOS = {
-        PIX: { rotulo: "Pix", icone: "⚡" },
-        CARTAO: { rotulo: "Cartão de crédito", icone: "💳" },
-        BOLETO: { rotulo: "Boleto", icone: "🧾" },
-        PRAZO: { rotulo: "Faturamento a prazo", icone: "📅" }
+        PIX: { rotulo: "Pix", icone: svg('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>') },
+        CARTAO: { rotulo: "Cartão de crédito", icone: svg('<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>') },
+        BOLETO: { rotulo: "Boleto", icone: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>') },
+        PRAZO: { rotulo: "Faturamento a prazo", icone: svg('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>') }
     };
 
     const CARTOES_TESTE = {
@@ -291,7 +294,7 @@
 
             return comFeedback(botao, async () => {
                 const atualizado = await confirmar(pedidoId);
-                contexto.aoAtualizar(atualizado, `💳 Fatura paga: ${formatarMoeda(atualizado.valor)}.`);
+                contexto.aoAtualizar(atualizado, `Fatura paga: ${formatarMoeda(atualizado.valor)}.`);
                 sucesso("Fatura paga!", atualizado);
             });
         }
@@ -299,7 +302,7 @@
         if (acao === "aprovar-prazo") {
             return comFeedback(botao, async () => {
                 const atualizado = await responderPrazo(pedidoId, true);
-                contexto.aoAtualizar(atualizado, `✅ Pagamento a prazo aprovado. Vencimento: ${dataCurta(atualizado.vencimento)}.`);
+                contexto.aoAtualizar(atualizado, `Pagamento a prazo aprovado. Vencimento: ${dataCurta(atualizado.vencimento)}.`);
             });
         }
 
@@ -319,7 +322,7 @@
 
             return comFeedback(botao, async () => {
                 const atualizado = await responderPrazo(pedidoId, false, motivo);
-                contexto.aoAtualizar(atualizado, `❌ Pagamento a prazo recusado${atualizado.motivo_recusa ? `: ${atualizado.motivo_recusa}` : ""}.`);
+                contexto.aoAtualizar(atualizado, `Pagamento a prazo recusado${atualizado.motivo_recusa ? `: ${atualizado.motivo_recusa}` : ""}.`);
             });
         }
     }
@@ -511,7 +514,7 @@
             const pagamento = await confirmar(checkout.contexto.pedidoId, cartao);
             const rotulo = METODOS[pagamento.metodo].rotulo;
 
-            concluir(pagamento, `💳 Pagamento confirmado via ${rotulo}: ${formatarMoeda(pagamento.valor)}.`);
+            concluir(pagamento, `Pagamento confirmado via ${rotulo}: ${formatarMoeda(pagamento.valor)}.`);
             fecharCheckout();
             sucesso("Pagamento aprovado!", pagamento);
         } catch (erro) {
@@ -569,7 +572,7 @@
                 const atual = await buscar(idPedido);
                 if (atual?.status !== "PAGO" || !checkout) return;
                 clearInterval(checkout.espera);
-                concluir(atual, `💳 Pix confirmado pelo banco: ${formatarMoeda(atual.valor)}.`);
+                concluir(atual, `Pix confirmado pelo banco: ${formatarMoeda(atual.valor)}.`);
                 fecharCheckout();
                 sucesso("Pagamento confirmado!", atual);
             } catch (erro) {
@@ -844,7 +847,7 @@
             const pagamento = await gerar(evento.currentTarget, "PRAZO", { prazoDias });
             if (!pagamento) return;
 
-            concluir(pagamento, `📅 Solicitei pagamento a prazo (${prazoDias} dias) de ${formatarMoeda(pagamento.valor)}.`);
+            concluir(pagamento, `Solicitei pagamento a prazo (${prazoDias} dias) de ${formatarMoeda(pagamento.valor)}.`);
             fecharCheckout();
             Swal.fire({
                 ...swalConfig,

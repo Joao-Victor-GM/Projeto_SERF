@@ -126,6 +126,24 @@ export function configurarFiltros() {
         atualizarDashboard();
     });
 
+    // Atalho global "/" (padrão SaaS: Linear/Stripe) para focar a busca rápida
+    document.addEventListener("keydown", evento => {
+        if (evento.key !== "/" || evento.ctrlKey || evento.metaKey || evento.altKey) return;
+
+        const alvo = evento.target;
+        const digitando = alvo && (
+            alvo.tagName === "INPUT"
+            || alvo.tagName === "TEXTAREA"
+            || alvo.tagName === "SELECT"
+            || alvo.isContentEditable
+        );
+        if (digitando || document.body.classList.contains("modal-aberto")) return;
+
+        evento.preventDefault();
+        elementos.buscaGlobal?.focus();
+        elementos.buscaGlobal?.select?.();
+    });
+
     configurarSugestoesFornecedores();
 }
 
@@ -388,17 +406,38 @@ export function configurarAcoes() {
             : "catalogo.html?modo=vender&novo=1";
     });
 
-    // Ações da tabela por delegação de eventos.
+    // Ações da tabela por delegação de eventos (botão Visualizar ou clique na linha).
     elementos.pedidosTableBody.addEventListener("click", evento => {
 
-        const botao = evento.target.closest("[data-pedido]");
+        const alvo = evento.target.closest("[data-pedido], [data-pedido-linha]");
 
-        if (!botao) return;
+        if (!alvo) return;
+        if (!alvo.hasAttribute("data-pedido") && window.getSelection?.()?.toString()) return;
 
-        const pedido = obterPedido(Number(botao.dataset.pedido));
+        const idPedido = Number(alvo.dataset.pedido || alvo.dataset.pedidoLinha);
+        const pedido = obterPedido(idPedido);
 
         if (pedido) {
             abrirDetalhesPedido(pedido);
+        }
+    });
+
+    // Clique (ou Enter/Espaço) num alerta do Radar de Pedidos abre os detalhes do pedido.
+    elementos.radarLista?.addEventListener("click", evento => {
+        if (evento.target.closest("a")) return;
+        const item = evento.target.closest("[data-pedido]");
+        if (!item) return;
+
+        const pedido = obterPedido(Number(item.dataset.pedido));
+        if (pedido) abrirDetalhesPedido(pedido);
+    });
+
+    elementos.radarLista?.addEventListener("keydown", evento => {
+        const item = evento.target.closest("[data-pedido]");
+        if (item && (evento.key === "Enter" || evento.key === " ")) {
+            evento.preventDefault();
+            const pedido = obterPedido(Number(item.dataset.pedido));
+            if (pedido) abrirDetalhesPedido(pedido);
         }
     });
 

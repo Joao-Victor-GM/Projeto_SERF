@@ -12,6 +12,9 @@
 
     <!-- Identidade visual e estilos da Home -->
     <link rel="icon" href="../../assets/icons/fivecon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/home.css">
     <link rel="stylesheet" href="../../css/pagamentos.css">
@@ -108,7 +111,7 @@
                     aria-controls="sidebar"
                     aria-expanded="false"
                 >
-                    ☰
+                    <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
                 </button>
 
                 <!-- Campo de busca geral -->
@@ -117,12 +120,18 @@
                         Busca geral
                     </label>
 
+                    <span class="global-search-icon" aria-hidden="true">
+                        <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+
                     <input
                         type="search"
                         id="buscaGlobal"
                         placeholder="Buscar pedidos, produtos, empresas..."
                         autocomplete="off"
                     >
+
+                    <kbd class="global-search-kbd" aria-hidden="true" title="Pressione / para buscar">/</kbd>
 
                     <!-- Sugestões de empresas (auto-complete, eventos.js) -->
                     <ul id="resultadoBusca" class="busca-sugestoes" hidden></ul>
@@ -172,8 +181,8 @@
                     aria-label="Ativar modo escuro"
                     title="Modo escuro"
                 >
-                    <span class="tema-icone-escuro" aria-hidden="true">☾</span>
-                    <span class="tema-icone-claro" aria-hidden="true">☀</span>
+                    <span class="tema-icone-escuro" aria-hidden="true"><svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+                    <span class="tema-icone-claro" aria-hidden="true"><svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
                 </button>
 
                 <!-- Acesso ao perfil do usuário -->
@@ -217,9 +226,8 @@
 
                     <h1>Visão geral</h1>
 
-                    <p>
-                        Acompanhe as operações e oportunidades
-                        da sua empresa.
+                    <p id="visaoGeralDescricao">
+                        Acompanhe compras, cotações, entregas e oportunidades junto aos seus fornecedores.
                     </p>
                 </div>
 
@@ -385,8 +393,14 @@
                     class="metric-item"
                     data-metric="abertos"
                 >
-                    <span>Pedidos abertos</span>
+                    <span class="metric-head">
+                        <span class="metric-label">Pedidos abertos</span>
+                        <span class="metric-icon azul" aria-hidden="true">
+                            <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+                        </span>
+                    </span>
                     <strong id="kpiAbertos">—</strong>
+                    <small class="metric-hint">Filtrar na tabela</small>
                 </button>
 
                 <!-- Pedidos ou conversas aguardando resposta -->
@@ -395,8 +409,14 @@
                     class="metric-item"
                     data-metric="respostas"
                 >
-                    <span>Aguardando resposta</span>
+                    <span class="metric-head">
+                        <span class="metric-label">Aguardando resposta</span>
+                        <span class="metric-icon laranja" aria-hidden="true">
+                            <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                    </span>
                     <strong id="kpiRespostas">—</strong>
+                    <small class="metric-hint">Filtrar pendências</small>
                 </button>
 
                 <!-- Mensagens recebidas ainda não visualizadas -->
@@ -405,8 +425,14 @@
                     class="metric-item"
                     data-metric="mensagens"
                 >
-                    <span>Mensagens não lidas</span>
+                    <span class="metric-head">
+                        <span class="metric-label">Mensagens não lidas</span>
+                        <span class="metric-icon neutro" aria-hidden="true">
+                            <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </span>
+                    </span>
                     <strong id="kpiMensagens">—</strong>
+                    <small class="metric-hint">Ir às conversas</small>
                 </button>
 
                 <!-- Pedidos concluídos no período selecionado -->
@@ -415,8 +441,14 @@
                     class="metric-item"
                     data-metric="concluidos"
                 >
-                    <span>Pedidos concluídos</span>
+                    <span class="metric-head">
+                        <span class="metric-label">Pedidos concluídos</span>
+                        <span class="metric-icon verde" aria-hidden="true">
+                            <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span>
+                    </span>
                     <strong id="kpiConcluidos">—</strong>
+                    <small class="metric-hint">Filtrar concluídos</small>
                 </button>
 
             </section>

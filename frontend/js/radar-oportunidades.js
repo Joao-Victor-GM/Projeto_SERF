@@ -58,39 +58,42 @@
     const preco = valor => formatarMoeda(valor);
     const local = o => [o.cidade, o.estado].filter(Boolean).join("/");
 
+    const svg = caminhos =>
+        `<svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${caminhos}</svg>`;
+
     // tipo → apresentação e ação
     const TIPOS = {
         NOVA_DEMANDA: {
             rotulo: () => "Nova demanda",
-            icone: "⚡",
+            icone: svg('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'),
             titulo: o => `${o.parceiro_nome || "Um comprador"} quer ${o.quantidade} un. de ${o.produto_nome}`,
             meta: o => `${preco(o.valor)} · ${tempoRelativo(o.referencia)}`,
             acao: "Responder"
         },
         RECOMPRA: {
             rotulo: () => "Hora de repor",
-            icone: "↻",
+            icone: svg('<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/>'),
             titulo: o => `${o.produto_nome} disponível`,
             meta: o => `${o.fornecedor_nome} · ${preco(o.preco)}/un. · última compra ${tempoRelativo(o.referencia)}`,
             acao: "Recomprar"
         },
         NOVO_PRODUTO: {
             rotulo: o => (o.detalhe === "seu nicho" ? "Novo no seu nicho" : "Novo produto"),
-            icone: "✦",
+            icone: svg('<path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>'),
             titulo: o => o.produto_nome,
             meta: o => `${o.fornecedor_nome}${local(o) ? ` (${local(o)})` : ""} · ${preco(o.preco)}/un. · mín. ${o.quantidade_minima} un.`,
             acao: "Negociar"
         },
         MENOR_PRECO: {
             rotulo: () => "Menor preço",
-            icone: "↓",
+            icone: svg('<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>'),
             titulo: o => `${o.produto_nome} por ${preco(o.preco)}/un.`,
             meta: o => `Melhor entre ${o.detalhe} ofertas de ${o.categoria} · ${o.fornecedor_nome}`,
             acao: "Negociar"
         },
         FORNECEDOR_NICHO: {
             rotulo: () => "Fornecedor do seu nicho",
-            icone: "◈",
+            icone: svg('<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>'),
             titulo: o => o.fornecedor_nome,
             meta: o => `${o.detalhe} produto${o.detalhe === "1" ? "" : "s"} ativo${o.detalhe === "1" ? "" : "s"}${local(o) ? ` · ${local(o)}` : ""}${o.preco ? ` · a partir de ${preco(o.preco)}` : ""}`,
             acao: "Conhecer"
@@ -206,8 +209,9 @@
         botao.type = "button";
         botao.dataset.tipo = o.tipo;
 
-        const icone = criar("span", "rop-icone", tipo.icone);
+        const icone = criar("span", "rop-icone");
         icone.setAttribute("aria-hidden", "true");
+        icone.innerHTML = tipo.icone;
 
         const texto = criar("span", "rop-texto");
         texto.append(

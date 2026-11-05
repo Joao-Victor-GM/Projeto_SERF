@@ -82,7 +82,7 @@
                     const feito = progresso[passo.chave] === true;
                     return `
                         <li class="pp-passo${feito ? " feito" : ""}${passo === proximo ? " proximo" : ""}">
-                            <span class="pp-marca" aria-hidden="true">${feito ? "✓" : ""}</span>
+                            <span class="pp-marca" aria-hidden="true">${feito ? '<svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' : ""}</span>
                             <div class="pp-texto">
                                 <strong>${passo.titulo}</strong>
                                 <span>${passo.descricao}</span>

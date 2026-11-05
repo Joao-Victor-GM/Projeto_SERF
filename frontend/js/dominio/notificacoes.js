@@ -81,7 +81,7 @@
         COTACAO_NOVA: d => {
             const itens = d.itens || [];
             return {
-                icone: "⚡",
+                icone: "↗",
                 titulo: itens.length > 1
                     ? `${itens.length} cotações novas em ${d.categoria}`
                     : `Cotação nova em ${d.categoria}`,

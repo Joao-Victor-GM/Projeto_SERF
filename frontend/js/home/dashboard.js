@@ -17,6 +17,7 @@ import {
     escaparHTML,
     estado,
     formatarData,
+    formatarMoeda,
     obterPedido,
     parceiroDoPedido,
     pedidosCache,
@@ -25,6 +26,30 @@ import {
 } from "./estado.js";
 import { chat } from "./chat.js";
 import { abrirDetalhesPedido } from "./pedido-modal.js";
+
+function iniciaisEmpresa(nome) {
+    const ignorar = new Set(["de", "da", "do", "das", "dos", "e", "&", "ltda", "sa", "s/a", "me", "epp"]);
+    const partes = String(nome || "")
+        .trim()
+        .split(/\s+/)
+        .filter(p => p && !ignorar.has(p.toLowerCase()));
+
+    if (partes.length === 0) return "B2";
+    if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+    return (partes[0][0] + partes[1][0]).toUpperCase();
+}
+
+function atualizarEstadoFiltros() {
+    if (!elementos.btnLimparFiltros) return;
+
+    const ativo = estado.periodo !== 30
+        || estado.status !== "todos"
+        || estado.empresa !== "todas"
+        || Boolean(estado.busca)
+        || Boolean(estado.indicador);
+
+    elementos.btnLimparFiltros.classList.toggle("tem-filtro", ativo);
+}
 
 
 /* ==========================================================
@@ -54,6 +79,13 @@ export function alterarModo(novoModo) {
     elementos.btnAcaoPrincipal.textContent = novoModo === "comprar"
         ? "+ Novo pedido"
         : "+ Cadastrar produto";
+
+    const descricao = document.getElementById("visaoGeralDescricao");
+    if (descricao) {
+        descricao.textContent = novoModo === "comprar"
+            ? "Acompanhe compras, cotações, entregas e oportunidades junto aos seus fornecedores."
+            : "Acompanhe pedidos recebidos, faturamento, catálogo e demandas de compradores.";
+    }
 
     // Remove o destaque de indicadores anteriores.
     document.querySelectorAll(".metric-item").forEach(item => {
@@ -170,17 +202,23 @@ function renderizarPedidos(pedidos) {
         const parceiro = parceiroDoPedido(pedido);
 
         return `
-            <tr>
+            <tr data-pedido-linha="${pedido.id}">
                 <td data-rotulo="Pedido">
-                    <strong>#${pedido.id}</strong>
+                    <strong class="pedido-codigo">#${pedido.id}</strong>
                 </td>
 
                 <td data-rotulo="Empresa">
-                    ${escaparHTML(parceiro.nome)}
+                    <div class="pedido-parceiro">
+                        <span class="parceiro-avatar" aria-hidden="true">${escaparHTML(iniciaisEmpresa(parceiro.nome))}</span>
+                        <span class="parceiro-nome">${escaparHTML(parceiro.nome)}</span>
+                    </div>
                 </td>
 
                 <td data-rotulo="Produto">
-                    ${escaparHTML(pedido.produto)}
+                    <div class="pedido-produto-celula">
+                        <span class="pedido-produto-nome">${escaparHTML(pedido.produto)}</span>
+                        <small class="pedido-produto-meta">${pedido.quantidade} un. · ${escaparHTML(formatarMoeda(pedido.valorTotal))}</small>
+                    </div>
                 </td>
 
                 <td data-rotulo="Status">
@@ -190,7 +228,7 @@ function renderizarPedidos(pedidos) {
                 </td>
 
                 <td data-rotulo="Atualização">
-                    ${formatarData(pedido.atualizadoEm)}
+                    <span class="pedido-data">${formatarData(pedido.atualizadoEm)}</span>
                 </td>
 
                 <td data-rotulo="">
@@ -287,12 +325,14 @@ function renderizarGrafico() {
     // .grafico-producao* (home.css, com tema escuro); só o que é calculado
     // vai em data-css (a CSP não permite style inline).
     const altura = valor => Math.max(3, valor / maiorValor * 100);
+    const totalCriados = faixas.reduce((soma, f) => soma + f.criados, 0);
+    const totalConcluidos = faixas.reduce((soma, f) => soma + f.concluidos, 0);
 
     elementos.graficoProducao.innerHTML = `
         <div class="grafico-producao">
             <div class="grafico-producao-legenda">
-                <span><i class="grafico-producao-marca criados" aria-hidden="true"></i>Criados</span>
-                <span><i class="grafico-producao-marca concluidos" aria-hidden="true"></i>Concluídos</span>
+                <span><i class="grafico-producao-marca criados" aria-hidden="true"></i>Criados <strong>${totalCriados}</strong></span>
+                <span><i class="grafico-producao-marca concluidos" aria-hidden="true"></i>Concluídos <strong>${totalConcluidos}</strong></span>
             </div>
 
             <div class="grafico-producao-faixas" data-css="grid-template-columns:repeat(${quantidadeFaixas}, minmax(0,1fr));">
@@ -352,10 +392,22 @@ function renderizarRadar() {
     const restantes = alertas.length - LIMITE_RADAR;
 
     elementos.radarLista.innerHTML = alertas.slice(0, LIMITE_RADAR).map(alerta => `
-        <div class="radar-alert ${alerta.tipo}">
-            <strong>${escaparHTML(alerta.titulo)}</strong>
+        <div
+            class="radar-alert ${alerta.tipo}"
+            data-pedido="${alerta.pedidoId}"
+            role="button"
+            tabindex="0"
+            title="Abrir pedido #${alerta.pedidoId}"
+        >
+            <div class="radar-alert-topo">
+                <strong>${escaparHTML(alerta.titulo)}</strong>
+                <span class="radar-selo ${alerta.tipo}">${alerta.tipo === "urgente" ? "Urgente" : "Atenção"}</span>
+            </div>
             <p>${escaparHTML(alerta.descricao)}</p>
-            <small>Pedido #${alerta.pedidoId}</small>
+            <div class="radar-alert-rodape">
+                <small>Pedido #${alerta.pedidoId}</small>
+                <span class="radar-abrir" aria-hidden="true">Abrir →</span>
+            </div>
         </div>
     `).join("") + (restantes > 0 ? `
         <p class="empty-state radar-mais">
@@ -472,29 +524,28 @@ export function renderizarConversas() {
 
         return `
             <div
-                class="conversation-item"
+                class="conversation-item${conversa.naoLidas > 0 ? " nao-lida" : ""}"
                 data-conversa="${conversa.idPedido}"
                 role="button"
                 tabindex="0"
                 title="Abrir o chat do pedido #${conversa.idPedido}"
             >
+                <div class="conversation-principal">
+                    <span class="conversa-avatar" aria-hidden="true">${escaparHTML(iniciaisEmpresa(parceiro.nome))}</span>
 
-                <div class="conversation-info">
-                    <strong>
-                        ${escaparHTML(parceiro.nome)}
-                        <small class="conversation-pedido">· Pedido #${conversa.idPedido}</small>
-                    </strong>
+                    <div class="conversation-info">
+                        <strong>
+                            ${escaparHTML(parceiro.nome)}
+                            <small class="conversation-pedido">· Pedido #${conversa.idPedido}</small>
+                        </strong>
 
-                    <span>
-                        ${escaparHTML(prefixo + conversa.ultimoTexto)}
-                    </span>
+                        <span>
+                            ${escaparHTML(prefixo + conversa.ultimoTexto)}
+                        </span>
+                    </div>
                 </div>
 
-                <div data-css="
-                    display:flex;
-                    align-items:center;
-                    gap:12px;
-                ">
+                <div class="conversation-meta">
                     ${conversa.naoLidas > 0 ? `
                         <span class="nav-count" title="Mensagens não lidas">
                             ${conversa.naoLidas}
@@ -582,6 +633,7 @@ export function atualizarListagem({ manterPaginacao = false } = {}) {
 
     renderizarPedidos(SERFPainel.filtrados(base, estado));
     atualizarIndicadores(base);
+    atualizarEstadoFiltros();
 }
 
 export function atualizarDashboard() {

@@ -262,7 +262,7 @@
                             ${semEstoque ? 'disabled title="Sem estoque para o pedido mínimo"' : 'title="Adicionar ao carrinho"'}
                             data-css="flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 11px;"
                         >
-                            🛒 Adicionar
+                            <svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Adicionar
                         </button>
                         <button
                             type="button"
@@ -273,7 +273,7 @@
                             data-fornecedor="${escaparHTML(nomeFornecedor)}"
                             data-css="flex: 1;"
                         >
-                            <span>🤝 Negociar</span>
+                            <span>Negociar →</span>
                         </button>
                     </div>`;
     }
@@ -320,7 +320,7 @@
                             ${pausado ? '<span class="produto-selo-pausado">Vendas pausadas</span>' : ''}
                         </div>
                         <div class="produto-fornecedor" title="${escaparHTML(nomeFornecedor)}">
-                            <span class="fornecedor-icone">🏭</span>
+                            <span class="fornecedor-icone" aria-hidden="true"><svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></span>
                             <span class="fornecedor-nome">${escaparHTML(nomeFornecedor)}${escaparHTML(cidadeFornecedor)}</span>
                         </div>
                     </div>
@@ -444,7 +444,7 @@
             `,
             showCancelButton: true,
             cancelButtonText: 'Fechar',
-            confirmButtonText: '🤝 Iniciar Negociação',
+            confirmButtonText: 'Iniciar negociação →',
             confirmButtonColor: '#B4570B',
             cancelButtonColor: '#94a3b8'
         }).then((result) => {

@@ -211,7 +211,7 @@
     }
 
     function mensagemDoResultado(nota) {
-        return nota?.status === "AUTORIZADA" ? `🧾 NF-e nº ${numeroFormatado(nota)} autorizada pela SEFAZ.` : null;
+        return nota?.status === "AUTORIZADA" ? `NF-e nº ${numeroFormatado(nota)} autorizada pela SEFAZ.` : null;
     }
 
     async function emitirReal(contexto, botao) {
@@ -266,7 +266,7 @@
             return comFeedback(botao, "Transmitindo...", async () => {
                 await new Promise(resolver => setTimeout(resolver, 1100)); // simula a SEFAZ
                 const nota = await emitir(contexto.pedidoId);
-                contexto.aoAtualizar(nota, `🧾 NF-e nº ${numeroFormatado(nota)} emitida (simulada). Disponível em "Ver DANFE".`);
+                contexto.aoAtualizar(nota, `NF-e nº ${numeroFormatado(nota)} emitida (simulada). Disponível em "Ver DANFE".`);
 
                 Swal.fire({
                     ...swalConfig,
@@ -302,7 +302,7 @@
                 const nota = real(contexto.nota)
                     ? (await nfeReal("cancelar", contexto.pedidoId, { justificativa: motivo.trim() })).nota
                     : await cancelar(contexto.pedidoId, motivo.trim());
-                contexto.aoAtualizar(nota, `🧾 NF-e nº ${numeroFormatado(nota)} cancelada: ${nota.motivo_cancelamento}`);
+                contexto.aoAtualizar(nota, `NF-e nº ${numeroFormatado(nota)} cancelada: ${nota.motivo_cancelamento}`);
             });
         }
     }

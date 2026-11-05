@@ -30,6 +30,22 @@
         return elemento;
     }
 
+    const svg = caminhos =>
+        `<svg class="serf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${caminhos}</svg>`;
+
+    const ICONES_NOTIF = {
+        SINO: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+        PEDIDO_RECEBIDO: svg('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>'),
+        STATUS_PEDIDO: svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),
+        PEDIDO_CANCELADO: svg('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'),
+        MENSAGEM_NOVA: svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),
+        PAGAMENTO_CONFIRMADO: svg('<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>'),
+        PRAZO_SOLICITADO: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+        NOVO_PRODUTO_SEGMENTO: svg('<path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>'),
+        COTACAO_NOVA: svg('<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>'),
+        PROPOSTA_RECEBIDA: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>')
+    };
+
     /* ---------------- ESTRUTURA ---------------- */
 
     const raiz = criar("div", "notif");
@@ -41,8 +57,10 @@
     botao.setAttribute("aria-haspopup", "true");
     botao.setAttribute("aria-expanded", "false");
     botao.setAttribute("aria-controls", "notifPainel");
-    botao.append(criar("span", "notif-icone", "🔔"));
-    botao.querySelector(".notif-icone").setAttribute("aria-hidden", "true");
+    const iconeSino = criar("span", "notif-icone");
+    iconeSino.setAttribute("aria-hidden", "true");
+    iconeSino.innerHTML = ICONES_NOTIF.SINO;
+    botao.append(iconeSino);
 
     const contador = criar("span", "notif-contador");
     contador.hidden = true;
@@ -88,8 +106,10 @@
         acao.href = link;
         acao.dataset.id = String(n.id);
 
-        const simbolo = criar("span", "notif-simbolo", icone);
+        const simbolo = criar("span", "notif-simbolo");
         simbolo.setAttribute("aria-hidden", "true");
+        if (ICONES_NOTIF[n.tipo]) simbolo.innerHTML = ICONES_NOTIF[n.tipo];
+        else simbolo.textContent = icone;
 
         const corpo = criar("span", "notif-corpo");
         corpo.append(criar("strong", null, tituloItem));

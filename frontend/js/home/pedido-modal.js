@@ -234,7 +234,7 @@ async function cancelarPedidoComoComprador() {
         atualizarDashboard();
 
         // Avisa o fornecedor pelo chat (chega em tempo real).
-        const aviso = `❌ Pedido cancelado pelo comprador.${motivo ? ` Motivo: ${motivo}` : ""}`;
+        const aviso = `Pedido cancelado pelo comprador.${motivo ? ` Motivo: ${motivo}` : ""}`;
         enviarMensagemPedido(pedido.id, aviso)
             .then(mensagem => {
                 if (chat.pedido?.id === pedido.id) adicionarMensagens([mensagem]);
@@ -392,7 +392,7 @@ async function enviarAtualizacaoStatus(evento) {
         atualizarDashboard();
 
         // Registra a mudança no chat: o comprador recebe em tempo real.
-        enviarMensagemPedido(pedido.id, `📦 Status do pedido atualizado para: ${rotulo}.`)
+        enviarMensagemPedido(pedido.id, `Status do pedido atualizado para: ${rotulo}.`)
             .then(mensagem => {
                 if (chat.pedido?.id === pedido.id) {
                     adicionarMensagens([mensagem]);

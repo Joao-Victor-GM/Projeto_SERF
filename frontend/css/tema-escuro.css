@@ -24,15 +24,15 @@
    ---------------------------------------------------------- */
 
 .btn-tema {
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1;
 }
 
-.btn-tema .tema-icone-escuro { display: inline; }
-.btn-tema .tema-icone-claro { display: none; }
+.btn-tema .tema-icone-escuro { display: inline-flex; align-items: center; justify-content: center; }
+.btn-tema .tema-icone-claro { display: none; align-items: center; justify-content: center; }
 
 :root[data-theme="dark"] .btn-tema .tema-icone-escuro { display: none; }
-:root[data-theme="dark"] .btn-tema .tema-icone-claro { display: inline; }
+:root[data-theme="dark"] .btn-tema .tema-icone-claro { display: inline-flex; }
 
 
 /* ----------------------------------------------------------
@@ -42,21 +42,30 @@
 
 :root[data-theme="dark"] .modo-btn.active,
 :root[data-theme="dark"] .rel-segmento.active,
-:root[data-theme="dark"] .filter-pill.active {
+:root[data-theme="dark"] .filter-pill.active,
+:root[data-theme="dark"] .acao-botao {
     background: #1F5C99;
     border-color: #1F5C99;
     color: #FFFFFF;
 }
 
+:root[data-theme="dark"] .acao-botao:hover {
+    background: #256EB5;
+}
+
 
 /* ----------------------------------------------------------
-   Selos de status de pedido (tabela da Home)
+   Selos de status de pedido e radar (Home)
    ---------------------------------------------------------- */
 
-:root[data-theme="dark"] .order-status.aberto { color: #8CC2F5; }
-:root[data-theme="dark"] .order-status.negociacao { color: #F7B57A; }
-:root[data-theme="dark"] .order-status.concluido { color: #7DDCA4; }
-:root[data-theme="dark"] .order-status.cancelado { color: #F49494; }
+:root[data-theme="dark"] .order-status.aberto { color: #93C5FD; }
+:root[data-theme="dark"] .order-status.negociacao { color: #FDBA74; }
+:root[data-theme="dark"] .order-status.concluido { color: #86EFAC; }
+:root[data-theme="dark"] .order-status.cancelado { color: #FCA5A5; }
+
+:root[data-theme="dark"] .radar-selo.urgente,
+:root[data-theme="dark"] .acao-item.urgente .acao-icone { color: #FCA5A5; }
+:root[data-theme="dark"] .radar-selo.atencao { color: #FDBA74; }
 
 
 /* ----------------------------------------------------------
@@ -109,14 +118,15 @@
 
 :root[data-theme="dark"] .btn-logout,
 :root[data-theme="dark"] .btn-sair {
-    border-color: rgba(244, 148, 148, 0.45);
-    color: #F49494;
+    border-color: var(--serf-borda-media);
+    color: var(--serf-texto-secundario);
 }
 
 :root[data-theme="dark"] .btn-logout:hover,
 :root[data-theme="dark"] .btn-sair:hover {
-    background: #DC2626;
-    color: #FFFFFF;
+    border-color: #EF4444;
+    background: rgba(220, 38, 38, 0.2);
+    color: #FCA5A5;
 }
 
 
