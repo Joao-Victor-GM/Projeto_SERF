@@ -95,6 +95,18 @@ test("mostrar/ocultar senha", async ({ page }) => {
     await expect(senha).toHaveAttribute("type", "password");
 });
 
+test("botão de tema alterna modo claro e escuro na tela de login", async ({ page }) => {
+    await simularSupabase(page, { usuario: null });
+    await page.goto(PAGINA);
+
+    const temaInicial = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    const fundoInicial = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+    await page.locator("#btnTema").click();
+    expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).not.toBe(temaInicial);
+    await expect.poll(async () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(fundoInicial);
+});
+
 test("recuperar senha: abre com o e-mail já digitado, Esc fecha e devolve o foco", async ({ page }) => {
     await page.setViewportSize(CELULAR);
     await simularSupabase(page, { usuario: null });

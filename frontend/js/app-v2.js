@@ -8,6 +8,37 @@
 // swalConfig e a máscara de CNPJ vêm de utils.js.
 const { swalConfig, aplicarMascaraCNPJ, escaparHTML } = window.SERFUtils;
 
+// Garantia contra bloqueio de CDN ou cache antigo: nunca deixa o clique falhar em silêncio
+function exibirAlerta(opcoes) {
+    if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+        return Swal.fire(opcoes);
+    }
+    const texto = opcoes.text || String(opcoes.html || '').replace(/<[^>]+>/g, ' ').trim();
+    window.alert([opcoes.title, texto].filter(Boolean).join('\n\n'));
+    return Promise.resolve({ isConfirmed: true });
+}
+
+function fecharAlerta() {
+    if (typeof Swal !== 'undefined' && typeof Swal.close === 'function') {
+        Swal.close();
+    }
+}
+
+function obterClienteAuth() {
+    const cliente = typeof supabaseClient !== 'undefined' ? supabaseClient : window.obterSupabase?.();
+    if (!cliente?.auth) {
+        tremerTela();
+        exibirAlerta({
+            ...swalConfig,
+            title: 'Serviço indisponível',
+            text: 'Não foi possível carregar o módulo de autenticação. Pressione Ctrl+F5 ou verifique sua conexão com a internet.',
+            icon: 'error'
+        });
+        return null;
+    }
+    return cliente;
+}
+
 // 2. CAPTURA DOS ELEMENTOS DO HTML (DOM)
 const formCadastro = document.getElementById('formCadastro');
 const formLogin = document.getElementById('formLogin');
@@ -19,10 +50,10 @@ const containerTela = document.getElementById('container');
 // Após o login (sessão ativa), lê apenas o cadastro da própria empresa.
 // Consulta as DUAS tabelas, sem parar na primeira: a empresa pode ser
 // compradora (usuarios), fornecedora (fornecedores) ou Ambos.
-async function obterEmpresaDaSessao(authUserId) {
+async function obterEmpresaDaSessao(cliente, authUserId) {
     const [comprador, fornecedor] = await Promise.all([
-        supabaseClient.from('usuarios').select('nome_empresa, cnpj').eq('auth_user_id', authUserId).maybeSingle(),
-        supabaseClient.from('fornecedores').select('razao_social, cnpj').eq('auth_user_id', authUserId).maybeSingle()
+        cliente.from('usuarios').select('nome_empresa, cnpj').eq('auth_user_id', authUserId).maybeSingle(),
+        cliente.from('fornecedores').select('razao_social, cnpj').eq('auth_user_id', authUserId).maybeSingle()
     ]);
 
     const ehComprador = Boolean(comprador.data);
@@ -84,14 +115,16 @@ if (cnpjCadastro) {
         if (cnpjLimpo.length === 14) {
             try {
                 // Feedback visual de busca utilizando SweetAlert2
-                Swal.fire({
-                    title: 'Buscando CNPJ...',
-                    text: 'Consultando dados públicos da Receita Federal.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Buscando CNPJ...',
+                        text: 'Consultando dados públicos da Receita Federal.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                }
 
                 campoRazao.placeholder = "Buscando dados na Receita Federal...";
                 campoRazao.value = ""; 
@@ -106,7 +139,7 @@ if (cnpjCadastro) {
                 const dadosEmpresa = await resposta.json();
                 
                 // Fecha o loading
-                Swal.close();
+                fecharAlerta();
 
                 // Insere a Razão Social no HTML
                 campoRazao.value = dadosEmpresa.razao_social;
@@ -121,20 +154,22 @@ if (cnpjCadastro) {
                 }
 
                 // Alerta elegante de sucesso na busca do CNPJ
-                Swal.fire({
-                    ...swalConfig,
-                    title: 'Empresa Localizada!',
-                    text: dadosEmpresa.razao_social,
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        ...swalConfig,
+                        title: 'Empresa Localizada!',
+                        text: dadosEmpresa.razao_social,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
 
             } catch (error) {
-                Swal.close();
+                fecharAlerta();
                 tremerTela();
                 const indisponivel = /conexão|internet|indisponível/i.test(window.SERFUtils.mensagemDeErro(error));
-                Swal.fire({
+                exibirAlerta({
                     ...swalConfig,
                     title: indisponivel ? 'Consulta automática indisponível' : 'Erro na Validação',
                     text: indisponivel
@@ -169,7 +204,7 @@ if (formCadastro) {
 
         if (cnpj.length !== 14) {
             tremerTela();
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Dados Incompletos',
                 text: 'Por favor, digite um CNPJ válido com 14 números.',
@@ -179,7 +214,7 @@ if (formCadastro) {
         }
         if (!razaoSocial) {
             tremerTela();
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Atenção',
                 text: 'Por favor, preencha ou valide a Razão Social antes de continuar.',
@@ -189,17 +224,17 @@ if (formCadastro) {
         }
         if (!/^\S+@\S+\.\S+$/.test(email)) {
             tremerTela();
-            Swal.fire({ ...swalConfig, title: 'E-mail inválido', text: 'Confira o e-mail digitado.', icon: 'warning' });
+            exibirAlerta({ ...swalConfig, title: 'E-mail inválido', text: 'Confira o e-mail digitado.', icon: 'warning' });
             return;
         }
         if (senha.length < 8) {
             tremerTela();
-            Swal.fire({ ...swalConfig, title: 'Senha curta', text: 'Use uma senha com 8 ou mais caracteres.', icon: 'warning' });
+            exibirAlerta({ ...swalConfig, title: 'Senha curta', text: 'Use uma senha com 8 ou mais caracteres.', icon: 'warning' });
             return;
         }
         if (senha !== confirmarSenha) {
             tremerTela();
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Atenção',
                 text: 'A confirmação de senha não bate com a senha digitada!',
@@ -209,24 +244,29 @@ if (formCadastro) {
             return;
         }
 
+        const clienteAuth = obterClienteAuth();
+        if (!clienteAuth) return;
+
         // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
         let captchaToken;
         try {
             captchaToken = await window.SERFCaptcha?.token(formCadastro);
         } catch (erroCaptcha) {
-            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            exibirAlerta({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
             return;
         }
 
         try {
-            Swal.fire({
-                title: 'Criando Cadastro...',
-                text: 'Gravando credenciais no banco de dados.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Criando Cadastro...',
+                    text: 'Gravando credenciais no banco de dados.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             // Conta nova: sessão só até fechar o navegador (pode marcar
             // "Manter conectado" no próximo login) e relógio de inatividade zerado
@@ -235,7 +275,7 @@ if (formCadastro) {
 
             // Cadastra no Supabase Auth. CNPJ e razão social vão nos metadados e
             // o registro em 'usuarios' é criado pelo trigger do banco (migration 005).
-            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            const { data: authData, error: authError } = await clienteAuth.auth.signUp({
                 email: email,
                 password: senha,
                 options: {
@@ -251,13 +291,13 @@ if (formCadastro) {
 
             if (authError) throw authError;
 
-            Swal.close();
+            fecharAlerta();
             formCadastro.reset();
 
             // Confirmação de e-mail LIGADA: não há sessão até o usuário clicar no link.
             // A segmentação acontece no primeiro login.
             if (!authData.session) {
-                Swal.fire({
+                exibirAlerta({
                     ...swalConfig,
                     title: 'Confirme seu E-mail',
                     html: `Enviamos um link de confirmação para <strong>${escaparHTML(email)}</strong>.<br><br>Depois de confirmar, faça login para configurar o perfil da sua empresa.`,
@@ -269,7 +309,7 @@ if (formCadastro) {
             }
 
             // Confirmação de e-mail DESLIGADA: segue direto para a segmentação.
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Cadastro Realizado!',
                 text: 'Sua conta foi criada! Vamos configurar as preferências da sua empresa agora.',
@@ -279,10 +319,10 @@ if (formCadastro) {
             });
 
         } catch (error) {
-            Swal.close();
+            fecharAlerta();
             tremerTela();
             console.error("Erro no cadastro:", error);
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Erro ao Cadastrar',
                 text: mensagemErroAuth(error),
@@ -306,7 +346,7 @@ if (formLogin) {
 
         if (!email || !senha) {
             tremerTela();
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Dados Incompletos',
                 text: 'Informe o e-mail e a senha da sua empresa.',
@@ -315,24 +355,29 @@ if (formLogin) {
             return;
         }
 
+        const clienteAuth = obterClienteAuth();
+        if (!clienteAuth) return;
+
         // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
         let captchaToken;
         try {
             captchaToken = await window.SERFCaptcha?.token(formLogin);
         } catch (erroCaptcha) {
-            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            exibirAlerta({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
             return;
         }
 
         try {
-            Swal.fire({
-                title: 'Autenticando...',
-                text: 'Validando suas credenciais de acesso.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Autenticando...',
+                    text: 'Validando suas credenciais de acesso.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             // "Manter conectado": decide ONDE a sessão será guardada (ver
             // supabase-client.js) e zera o relógio de inatividade.
@@ -341,7 +386,7 @@ if (formLogin) {
 
             // ETAPA A: Autentica com E-mail + Senha no Supabase Auth.
             // Erro genérico: não revela se o e-mail existe.
-            const { data: sessionData, error: loginError } = await supabaseClient.auth.signInWithPassword({
+            const { data: sessionData, error: loginError } = await clienteAuth.auth.signInWithPassword({
                 email: email,
                 password: senha,
                 options: { captchaToken }
@@ -353,15 +398,15 @@ if (formLogin) {
             const user = sessionData.user;
 
             // ETAPA B: Com a sessão ativa, lê o cadastro da própria empresa
-            const empresa = await obterEmpresaDaSessao(user.id);
+            const empresa = await obterEmpresaDaSessao(clienteAuth, user.id);
 
             // VALIDAÇÃO DA ETAPA DE SEGMENTAÇÃO
             const segmentado = user?.user_metadata?.segmentacao_concluida === true;
 
-            Swal.close();
+            fecharAlerta();
 
             if (!segmentado || !empresa.perfil) {
-                Swal.fire({
+                exibirAlerta({
                     ...swalConfig,
                     title: 'Onboarding Pendente',
                     text: 'Vamos configurar o perfil e nicho da sua empresa antes de acessar o painel.',
@@ -380,10 +425,10 @@ if (formLogin) {
                 perfil: empresa.perfil,
                 nicho: user.user_metadata?.nicho || null
             };
-            localStorage.setItem('usuario_logado', JSON.stringify(dadosUsuario));
+            try { localStorage.setItem('usuario_logado', JSON.stringify(dadosUsuario)); } catch { /* sem armazenamento */ }
 
             // Acesso liberado se já estiver segmentado!
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Acesso Autorizado!',
                 text: 'Seja bem-vindo de volta ao S.E.R.F.!',
@@ -395,10 +440,10 @@ if (formLogin) {
             });
 
         } catch (error) {
-            Swal.close();
+            fecharAlerta();
             tremerTela();
             console.error("Erro no login:", error);
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Falha ao Acessar',
                 text: mensagemErroAuth(error),
@@ -424,7 +469,7 @@ if (formRecuperar) {
         const email = emailRecuperar.value.trim();
 
         if (!email) {
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'E-mail Obrigatório',
                 text: 'Informe o e-mail cadastrado da sua empresa.',
@@ -433,29 +478,34 @@ if (formRecuperar) {
             return;
         }
 
+        const clienteAuth = obterClienteAuth();
+        if (!clienteAuth) return;
+
         // CAPTCHA (captcha.js): antes do "carregando", para o desafio não ficar escondido
         let captchaToken;
         try {
             captchaToken = await window.SERFCaptcha?.token(formRecuperar);
         } catch (erroCaptcha) {
-            Swal.fire({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
+            exibirAlerta({ ...swalConfig, title: 'Verificação de segurança', text: erroCaptcha.message, icon: 'warning' });
             return;
         }
 
         try {
-            Swal.fire({
-                title: 'Processando pedido...',
-                text: 'Solicitando o link de redefinição de senha.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Processando pedido...',
+                    text: 'Solicitando o link de redefinição de senha.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             // O Supabase só envia o e-mail se a conta existir, mas responde
             // igual nos dois casos: a tela não revela quais e-mails estão cadastrados.
             const urlRedefinir = new URL('redefinir-senha.html', window.location.href).href;
-            const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            const { error: resetError } = await clienteAuth.auth.resetPasswordForEmail(email, {
                 redirectTo: urlRedefinir,
                 captchaToken
             });
@@ -463,9 +513,9 @@ if (formRecuperar) {
 
             if (resetError) throw resetError;
 
-            Swal.close();
+            fecharAlerta();
 
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: 'Verifique seu E-mail',
                 html: `Se <strong>${escaparHTML(email)}</strong> estiver cadastrado no S.E.R.F., você receberá o link de redefinição em instantes.<br><br>Confira também a caixa de Spam ou Lixo Eletrônico.`,
@@ -476,19 +526,19 @@ if (formRecuperar) {
             formRecuperar.reset();
 
         } catch (error) {
-            Swal.close();
+            fecharAlerta();
 
             // TRATAMENTO DE ERRO PROFISSIONAL: Traduzindo erros do Supabase
             let tituloErro = 'Erro de Recuperação';
             let mensagemAmigavel = mensagemErroAuth(error);
 
-            if (error.message.includes('rate limit')) {
+            if (error?.message?.includes('rate limit')) {
                 tituloErro = 'Limite Excedido';
                 mensagemAmigavel = 'Você já solicitou um link de recuperação recentemente. Por favor, aguarde alguns minutos antes de tentar novamente para evitar spam!';
             }
 
             // Exibe o SweetAlert com a mensagem traduzida e bonita
-            Swal.fire({
+            exibirAlerta({
                 ...swalConfig,
                 title: tituloErro,
                 text: mensagemAmigavel,
@@ -512,10 +562,11 @@ if (formRecuperar) {
     // Tira o motivo da URL (recarregar a página não repete o aviso)
     parametros.delete('motivo');
     const resto = parametros.toString();
-    history.replaceState(null, '', window.location.pathname + (resto ? `?${resto}` : '') + window.location.hash);
+    try {
+        history.replaceState(null, '', window.location.pathname + (resto ? `?${resto}` : '') + window.location.hash);
+    } catch { /* file:// restrito em alguns navegadores */ }
 
-    if (typeof Swal === 'undefined') return;
-    Swal.fire({
+    exibirAlerta({
         ...swalConfig,
         title: 'Sessão encerrada',
         text: 'Você ficou um tempo sem usar o S.E.R.F. e, por segurança, sua sessão foi encerrada. Entre novamente para continuar.',

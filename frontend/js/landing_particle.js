@@ -580,7 +580,9 @@ function desenharBolinhaBrasil(
 
 
     ctxBrasil.fillStyle =
-        "#FFFFFF";
+        document.documentElement.getAttribute("data-theme") === "dark"
+            ? "#FFFFFF"
+            : "#C2410C";
 
 
     ctxBrasil.fill();
@@ -847,6 +849,15 @@ if ("ResizeObserver" in window) {
         "resize",
         ajustarCanvasBrasil
     );
+}
+
+if ("MutationObserver" in window) {
+    new MutationObserver(() => {
+        if (movimentoReduzidoBrasil) animarRedeBrasil();
+    }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"]
+    });
 }
 
 

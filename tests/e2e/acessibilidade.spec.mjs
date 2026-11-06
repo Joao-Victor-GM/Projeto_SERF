@@ -26,7 +26,7 @@ const TELAS = [["computador", 1366, "light"], ["celular", 390, "light"], ["tema 
 
 for (const pagina of PAGINAS) {
     for (const [tela, largura, tema] of TELAS) {
-        if (tema === "dark" && !pagina.startsWith("app/")) continue;
+        if (tema === "dark" && !pagina.startsWith("app/") && pagina !== "public/index.html" && pagina !== "public/login-cadastro.html") continue;
         test(`${pagina} (${tela})`, async ({ page }) => {
             const logada = pagina.startsWith("app/") || pagina.includes("segmentacao");
             await page.setViewportSize({ width: largura, height: 850 });

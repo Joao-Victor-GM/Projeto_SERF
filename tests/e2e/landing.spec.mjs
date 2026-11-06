@@ -82,6 +82,52 @@ test("dúvidas frequentes abrem e fecham", async ({ page }) => {
     await expect(pergunta.locator("p")).toBeVisible();
 });
 
+test("navegação por âncoras (Como funciona, Para quem é, Recursos, Dúvidas) e recarga com hash exibem todo o conteúdo", async ({ page }) => {
+    const erros = coletarErros(page);
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto(INICIO);
+
+    for (const [texto, seletor] of [
+        ["Como funciona", "#como-funciona .lp-passo"],
+        ["Para quem é", "#para-quem .lp-papel"],
+        ["Recursos", "#recursos .lp-recurso"],
+        ["Dúvidas", "#duvidas .lp-cabecalho-secao"]
+    ]) {
+        await page.locator("#lpMenu").getByRole("link", { name: texto }).click();
+        await expect.poll(async () => {
+            const opacidades = await page.locator(seletor).evaluateAll(els => els.map(el => Number(getComputedStyle(el).opacity)));
+            return opacidades.every(o => o > 0.95);
+        }).toBe(true);
+    }
+
+    // Abrir ou recarregar diretamente com #como-funciona na URL nunca deixa a seção vazia
+    await page.goto(`${INICIO}index.html#como-funciona`);
+    await expect.poll(async () => {
+        const opacidades = await page.locator("#como-funciona .lp-passo").evaluateAll(els => els.map(el => Number(getComputedStyle(el).opacity)));
+        return opacidades.every(o => o > 0.95);
+    }).toBe(true);
+
+    expect(erros).toEqual([]);
+});
+
+test("botão de tema alterna modo claro e escuro na landing trocando cores reais", async ({ page }) => {
+    const erros = coletarErros(page);
+    await page.goto(INICIO);
+
+    const temaInicial = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    const fundoInicial = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+    await page.locator("#btnTema").click();
+    const temaAlternado = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+    expect(temaAlternado).not.toBe(temaInicial);
+
+    await expect.poll(async () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(fundoInicial);
+
+    await page.locator("#btnTema").click();
+    expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBe(temaInicial);
+    expect(erros).toEqual([]);
+});
+
 test("teclado: 'Pular para o conteúdo' é o primeiro foco", async ({ page }) => {
     await page.goto(INICIO);
     await page.keyboard.press("Tab");

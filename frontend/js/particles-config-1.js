@@ -46,7 +46,7 @@ particlesJS("particles-js", {
     }
   },
   "interactivity": {
-    "detect_on": "window", // 🔥 CORREÇÃO CRÍTICA: Detecta o mouse mesmo por cima do card de login!
+    "detect_on": "window", // Detecta o mouse mesmo sobre o cartão de autenticação
     "events": {
       "onhover": {
         "enable": true,

@@ -3,142 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <!-- Política de segurança (CSP): ver frontend/_headers e docs/seguranca.md -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://rparlqdgcwzoanpqqeof.supabase.co; connect-src 'self' https://rparlqdgcwzoanpqqeof.supabase.co wss://rparlqdgcwzoanpqqeof.supabase.co https://brasilapi.com.br https://viacep.com.br; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
-    <meta name="theme-color" content="#001f3f">
     <meta name="robots" content="noindex">
     <title>S.E.R.F. | Entrar ou criar conta</title>
-    <link rel="icon" href="../../assets/icons/fivecon.png" type="image/png">
-    <link rel="stylesheet" href="../../css/style.css">
-    <!-- A CSP bloqueia o atributo de estilo inline: estilo calculado vai em data-css (ver o script) -->
-    <script src="../../js/ui/estilos-dinamicos.js"></script>
+    <script src="../../js/tema.js?v=20261106"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../../assets/icons/fivecon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.css" integrity="sha384-dCW5imOdApH6OwpFau8cZNKjqVbJYnCA5q+8YsMYP3XwXKsV6Jfz1u6MZLnXaBsS" crossorigin="anonymous">
+    <link rel="stylesheet" href="../../css/style.css?v=20261106">
+    <script src="../../js/ui/estilos-dinamicos.js?v=20261106"></script>
 </head>
 <body>
 
-<!-- Fundo animado (Particles.js); some no celular e com "reduzir movimento" -->
 <div id="particles-js" aria-hidden="true"></div>
+
+<!-- Barra utilitária superior: retorno à página inicial e alternância de tema -->
+<header class="auth-topo">
+    <a class="auth-voltar" href="index.html">
+        <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        <span>Voltar ao início</span>
+    </a>
+
+    <button class="auth-btn-tema" id="btnTema" type="button" data-alternar-tema aria-pressed="false" aria-label="Ativar modo escuro" title="Modo escuro">
+        <span class="tema-icone-escuro" aria-hidden="true">
+            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </span>
+        <span class="tema-icone-claro" aria-hidden="true">
+            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </span>
+    </button>
+</header>
 
 <main class="container" id="container">
 
-    <!-- Celular: abas no lugar do painel deslizante -->
-    <div class="auth-abas" role="tablist" aria-label="Acesso">
-        <button type="button" role="tab" id="abaEntrar" aria-controls="painelEntrar" aria-selected="true">Entrar</button>
-        <button type="button" role="tab" id="abaCadastrar" aria-controls="painelCadastrar" aria-selected="false" tabindex="-1">Criar conta</button>
+    <!-- Abas visíveis apenas em telas menores (no desktop o painel lateral desliza) -->
+    <div class="auth-abas" role="tablist" aria-label="Acesso ao sistema">
+        <button type="button" role="tab" id="abaEntrar" class="auth-aba ativa" aria-selected="true" aria-controls="painelEntrar">Entrar</button>
+        <button type="button" role="tab" id="abaCadastrar" class="auth-aba" aria-selected="false" aria-controls="painelCadastrar">Criar conta</button>
     </div>
 
-    <!-- CADASTRO -->
+    <!-- ======================= PAINEL DE CADASTRO ======================= -->
     <div class="form-container sign-up-container" id="painelCadastrar" role="tabpanel" aria-labelledby="abaCadastrar">
         <form id="formCadastro" novalidate>
-            <img src="../../assets/images/serflogo.png" alt="S.E.R.F." class="logo" width="120" height="120">
-            <h1>Criar conta</h1>
-            <p class="subtitle">Insira os dados da sua empresa para começar.</p>
-
-            <label class="sr-only" for="cnpjCadastro">CNPJ</label>
-            <input type="text" id="cnpjCadastro" placeholder="CNPJ" inputmode="numeric" autocomplete="off"
-                   maxlength="18" enterkeyhint="next" required>
-
-            <label class="sr-only" for="razaoSocialCadastro">Razão social</label>
-            <input type="text" id="razaoSocialCadastro" placeholder="Razão social" autocomplete="organization"
-                   maxlength="150" enterkeyhint="next" required>
-
-            <label class="sr-only" for="emailCadastro">E-mail</label>
-            <input type="email" id="emailCadastro" placeholder="E-mail" autocomplete="email" inputmode="email"
-                   maxlength="150" enterkeyhint="next" required>
-
-            <label class="sr-only" for="senhaCadastro">Senha (mínimo 8 caracteres)</label>
-            <div class="campo-senha">
-                <input type="password" id="senhaCadastro" placeholder="Senha (mín. 8 caracteres)" autocomplete="new-password"
-                       minlength="8" maxlength="72" enterkeyhint="next" required aria-describedby="dicaSenha">
-                <button type="button" class="mostrar-senha" aria-controls="senhaCadastro" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            <div class="auth-marca">
+                <img src="../../assets/icons/fivecon.png" alt="" class="brand-logo" width="34" height="34">
+                <div class="auth-marca-texto">
+                    <strong>S.E.R.F.</strong>
+                    <span>Rede Empresarial B2B</span>
+                </div>
             </div>
 
-            <label class="sr-only" for="confirmarSenhaCadastro">Confirmar senha</label>
-            <div class="campo-senha">
-                <input type="password" id="confirmarSenhaCadastro" placeholder="Confirmar senha" autocomplete="new-password"
-                       minlength="8" maxlength="72" enterkeyhint="done" required>
-                <button type="button" class="mostrar-senha" aria-controls="confirmarSenhaCadastro" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            <div class="auth-cabecalho">
+                <h1>Criar conta empresarial</h1>
+                <p>Informe o CNPJ para validar os dados na Receita Federal</p>
             </div>
-            <p class="dica" id="dicaSenha">Use 8 ou mais caracteres, misturando letras e números.</p>
 
-            <button type="submit" class="btn-solid">Cadastrar</button>
+            <div class="auth-grade-campos">
+                <div class="auth-grupo">
+                    <label class="auth-rotulo" for="cnpjCadastro">CNPJ</label>
+                    <div class="campo-icone">
+                        <span class="icone-entrada" aria-hidden="true">
+                            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/></svg>
+                        </span>
+                        <input type="text" id="cnpjCadastro" placeholder="00.000.000/0001-00" inputmode="numeric" autocomplete="off" maxlength="18" required />
+                    </div>
+                </div>
+
+                <div class="auth-grupo">
+                    <label class="auth-rotulo" for="razaoSocialCadastro">Razão social</label>
+                    <div class="campo-icone">
+                        <span class="icone-entrada" aria-hidden="true">
+                            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+                        </span>
+                        <input type="text" id="razaoSocialCadastro" placeholder="Preenchida pelo CNPJ ou digite" autocomplete="organization" required />
+                    </div>
+                </div>
+
+                <div class="auth-grupo">
+                    <label class="auth-rotulo" for="emailCadastro">E-mail corporativo</label>
+                    <div class="campo-icone">
+                        <span class="icone-entrada" aria-hidden="true">
+                            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </span>
+                        <input type="email" id="emailCadastro" placeholder="compras@suaempresa.com.br" autocomplete="email" required />
+                    </div>
+                </div>
+
+                <div class="auth-senhas-duplas">
+                    <div class="auth-grupo">
+                        <label class="auth-rotulo" for="senhaCadastro">Senha</label>
+                        <div class="campo-senha campo-icone">
+                            <span class="icone-entrada" aria-hidden="true">
+                                <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </span>
+                            <input type="password" id="senhaCadastro" placeholder="Mínimo 8 caracteres" autocomplete="new-password" minlength="8" aria-describedby="dicaSenha" required />
+                            <button type="button" class="mostrar-senha" aria-controls="senhaCadastro" aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha"></button>
+                        </div>
+                    </div>
+
+                    <div class="auth-grupo">
+                        <label class="auth-rotulo" for="confirmarSenhaCadastro">Confirmar senha</label>
+                        <div class="campo-senha campo-icone">
+                            <span class="icone-entrada" aria-hidden="true">
+                                <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                            </span>
+                            <input type="password" id="confirmarSenhaCadastro" placeholder="Repita a senha" autocomplete="new-password" minlength="8" required />
+                            <button type="button" class="mostrar-senha" aria-controls="confirmarSenhaCadastro" aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <small id="dicaSenha" class="dica">Mínimo de 8 caracteres para segurança corporativa.</small>
+            <button type="submit" class="btn-solid">Criar conta empresarial</button>
         </form>
     </div>
 
-    <!-- LOGIN -->
+    <!-- ======================= PAINEL DE LOGIN ======================= -->
     <div class="form-container sign-in-container" id="painelEntrar" role="tabpanel" aria-labelledby="abaEntrar">
         <form id="formLogin" novalidate>
-            <img src="../../assets/images/serflogo.png" alt="S.E.R.F." class="logo" width="120" height="120">
-            <h1>Acesse sua conta</h1>
-            <p class="subtitle">Insira seus dados para continuar.</p>
-
-            <label class="sr-only" for="emailLogin">E-mail</label>
-            <input type="email" id="emailLogin" placeholder="E-mail corporativo" autocomplete="username" inputmode="email"
-                   enterkeyhint="next" required>
-
-            <label class="sr-only" for="senhaLogin">Senha</label>
-            <div class="campo-senha">
-                <input type="password" id="senhaLogin" placeholder="Senha" autocomplete="current-password" enterkeyhint="go" required>
-                <button type="button" class="mostrar-senha" aria-controls="senhaLogin" aria-pressed="false" aria-label="Mostrar senha">Ver</button>
+            <div class="auth-marca">
+                <img src="../../assets/icons/fivecon.png" alt="" class="brand-logo" width="34" height="34">
+                <div class="auth-marca-texto">
+                    <strong>S.E.R.F.</strong>
+                    <span>Rede Empresarial B2B</span>
+                </div>
             </div>
 
-            <!-- Sessão: sem marcar, termina ao fechar o navegador ou após 30 min sem uso
-                 (supabase-client.js e auth-check.js) -->
-            <label class="manter-conectado" for="manterConectado">
-                <input type="checkbox" id="manterConectado">
-                <span>Manter conectado neste computador</span>
-            </label>
-            <small class="dica manter-conectado-dica">Não marque em computador compartilhado.</small>
+            <div class="auth-cabecalho">
+                <h1>Entrar na plataforma</h1>
+                <p>Acesse pedidos, cotações e catálogo da sua empresa</p>
+            </div>
 
-            <a href="#" id="linkEsqueceuSenha" class="forgot-pass">Esqueceu a senha?</a>
-            <button type="submit" class="btn-solid">Entrar</button>
+            <div class="auth-grade-campos">
+                <div class="auth-grupo">
+                    <label class="auth-rotulo" for="emailLogin">E-mail</label>
+                    <div class="campo-icone">
+                        <span class="icone-entrada" aria-hidden="true">
+                            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </span>
+                        <input type="email" id="emailLogin" placeholder="nome@suaempresa.com.br" autocomplete="email" required />
+                    </div>
+                </div>
+
+                <div class="auth-grupo">
+                    <label class="auth-rotulo" for="senhaLogin">Senha</label>
+                    <div class="campo-senha campo-icone">
+                        <span class="icone-entrada" aria-hidden="true">
+                            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" id="senhaLogin" placeholder="Digite sua senha" autocomplete="current-password" required />
+                        <button type="button" class="mostrar-senha" aria-controls="senhaLogin" aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-opcoes-linha">
+                <label class="manter-conectado">
+                    <input type="checkbox" id="manterConectado">
+                    <span>Manter conectado</span>
+                </label>
+                <a href="#recuperar" class="forgot-pass" id="linkEsqueceuSenha">Esqueceu a senha?</a>
+            </div>
+
+            <button type="submit" class="btn-solid">Acessar plataforma</button>
         </form>
     </div>
 
-    <!-- Desktop: painel deslizante -->
-    <div class="overlay-container" aria-hidden="true">
+    <!-- ======================= PAINEL INSTITUCIONAL DESLIZANTE ======================= -->
+    <div class="overlay-container">
         <div class="overlay">
             <div class="overlay-panel overlay-left">
-                <h2>Já é membro?</h2>
-                <p>Faça login para continuar de onde parou e acessar a cadeia de suprimentos.</p>
-                <button type="button" class="btn-ghost" id="signIn" tabindex="-1">Fazer login</button>
+                <span class="overlay-selo">Acesso Corporativo</span>
+                <h2>Já possui cadastro no S.E.R.F.?</h2>
+                <p>Entre com o e-mail da sua empresa para acompanhar negociações, cotações e entregas em andamento.</p>
+                <ul class="overlay-lista">
+                    <li> Painel dual: compre e forneça na mesma conta</li>
+                    <li> Chat e documentos fiscais vinculados por pedido</li>
+                    <li> Radar de oportunidades do seu segmento CNAE</li>
+                </ul>
+                <button type="button" class="ghost" id="signIn">Entrar na conta</button>
             </div>
             <div class="overlay-panel overlay-right">
-                <h2>Novo por aqui?</h2>
-                <p>Crie sua conta em poucos segundos e desbloqueie toda a experiência B2B.</p>
-                <button type="button" class="btn-ghost" id="signUp" tabindex="-1">Criar conta</button>
+                <span class="overlay-selo">Rede B2B Verificada</span>
+                <h2>Conecte sua empresa a novos parceiros</h2>
+                <p>Cadastre seu CNPJ gratuitamente para negociar lotes de atacado, abrir cotações reversas e emitir pedidos rastreáveis.</p>
+                <ul class="overlay-lista">
+                    <li> Consulta automática de CNPJ na Receita Federal</li>
+                    <li> 16 setores industriais e comerciais padronizados</li>
+                    <li> Controle completo da proposta até a entrega</li>
+                </ul>
+                <button type="button" class="ghost" id="signUp">Criar conta gratuita</button>
             </div>
         </div>
     </div>
+
 </main>
 
-<p class="voltar-inicio"><a href="index.html">← Voltar ao início</a></p>
-
-<!-- RECUPERAÇÃO DE SENHA -->
-<div id="modalRecuperar" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloRecuperar" hidden>
+<!-- ======================= MODAL DE RECUPERAÇÃO DE SENHA ======================= -->
+<div id="modalRecuperar" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tituloRecuperar" hidden>
     <div class="modal-content">
-        <button type="button" class="close-modal" aria-label="Fechar">&times;</button>
+        <button type="button" class="close-modal" aria-label="Fechar">
+            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="modal-icone" aria-hidden="true">
+            <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        </div>
         <h2 id="tituloRecuperar">Recuperar senha</h2>
-        <p>Digite o e-mail cadastrado da sua empresa. Se ele estiver no S.E.R.F., enviaremos um link de redefinição de senha.</p>
+        <p>Informe o e-mail cadastrado da sua empresa. Enviaremos um link seguro para redefinir o acesso.</p>
         <form id="formRecuperar" novalidate>
-            <label class="sr-only" for="emailRecuperar">E-mail</label>
-            <input type="email" id="emailRecuperar" placeholder="contato@suaempresa.com.br" autocomplete="email"
-                   inputmode="email" enterkeyhint="send" required>
-            <button type="submit" class="btn-recuperar">Enviar link de recuperação</button>
+            <div class="auth-grupo">
+                <label class="auth-rotulo" for="emailRecuperar">E-mail cadastrado</label>
+                <div class="campo-icone">
+                    <span class="icone-entrada" aria-hidden="true">
+                        <svg class="auth-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    </span>
+                    <input type="email" id="emailRecuperar" placeholder="compras@suaempresa.com.br" autocomplete="email" required />
+                </div>
+            </div>
+            <button type="submit" class="btn-solid">Enviar link de recuperação</button>
         </form>
     </div>
 </div>
 
+<!-- Dependências de CDN com integridade (SRI) fixada -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.css" integrity="sha384-dCW5imOdApH6OwpFau8cZNKjqVbJYnCA5q+8YsMYP3XwXKsV6Jfz1u6MZLnXaBsS" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.js" integrity="sha384-hW8ZCQHtRH+nVOAkHZ4amZvYsAtKn1ZOvMV6dNag1Rb1thWmLZMBKTRxFV0cOxiK" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.js" integrity="sha384-hW8ZCQHtRH+nVOAkHZ4amZvYsAtKn1ZOvMV6dNag1Rb1thWmLZMBKTRxFV0cOxiK" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js" integrity="sha384-qzrow8+R9k2/XKVt7fpdI3hp6ocDhtrCzBsdbcw7/VRkwEXYcsTTAEeFvhlgiGBW" crossorigin="anonymous"></script>
 
-<script src="../../js/supabase-client.js"></script>
-<script src="../../js/utils.js"></script>
-<script src="../../js/login-telas.js"></script>
-<script src="../../js/captcha.js"></script>
-<script src="../../js/app-v2.js"></script>
-<script src="../../js/particles-config-1.js"></script>
+<script src="../../js/supabase-client.js?v=20261106"></script>
+<script src="../../js/utils.js?v=20261106"></script>
+<script src="../../js/login-telas.js?v=20261106"></script>
+<script src="../../js/captcha.js?v=20261106"></script>
+<script src="../../js/app-v2.js?v=20261106"></script>
+<script src="../../js/particles-config-1.js?v=20261106"></script>
 
 </body>
 </html>

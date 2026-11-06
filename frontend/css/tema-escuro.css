@@ -33,6 +33,35 @@
 
 :root[data-theme="dark"] .btn-tema .tema-icone-escuro { display: none; }
 :root[data-theme="dark"] .btn-tema .tema-icone-claro { display: inline-flex; }
+.btn-tema * {
+    pointer-events: none;
+}
+
+
+/* ----------------------------------------------------------
+   Menu lateral (Sidebar) no modo escuro
+   ---------------------------------------------------------- */
+
+:root[data-theme="dark"] .sidebar {
+    --sb-fundo: linear-gradient(180deg, #0D1726 0%, #101D2F 55%, #122136 100%);
+    --sb-borda: #1E2E45;
+    --sb-titulo: #FFFFFF;
+    --sb-subtitulo: #9BB0C7;
+    --sb-secao: #8CA2BB;
+    --sb-item: #C8D6E5;
+    --sb-item-hover-bg: rgba(255, 255, 255, 0.06);
+    --sb-item-hover-cor: #FFFFFF;
+    --sb-ativo-bg: rgba(57, 135, 229, 0.16);
+    --sb-ativo-borda: rgba(90, 166, 240, 0.22);
+    --sb-ativo-cor: #FFFFFF;
+    --sb-ativo-icone: #FF9F55;
+    --sb-badge-bg: rgba(244, 122, 32, 0.22);
+    --sb-badge-cor: #FFC08F;
+    --sb-urgente-bg: rgba(239, 68, 68, 0.24);
+    --sb-urgente-cor: #FCA5A5;
+    --sb-rodape-texto: #A6B8CC;
+    --sb-rodape-mudo: #8FA3BA;
+}
 
 
 /* ----------------------------------------------------------

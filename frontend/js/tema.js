@@ -8,13 +8,15 @@
    - Aplica o tema antes da pintura (sem "piscar" branco).
    - Preferência salva por navegador (localStorage); sem escolha
      salva, segue o tema do sistema operacional.
-   - Botões com o atributo data-alternar-tema alternam o tema.
+   - Botões com data-alternar-tema (ou #btnTema / .btn-tema)
+     alternam o tema em qualquer página pública ou interna.
    ========================================================== */
 
 "use strict";
 
 (function () {
     const CHAVE = "serf-tema";
+    const SELETOR_BOTAO = "[data-alternar-tema], #btnTema, .lp-btn-tema, .auth-btn-tema, .btn-tema";
     const raiz = document.documentElement;
     const midiaEscura = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
@@ -40,7 +42,7 @@
     function atualizarBotoes(tema) {
         const escuro = tema === "dark";
 
-        document.querySelectorAll("[data-alternar-tema]").forEach(botao => {
+        document.querySelectorAll(SELETOR_BOTAO).forEach(botao => {
             botao.setAttribute("aria-pressed", String(escuro));
             botao.setAttribute("aria-label", escuro ? "Ativar modo claro" : "Ativar modo escuro");
             botao.title = escuro ? "Modo claro" : "Modo escuro";
@@ -48,8 +50,13 @@
     }
 
     function aplicar(tema) {
-        raiz.setAttribute("data-theme", tema);
-        atualizarBotoes(tema);
+        const normalizado = tema === "dark" ? "dark" : "light";
+        raiz.setAttribute("data-theme", normalizado);
+        raiz.style.colorScheme = normalizado;
+        atualizarBotoes(normalizado);
+        try {
+            window.dispatchEvent(new CustomEvent("serf:tema", { detail: { tema: normalizado } }));
+        } catch (e) { /* ambientes sem CustomEvent */ }
     }
 
     function alternar() {
@@ -60,6 +67,7 @@
         aplicar(novo);
         salvarPreferencia(novo);
         setTimeout(() => raiz.classList.remove("tema-transicao"), 300);
+        return novo;
     }
 
     // 1. Antes da pintura
@@ -70,9 +78,10 @@
         if (!lerPreferencia()) aplicar(temaDoSistema());
     });
 
-    // 3. Botões (delegação: funciona antes mesmo do <body> existir)
+    // 3. Botões (delegação segura mesmo quando o clique atinge SVG ou nó de texto interno)
     document.addEventListener("click", evento => {
-        if (evento.target.closest("[data-alternar-tema]")) {
+        const alvo = evento.target instanceof Element ? evento.target : evento.target?.parentElement;
+        if (alvo?.closest(SELETOR_BOTAO)) {
             alternar();
         }
     });

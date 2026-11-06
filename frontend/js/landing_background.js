@@ -51,6 +51,10 @@ const particulasLanding = [];
    Cria uma interação discreta com a rede.
 ========================================================= */
 
+/* Posição do mouse e estado atual do tema (claro/escuro) */
+let temaEscuroLanding =
+    document.documentElement.getAttribute("data-theme") === "dark";
+
 const mouseLanding = {
     x: null,
     y: null,
@@ -267,8 +271,9 @@ class ParticulaLanding {
         );
 
 
-        ctxLanding.fillStyle =
-            "rgba(255, 255, 255, 0.045)";
+        ctxLanding.fillStyle = temaEscuroLanding
+            ? "rgba(255, 255, 255, 0.045)"
+            : "rgba(18, 104, 179, 0.055)";
 
 
         ctxLanding.fill();
@@ -293,15 +298,16 @@ class ParticulaLanding {
 
         // Brilho do ponto
 
-        ctxLanding.shadowColor =
-            "rgba(255, 255, 255, 0.80)";
+        ctxLanding.shadowColor = temaEscuroLanding
+            ? "rgba(255, 255, 255, 0.80)"
+            : "rgba(18, 104, 179, 0.35)";
 
-        ctxLanding.shadowBlur =
-            4;
+        ctxLanding.shadowBlur = temaEscuroLanding ? 4 : 2;
 
 
-        ctxLanding.fillStyle =
-            "rgba(255, 255, 255, 0.62)";
+        ctxLanding.fillStyle = temaEscuroLanding
+            ? "rgba(255, 255, 255, 0.62)"
+            : "rgba(8, 43, 76, 0.34)";
 
 
         ctxLanding.fill();
@@ -496,13 +502,9 @@ function conectarParticulasLanding() {
                 );
 
 
-                ctxLanding.strokeStyle =
-                    `rgba(
-                        255,
-                        255,
-                        255,
-                        ${intensidade * 0.18}
-                    )`;
+                ctxLanding.strokeStyle = temaEscuroLanding
+                    ? `rgba(255, 255, 255, ${intensidade * 0.18})`
+                    : `rgba(8, 43, 76, ${intensidade * 0.11})`;
 
 
                 ctxLanding.lineWidth =
@@ -621,6 +623,8 @@ function conectarMouseLanding() {
 
 function animarLandingBackground() {
 
+    temaEscuroLanding =
+        document.documentElement.getAttribute("data-theme") === "dark";
 
     ctxLanding.clearRect(
         0,
@@ -725,3 +729,13 @@ ajustarCanvasLanding();
 criarParticulasLanding();
 
 animarLandingBackground();
+
+// Se "reduzir movimento" estiver ativo e o usuário alternar o tema, redesenha o quadro parado sem iniciar loop
+new MutationObserver(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        temaEscuroLanding = document.documentElement.getAttribute("data-theme") === "dark";
+        ctxLanding.clearRect(0, 0, larguraLanding, alturaLanding);
+        particulasLanding.forEach(p => p.desenhar());
+        conectarParticulasLanding();
+    }
+}).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

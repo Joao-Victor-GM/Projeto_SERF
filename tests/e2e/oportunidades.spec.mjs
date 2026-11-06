@@ -173,6 +173,23 @@ test.describe("Radar de Oportunidades", () => {
         await expect(radar(page).locator("#ropFeed")).toContainText("<img src=x");
         expect(await page.evaluate(() => window.__xss)).toBeUndefined();
     });
+
+    test("alternar tema muda o radar e o menu lateral entre modo claro e modo escuro", async ({ page }) => {
+        await abrirHome(page);
+
+        const gradienteClaroRadar = await radar(page).evaluate(el => getComputedStyle(el).backgroundImage);
+        const corTituloClaroRadar = await radar(page).locator("h2").evaluate(el => getComputedStyle(el).color);
+        const gradienteClaroSidebar = await page.locator("#sidebar").evaluate(el => getComputedStyle(el).backgroundImage);
+        const fundoClaroBody = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+        await page.locator("[data-alternar-tema]").click();
+        expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBe("dark");
+
+        await expect.poll(async () => radar(page).evaluate(el => getComputedStyle(el).backgroundImage)).not.toBe(gradienteClaroRadar);
+        await expect.poll(async () => radar(page).locator("h2").evaluate(el => getComputedStyle(el).color)).not.toBe(corTituloClaroRadar);
+        await expect.poll(async () => page.locator("#sidebar").evaluate(el => getComputedStyle(el).backgroundImage)).not.toBe(gradienteClaroSidebar);
+        await expect.poll(async () => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(fundoClaroBody);
+    });
 });
 
 // O item "Oportunidades" saiu do menu: o radar já está na Home.

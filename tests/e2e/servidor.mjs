@@ -33,6 +33,9 @@ http.createServer((req, res) => {
         return;
     }
 
-    res.writeHead(200, { "Content-Type": TIPOS[path.extname(arquivo)] || "application/octet-stream" });
+    res.writeHead(200, {
+        "Content-Type": TIPOS[path.extname(arquivo)] || "application/octet-stream",
+        "Cache-Control": "no-cache"
+    });
     fs.createReadStream(arquivo).pipe(res);
 }).listen(PORTA, () => console.log(`S.E.R.F. em http://localhost:${PORTA}/pages/public/`));

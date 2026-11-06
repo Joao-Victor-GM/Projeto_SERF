@@ -1,279 +1,434 @@
-/* ==========================================================
-   SERF - OPORTUNIDADES.CSS
-   Radar de Oportunidades (Home). Painel sempre escuro (como a
-   barra lateral), então funciona igual nos dois temas.
-   ========================================================== */
+/* =========================================================================
+   S.E.R.F. — RADAR DE OPORTUNIDADES (oportunidades.css)
+   Seção de destaque da Home, adaptada aos dois temas do sistema:
+   - Tema Claro (:root): superfície executiva clara (#FFFFFF -> #F1F6FC),
+     mostrador técnico em ardósia clara, cartões brancos elevados e cores
+     semânticas calibradas para WCAG 2.1 AA (contraste >= 4.5:1).
+   - Tema Escuro (:root[data-theme="dark"]): comando marinho profundo
+     (#061E36 -> #0B2D52) com luminescência suave e cartões escuros.
+   ========================================================================= */
 
 .radar-oportunidades {
-    --rop-fundo: #061E36;
-    --rop-fundo-2: #0B2D52;
-    --rop-linha: rgba(90, 166, 240, 0.22);
-    --rop-texto: #E6EEF7;
-    --rop-texto-2: #9DB2C8;
-    --rop-laranja: #F47A20;
+    /* Paleta padrão: Tema Claro (Daylight Enterprise SaaS) */
+    --rop-laranja: #EA580C;
+    --rop-laranja-texto: #AD4607;
+    --rop-acao-bg: #B4570B;
+    --rop-acao-bg-hover: #974808;
 
-    --cor-nova_demanda: #F47A20;
-    --cor-recompra: #22C55E;
-    --cor-novo_produto: #5AA6F0;
-    --cor-menor_preco: #FACC15;
-    --cor-fornecedor_nicho: #A78BFA;
+    --rop-fundo: linear-gradient(135deg, #FFFFFF 0%, #F6FAFE 56%, #EDF4FC 100%);
+    --rop-borda: #D4E0EC;
+    --rop-sombra: 0 1px 3px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(8, 43, 76, 0.06);
+    --rop-grade-pontos: rgba(8, 43, 76, 0.065);
+
+    --rop-titulo: #0F172A;
+    --rop-texto: #0F172A;
+    --rop-texto-2: #475569;
+    --rop-foco: #1268B3;
+
+    /* Controles e pílulas */
+    --rop-btn-bg: #FFFFFF;
+    --rop-btn-bg-hover: #F1F5F9;
+    --rop-btn-borda: #CBD5E1;
+    --rop-btn-texto: #1E293B;
+    --rop-btn-ativo-bg: #FFF4EB;
+    --rop-btn-ativo-borda: #EA580C;
+    --rop-btn-ativo-texto: #9A3412;
+
+    --rop-chip-bg: #FFFFFF;
+    --rop-chip-borda: #D5E0EC;
+    --rop-chip-texto: #334155;
+
+    /* Mostrador técnico do radar (claro) */
+    --rop-dial-fundo: radial-gradient(circle, #FFFFFF 0%, #F1F6FC 58%, #E3EDF8 100%);
+    --rop-dial-anel: rgba(18, 104, 179, 0.16);
+    --rop-dial-eixo: rgba(18, 104, 179, 0.13);
+    --rop-dial-borda: #C2D4E8;
+    --rop-dial-sombra: inset 0 2px 14px rgba(8, 43, 76, 0.05), 0 6px 20px rgba(8, 43, 76, 0.06);
+    --rop-ponteiro: linear-gradient(to top, rgba(234, 88, 12, 0.20), rgba(234, 88, 12, 0.92));
+    --rop-ponteiro-sombra: 0 0 8px rgba(234, 88, 12, 0.38);
+    --rop-centro-bg: #082B4C;
+    --rop-centro-texto: #FFFFFF;
+    --rop-centro-borda: #F47A20;
+    --rop-centro-halo: rgba(244, 122, 32, 0.16);
+
+    /* Cartões flutuantes e lista de sinais */
+    --rop-cartao-bg: rgba(255, 255, 255, 0.97);
+    --rop-cartao-borda: #CBD5E1;
+    --rop-cartao-sombra: 0 12px 28px rgba(8, 43, 76, 0.13), 0 2px 6px rgba(15, 23, 42, 0.06);
+
+    --rop-sinal-bg: #FFFFFF;
+    --rop-sinal-bg-hover: #F8FAFC;
+    --rop-sinal-borda: #D8E2EE;
+    --rop-sinal-sombra: 0 1px 2px rgba(15, 23, 42, 0.03);
+    --rop-icone-bg: color-mix(in srgb, var(--cor) 12%, #FFFFFF);
+
+    /* Gaveta de segmentos */
+    --rop-seg-bg: #F8FAFC;
+    --rop-seg-borda: #D5E0EC;
+    --rop-seg-hover: #EEF4FA;
+    --rop-seg-erro: #B91C1C;
+
+    /* Sinais (Tema Claro): --cor para ponto/borda; --cor-texto com contraste AA >= 4.6:1 */
+    --cor-demanda: #EA580C;
+    --cor-demanda-texto: #AD4607;
+    --cor-recompra: #16A34A;
+    --cor-recompra-texto: #15803D;
+    --cor-novo: #2563EB;
+    --cor-novo-texto: #1D4ED8;
+    --cor-preco: #D97706;
+    --cor-preco-texto: #9A5205;
+    --cor-fornecedor: #7C3AED;
+    --cor-fornecedor-texto: #6D28D9;
 
     position: relative;
     display: grid;
-    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
-    gap: 32px;
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    gap: 28px;
     align-items: center;
 
     margin-bottom: 24px;
-    padding: 28px;
+    padding: 26px;
+    border-radius: 16px;
     overflow: hidden;
 
-    border-radius: 12px;
-    background:
-        radial-gradient(circle at 18% 50%, rgba(18, 104, 179, 0.35), transparent 55%),
-        linear-gradient(135deg, var(--rop-fundo), var(--rop-fundo-2));
-    box-shadow: 0 12px 32px rgba(8, 43, 76, 0.18);
+    background: var(--rop-fundo);
+    border: 1px solid var(--rop-borda);
     color: var(--rop-texto);
+    box-shadow: var(--rop-sombra);
 }
 
-/* Malha de conexões ao fundo */
+/* Tema Escuro: painel marinho profundo com luminescência de radar */
+:root[data-theme="dark"] .radar-oportunidades {
+    --rop-laranja: #F47A20;
+    --rop-laranja-texto: #FF9F55;
+    --rop-acao-bg: #B4570B;
+    --rop-acao-bg-hover: #C9610D;
+
+    --rop-fundo: linear-gradient(135deg, #07192C 0%, #0A2540 58%, #0D2F52 100%);
+    --rop-borda: rgba(255, 255, 255, 0.10);
+    --rop-sombra: 0 12px 32px rgba(0, 0, 0, 0.36);
+    --rop-grade-pontos: rgba(255, 255, 255, 0.06);
+
+    --rop-titulo: #FFFFFF;
+    --rop-texto: #EEF4FA;
+    --rop-texto-2: #A6BBD1;
+    --rop-foco: #FFFFFF;
+
+    --rop-btn-bg: rgba(255, 255, 255, 0.06);
+    --rop-btn-bg-hover: rgba(255, 255, 255, 0.13);
+    --rop-btn-borda: rgba(255, 255, 255, 0.20);
+    --rop-btn-texto: #EEF4FA;
+    --rop-btn-ativo-bg: rgba(244, 122, 32, 0.16);
+    --rop-btn-ativo-borda: #F47A20;
+    --rop-btn-ativo-texto: #FFB074;
+
+    --rop-chip-bg: rgba(255, 255, 255, 0.07);
+    --rop-chip-borda: rgba(255, 255, 255, 0.13);
+    --rop-chip-texto: #DCE8F6;
+
+    --rop-dial-fundo: radial-gradient(circle, rgba(244, 122, 32, 0.07) 0%, rgba(5, 20, 38, 0.55) 68%, rgba(4, 15, 29, 0.82) 100%);
+    --rop-dial-anel: rgba(148, 197, 248, 0.15);
+    --rop-dial-eixo: rgba(148, 197, 248, 0.11);
+    --rop-dial-borda: rgba(148, 197, 248, 0.24);
+    --rop-dial-sombra: inset 0 0 36px rgba(0, 0, 0, 0.35);
+    --rop-ponteiro: linear-gradient(to top, rgba(244, 122, 32, 0.28), rgba(255, 190, 130, 0.95));
+    --rop-ponteiro-sombra: 0 0 10px rgba(244, 122, 32, 0.72);
+    --rop-centro-bg: #082B4C;
+    --rop-centro-texto: #FFFFFF;
+    --rop-centro-borda: #F47A20;
+    --rop-centro-halo: rgba(244, 122, 32, 0.22);
+
+    --rop-cartao-bg: rgba(9, 32, 58, 0.95);
+    --rop-cartao-borda: rgba(255, 255, 255, 0.18);
+    --rop-cartao-sombra: 0 14px 32px rgba(0, 0, 0, 0.45);
+
+    --rop-sinal-bg: rgba(255, 255, 255, 0.05);
+    --rop-sinal-bg-hover: rgba(255, 255, 255, 0.10);
+    --rop-sinal-borda: rgba(255, 255, 255, 0.11);
+    --rop-sinal-sombra: none;
+    --rop-icone-bg: color-mix(in srgb, var(--cor) 18%, rgba(9, 32, 58, 0.9));
+
+    --rop-seg-bg: rgba(255, 255, 255, 0.04);
+    --rop-seg-borda: rgba(255, 255, 255, 0.14);
+    --rop-seg-hover: rgba(255, 255, 255, 0.08);
+    --rop-seg-erro: #FFB4A8;
+
+    --cor-demanda: #F47A20;
+    --cor-demanda-texto: #FFB074;
+    --cor-recompra: #22C55E;
+    --cor-recompra-texto: #6EE7A0;
+    --cor-novo: #5AA6F0;
+    --cor-novo-texto: #8CC8FA;
+    --cor-preco: #FACC15;
+    --cor-preco-texto: #FDE047;
+    --cor-fornecedor: #A78BFA;
+    --cor-fornecedor-texto: #C4B5FD;
+}
+
+/* Grade discreta de pontos no fundo */
 .radar-oportunidades::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+    background-image: radial-gradient(var(--rop-grade-pontos) 1px, transparent 1px);
     background-size: 22px 22px;
-    mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
     pointer-events: none;
 }
 
-/* Cores por tipo (pontos, linhas, cartões) */
-.tipo-nova_demanda { --cor: var(--cor-nova_demanda); }
-.tipo-recompra { --cor: var(--cor-recompra); }
-.tipo-novo_produto { --cor: var(--cor-novo_produto); }
-.tipo-menor_preco { --cor: var(--cor-menor_preco); }
-.tipo-fornecedor_nicho { --cor: var(--cor-fornecedor_nicho); }
+.radar-oportunidades > * {
+    position: relative;
+}
 
 
-/* ---------------- RADAR ---------------- */
+/* ---------------- CÍRCULO DO RADAR ---------------- */
 
 .rop-visual {
     position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 370px;
+    justify-self: center;
 }
 
 .rop-radar {
     position: relative;
     width: 100%;
-    aspect-ratio: 1;
+    height: 100%;
     border-radius: 50%;
+    overflow: hidden;
+
     background:
-        repeating-radial-gradient(
-            circle closest-side,
-            transparent 0 calc(25% - 1px),
-            var(--rop-linha) calc(25% - 1px) 25%
-        ),
-        radial-gradient(circle closest-side, rgba(90, 166, 240, 0.12), transparent 85%);
-    box-shadow: inset 0 0 0 1px var(--rop-linha), 0 0 40px rgba(18, 104, 179, 0.25);
+        /* anéis concêntricos */
+        radial-gradient(circle, transparent 22%, var(--rop-dial-anel) 22.4%, transparent 22.9%),
+        radial-gradient(circle, transparent 46%, var(--rop-dial-anel) 46.4%, transparent 46.9%),
+        radial-gradient(circle, transparent 70%, var(--rop-dial-anel) 70.4%, transparent 70.9%),
+        /* eixos ortogonais */
+        linear-gradient(to right, transparent calc(50% - 0.5px), var(--rop-dial-eixo) 50%, transparent calc(50% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--rop-dial-eixo) 50%, transparent calc(50% + 0.5px)),
+        var(--rop-dial-fundo);
+
+    border: 1px solid var(--rop-dial-borda);
+    box-shadow: var(--rop-dial-sombra);
 }
 
-/* Cruz de mira */
-.rop-radar::before,
-.rop-radar::after {
-    content: "";
-    position: absolute;
-    background: var(--rop-linha);
-    pointer-events: none;
-}
-
-.rop-radar::before { left: 50%; top: 4%; bottom: 4%; width: 1px; }
-.rop-radar::after { top: 50%; left: 4%; right: 4%; height: 1px; }
-
-/* Feixe de varredura: gira no sentido horário (+360deg).
-   A borda luminosa fica na frente (360deg / 0deg = 12h) e o rastro de fósforo
-   decai suavemente ATRÁS do movimento (de 358deg até 265deg). */
+/* Feixe que gira (sentido horário): a borda viva está em 360deg/0deg (12h em 0°),
+   e o rastro luminoso decai suavemente ATRÁS do ponteiro (de 360deg voltando até 215deg) */
 .rop-varredura {
     position: absolute;
-    will-change: transform;   /* gira na GPU, sem repintar o radar */
     inset: 0;
     border-radius: 50%;
-    pointer-events: none;
     background: conic-gradient(
         from 0deg,
-        transparent 0deg 265deg,
-        rgba(244, 122, 32, 0.02) 285deg,
-        rgba(244, 122, 32, 0.09) 318deg,
-        rgba(244, 122, 32, 0.24) 344deg,
-        rgba(244, 122, 32, 0.48) 356.5deg,
-        rgba(255, 186, 120, 0.82) 359.3deg,
-        rgba(255, 224, 190, 0.95) 360deg
+        transparent 0deg,
+        transparent 215deg,
+        rgba(234, 88, 12, 0.025) 255deg,
+        rgba(234, 88, 12, 0.08) 305deg,
+        rgba(234, 88, 12, 0.19) 342deg,
+        rgba(234, 88, 12, 0.34) 358deg,
+        rgba(234, 88, 12, 0.48) 360deg
     );
-    -webkit-mask-image: radial-gradient(circle closest-side, #000 98.5%, transparent 100%);
-    mask-image: radial-gradient(circle closest-side, #000 98.5%, transparent 100%);
     animation: rop-girar 4.5s linear infinite;
+    pointer-events: none;
 }
 
-/* Ponteiro luminoso frontal (linha líder do feixe) */
+:root[data-theme="dark"] .rop-varredura {
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 215deg,
+        rgba(244, 122, 32, 0.02) 255deg,
+        rgba(244, 122, 32, 0.09) 305deg,
+        rgba(244, 122, 32, 0.24) 342deg,
+        rgba(244, 122, 32, 0.44) 358deg,
+        rgba(244, 122, 32, 0.58) 360deg
+    );
+}
+
+/* Linha nítida na frente exata da varredura (12h no referencial do elemento) */
 .rop-varredura::after {
     content: "";
     position: absolute;
-    left: 50%;
-    top: 1%;
+    left: calc(50% - 1px);
+    top: 0;
     width: 2px;
-    height: 49%;
-    transform: translateX(-50%);
-    border-radius: 999px;
-    background: linear-gradient(
-        to bottom,
-        rgba(255, 232, 204, 0.95),
-        rgba(244, 122, 32, 0.75) 55%,
-        rgba(244, 122, 32, 0.1)
-    );
-    box-shadow: 0 0 8px rgba(244, 122, 32, 0.75);
+    height: 50%;
+    border-radius: 2px;
+    background: var(--rop-ponteiro);
+    box-shadow: var(--rop-ponteiro-sombra);
 }
 
+/* Centro: a empresa do usuário */
+.rop-centro {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+
+    background: var(--rop-centro-bg);
+    border: 2px solid var(--rop-centro-borda);
+    box-shadow: 0 0 0 6px var(--rop-centro-halo), 0 4px 12px rgba(8, 43, 76, 0.2);
+
+    color: var(--rop-centro-texto);
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+/* Linhas temporárias do centro ao ponto anunciado */
 .rop-conexoes {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    overflow: visible;
+    pointer-events: none;
 }
 
 .rop-linha {
-    stroke: var(--cor);
+    stroke: var(--cor, var(--rop-laranja));
     stroke-width: 0.45;
-    stroke-linecap: round;
-    stroke-dasharray: 2 1.2;
-    opacity: 0.85;
-    /* sem filter: drop-shadow — repintava a cada quadro da animação do tracejado */
-    animation: rop-linha-fluxo 1s linear infinite, rop-sumir 6.5s ease forwards;
+    stroke-dasharray: 1.6 1.4;
+    opacity: 0;
+    animation: rop-linha 6.5s ease forwards;
+}
+
+/* Pontos das oportunidades */
+.rop-pontos {
+    position: absolute;
+    inset: 0;
 }
 
 .rop-ponto {
     position: absolute;
-    width: 10px;
-    height: 10px;
-    margin: -5px 0 0 -5px;
+    width: 11px;
+    height: 11px;
+    margin: -5.5px 0 0 -5.5px;
     border-radius: 50%;
-    background: var(--cor);
-    box-shadow: 0 0 10px var(--cor);
-    opacity: 0.45;
+
+    background: var(--cor, var(--rop-laranja));
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--cor, var(--rop-laranja)) 30%, transparent),
+                0 2px 6px rgba(15, 23, 42, 0.18);
     cursor: pointer;
-    transition: transform 0.35s ease, opacity 1.1s ease, box-shadow 1.1s ease;
-    animation: rop-cintilar 3s ease-in-out infinite;
+    animation: rop-pulsar 3.2s ease-in-out infinite;
+    transition: transform 0.25s ease, box-shadow 0.45s ease, filter 0.45s ease;
+}
+
+:root[data-theme="dark"] .rop-ponto {
+    border-color: rgba(9, 32, 58, 0.9);
+    box-shadow: 0 0 10px var(--cor, var(--rop-laranja));
 }
 
 .rop-ponto:hover {
-    opacity: 1;
     transform: scale(1.45);
 }
 
 .rop-ponto.detectado {
-    opacity: 1;
-    animation: none;
-    transform: scale(1.55);
-    box-shadow: 0 0 16px var(--cor), 0 0 6px #FFFFFF;
+    z-index: 2;
+    transform: scale(1.38);
+    filter: brightness(1.12);
+    box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--cor, var(--rop-laranja)) 32%, transparent),
+        0 0 16px var(--cor, var(--rop-laranja));
 }
 
+:root[data-theme="dark"] .rop-ponto.detectado {
+    filter: brightness(1.25);
+    box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.22),
+        0 0 18px var(--cor, var(--rop-laranja)),
+        0 0 30px var(--cor, var(--rop-laranja));
+}
+
+/* Onda que se abre quando o radar "detecta" o ponto */
 .rop-ponto.detectado::after {
     content: "";
     position: absolute;
-    inset: -4px;
-    border: 2px solid var(--cor);
+    inset: -3px;
     border-radius: 50%;
-    animation: rop-onda 1.4s ease-out 2;
+    border: 2px solid var(--cor, var(--rop-laranja));
+    animation: rop-onda 1.6s ease-out forwards;
+    pointer-events: none;
 }
 
-.rop-centro {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    display: grid;
-    place-items: center;
-    width: 54px;
-    height: 54px;
-    margin: -27px 0 0 -27px;
-    border: 2px solid rgba(244, 122, 32, 0.75);
-    border-radius: 50%;
-    background: #082B4C;
-    box-shadow: 0 0 0 6px rgba(244, 122, 32, 0.12), 0 0 24px rgba(244, 122, 32, 0.45);
-    color: #FFFFFF;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-}
 
-/* Notificações flutuantes sobre o radar */
+/* ---------------- CORES POR TIPO ---------------- */
+
+.tipo-nova_demanda     { --cor: var(--cor-demanda);    --cor-texto: var(--cor-demanda-texto); }
+.tipo-recompra         { --cor: var(--cor-recompra);   --cor-texto: var(--cor-recompra-texto); }
+.tipo-novo_produto     { --cor: var(--cor-novo);       --cor-texto: var(--cor-novo-texto); }
+.tipo-menor_preco      { --cor: var(--cor-preco);      --cor-texto: var(--cor-preco-texto); }
+.tipo-fornecedor_nicho { --cor: var(--cor-fornecedor); --cor-texto: var(--cor-fornecedor-texto); }
+
+
+/* ---------------- CARTÕES FLUTUANTES SOBRE O RADAR ---------------- */
+
 .rop-cartoes {
     position: absolute;
     inset: 0;
+    z-index: 4;
     pointer-events: none;
 }
 
 .rop-cartao {
     position: absolute;
-    width: min(250px, 62%);
     pointer-events: auto;
-    animation: rop-entrar 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
 
-/* left/top em px calculados no JS (posicionarCartao): sempre dentro do radar */
-.rop-cartao.saindo { opacity: 0; transition: opacity 0.4s ease; }
-
-
-/* ---------------- SINAL (cartão e item da lista) ---------------- */
-
-.rop-cartao,
-.rop-sinal {
     display: grid;
-    grid-template-columns: 30px minmax(0, 1fr);
-    gap: 4px 10px;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 9px;
     align-items: start;
-
+    width: min(244px, calc(100% - 12px));
     padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-left: 3px solid var(--cor);
-    border-radius: 8px;
+    border-radius: 10px;
+    text-align: left;
 
-    /* Fundo quase opaco em vez de backdrop-filter: o desfoque era recalculado
-       a cada quadro, porque o feixe do radar gira por baixo dos cartões. */
-    background: rgba(9, 32, 58, 0.95);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), 0 0 14px color-mix(in srgb, var(--cor) 25%, transparent);
+    background: var(--rop-cartao-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--rop-cartao-borda);
+    border-left: 3px solid var(--cor, var(--rop-laranja));
+    box-shadow: var(--rop-cartao-sombra);
+
     color: var(--rop-texto);
     font: inherit;
-    text-align: left;
     cursor: pointer;
+    animation: rop-entrar 0.38s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.rop-sinal {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: none;
+.rop-cartao:hover {
+    border-color: var(--cor, var(--rop-laranja));
 }
 
-.rop-cartao:hover,
-.rop-sinal:hover {
-    border-color: color-mix(in srgb, var(--cor) 60%, transparent);
-    background: rgba(18, 52, 90, 0.92);
+.rop-cartao.saindo {
+    animation: rop-sair 0.35s ease forwards;
+    pointer-events: none;
 }
 
-.rop-cartao:focus-visible,
-.rop-sinal:focus-visible,
-.rop-pausar:focus-visible {
-    outline: 2px solid #FFFFFF;
-    outline-offset: 2px;
+/* Nos flutuantes a ação aparece só na lista lateral, para manter o cartão leve */
+.rop-cartao .rop-acao {
+    display: none;
 }
+
+
+/* ---------------- CONTEÚDO COMUM (CARTÃO E ITEM DA LISTA) ---------------- */
 
 .rop-icone {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
-    background: color-mix(in srgb, var(--cor) 18%, transparent);
-    color: var(--cor);
-    font-size: 15px;
-    font-weight: 800;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--rop-icone-bg);
+    color: var(--cor-texto, var(--rop-laranja-texto));
+    font-size: 16px;
 }
 
 .rop-texto {
@@ -284,42 +439,48 @@
 }
 
 .rop-rotulo {
-    color: var(--cor);
+    color: var(--cor-texto, var(--rop-laranja-texto));
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
 .rop-texto strong {
-    overflow: hidden;
-    color: #FFFFFF;
-    font-size: 13px;
+    color: var(--rop-titulo);
+    font-size: 12.5px;
+    font-weight: 700;
     line-height: 1.3;
+    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rop-meta {
     color: var(--rop-texto-2);
     font-size: 11px;
     line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rop-acao {
-    grid-column: 2;
-    color: var(--rop-laranja);
-    font-size: 11px;
+    align-self: center;
+    padding-left: 8px;
+    color: var(--cor-texto, var(--rop-laranja-texto));
+    font-size: 11.5px;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 
 /* ---------------- PAINEL LATERAL ---------------- */
 
 .rop-painel {
-    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     min-width: 0;
 }
 
@@ -334,97 +495,152 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    color: var(--rop-laranja);
+    margin-bottom: 6px;
+    color: var(--rop-laranja-texto);
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
 }
 
 .rop-ao-vivo::before {
     content: "";
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--rop-laranja);
-    box-shadow: 0 0 0 0 rgba(244, 122, 32, 0.7);
-    animation: rop-pulso 1.6s ease-out infinite;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--rop-laranja) 65%, transparent);
+    animation: rop-pulsar 1.8s ease-in-out infinite;
 }
 
 .radar-oportunidades.pausado .rop-ao-vivo::before {
+    opacity: 0.4;
     animation: none;
-    background: var(--rop-texto-2);
 }
 
 .rop-painel h2 {
-    margin: 6px 0 4px;
-    color: #FFFFFF;
-    font-size: 24px;
+    margin: 0;
+    color: var(--rop-titulo);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
 }
 
-.rop-painel > header p,
-.rop-status {
-    margin: 0;
+.rop-painel > header p {
+    margin: 5px 0 0;
     color: var(--rop-texto-2);
     font-size: 13px;
 }
 
 .rop-pausar {
     flex-shrink: 0;
+    min-height: 34px;
     padding: 6px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--rop-texto);
+    border-radius: 8px;
+    border: 1px solid var(--rop-btn-borda);
+    background: var(--rop-btn-bg);
+    color: var(--rop-btn-texto);
     font: inherit;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 
 .rop-pausar:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--rop-btn-bg-hover);
+    border-color: var(--rop-laranja);
 }
 
+/* Resumo numérico */
 .rop-numeros {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 10px;
+    gap: 8px 14px;
 }
 
 .rop-numeros strong {
-    color: #FFFFFF;
-    font-size: 34px;
+    color: var(--rop-titulo);
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
+}
+
+.rop-numeros > span {
+    color: var(--rop-texto-2);
+    font-size: 12.5px;
+    font-weight: 500;
 }
 
 .rop-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    list-style: none;
     margin: 0;
     padding: 0;
-    list-style: none;
 }
 
 .rop-chip {
-    padding: 3px 9px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 4px 10px;
     border-radius: 999px;
-    color: var(--rop-texto-2);
+    background: var(--rop-chip-bg);
+    border: 1px solid var(--rop-chip-borda);
+    color: var(--rop-chip-texto);
     font-size: 11px;
+    font-weight: 600;
 }
 
+/* Lista dos últimos sinais */
 .rop-feed {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    list-style: none;
     margin: 0;
     padding: 0;
-    list-style: none;
 }
 
 .rop-feed-item {
-    animation: rop-entrar-lista 0.4s ease both;
+    animation: rop-item 0.32s ease;
+}
+
+.rop-sinal {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 11px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 13px;
+    border-radius: 10px;
+    text-align: left;
+
+    background: var(--rop-sinal-bg);
+    border: 1px solid var(--rop-sinal-borda);
+    border-left: 3px solid var(--cor, var(--rop-laranja));
+    box-shadow: var(--rop-sinal-sombra);
+    color: var(--rop-texto);
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.rop-sinal:hover {
+    background: var(--rop-sinal-bg-hover);
+    border-color: var(--cor, var(--rop-laranja));
+}
+
+.rop-cartao:focus-visible,
+.rop-sinal:focus-visible,
+.rop-pausar:focus-visible,
+.rop-ponto:focus-visible {
+    outline: 2px solid var(--rop-foco);
+    outline-offset: 2px;
 }
 
 .radar-oportunidades.vazio .rop-feed {
@@ -434,19 +650,37 @@
 
 /* ---------------- ANIMAÇÕES ---------------- */
 
-@keyframes rop-girar { to { transform: rotate(360deg); } }
-@keyframes rop-linha-fluxo { to { stroke-dashoffset: -3.2; } }
-@keyframes rop-sumir { 0%, 75% { opacity: 0.85; } 100% { opacity: 0; } }
-@keyframes rop-cintilar { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.65; } }
-@keyframes rop-onda { from { transform: scale(1); opacity: 0.9; } to { transform: scale(3.2); opacity: 0; } }
-@keyframes rop-pulso { to { box-shadow: 0 0 0 9px rgba(244, 122, 32, 0); } }
-
-@keyframes rop-entrar {
-    from { opacity: 0; margin-top: 10px; }
-    to { opacity: 1; margin-top: 0; }
+@keyframes rop-girar {
+    to { transform: rotate(360deg); }
 }
 
-@keyframes rop-entrar-lista {
+@keyframes rop-pulsar {
+    0%, 100% { opacity: 0.78; }
+    50%      { opacity: 1; }
+}
+
+@keyframes rop-onda {
+    from { transform: scale(1);   opacity: 0.85; }
+    to   { transform: scale(3.4); opacity: 0; }
+}
+
+@keyframes rop-linha {
+    0%   { opacity: 0; }
+    12%  { opacity: 0.72; }
+    80%  { opacity: 0.4; }
+    100% { opacity: 0; }
+}
+
+@keyframes rop-entrar {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rop-sair {
+    to { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+
+@keyframes rop-item {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: none; }
 }
@@ -507,6 +741,8 @@
 .rop-botoes {
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
 }
 
@@ -533,23 +769,19 @@
 
 /* ---------------- SEGMENTOS (botão ◎ Segmentos) ---------------- */
 
-.rop-botoes {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
 .rop-pausar.ativo {
-    border-color: var(--rop-laranja);
-    color: var(--rop-laranja);
+    background: var(--rop-btn-ativo-bg);
+    border-color: var(--rop-btn-ativo-borda);
+    color: var(--rop-btn-ativo-texto);
 }
 
 .rop-segmentos {
     display: grid;
     gap: 10px;
     padding: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--rop-seg-borda);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--rop-seg-bg);
 }
 
 .rop-segmentos[hidden],
@@ -566,7 +798,7 @@
 
 .rop-segmentos legend {
     margin-bottom: 8px;
-    color: var(--rop-texto);
+    color: var(--rop-titulo);
     font-size: 13px;
     font-weight: 700;
 }
@@ -604,7 +836,7 @@
 
 .rop-segmento:hover,
 .rop-segmento:has(input:checked) {
-    background: rgba(255, 255, 255, 0.07);
+    background: var(--rop-seg-hover);
 }
 
 .rop-segmento input {
@@ -623,7 +855,8 @@
 }
 
 .rop-segmentos-erro {
-    color: #FFB4A8;
+    color: var(--rop-seg-erro);
+    font-weight: 600;
 }
 
 .rop-segmentos-erro:empty {
@@ -637,24 +870,26 @@
 }
 
 .rop-aplicar {
+    min-height: 34px;
     padding: 6px 16px;
     border: 0;
-    border-radius: 6px;
-    background: var(--rop-laranja);
+    border-radius: 8px;
+    background: var(--rop-acao-bg);
     color: #FFFFFF;
     font: inherit;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
+    transition: background-color 0.16s ease;
 }
 
 .rop-aplicar:hover {
-    filter: brightness(1.08);
+    background: var(--rop-acao-bg-hover);
 }
 
 .rop-aplicar:focus-visible,
 .rop-segmento:has(input:focus-visible) {
-    outline: 2px solid #FFFFFF;
+    outline: 2px solid var(--rop-foco);
     outline-offset: 2px;
 }
 
