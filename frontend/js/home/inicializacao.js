@@ -121,6 +121,10 @@ export async function recarregarPedidos() {
 
 async function iniciarHome() {
 
+    // Garantia de idempotência: nunca registra ouvintes de DOM (como o submit do chat) em dobro.
+    if (window.__serfHomeIniciada) return;
+    window.__serfHomeIniciada = true;
+
     // Identifica a empresa no cabeçalho pelo cache do login.
     let modoInicial = "comprar";
     let nomeLocal = null;
@@ -169,7 +173,7 @@ async function iniciarHome() {
     await window.serfSessao;
 
     // Status alterado pela outra empresa aparece sem recarregar a página.
-    assinarPedidosTempoReal();
+    assinarPedidosTempoReal(recarregarPedidos);
 
     // Novas mensagens atualizam "Conversas recentes" e o contador.
     assinarMensagensTempoReal();

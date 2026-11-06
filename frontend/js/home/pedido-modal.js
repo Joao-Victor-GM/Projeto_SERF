@@ -441,6 +441,7 @@ export async function abrirDetalhesPedido(pedido) {
     elementos.chatParceiroNome.textContent = parceiro.nome;
     elementos.chatMensagens.innerHTML = `<p class="chat-vazio">Carregando mensagens...</p>`;
     delete elementos.chatMensagens.dataset.desenhadas;   // nova conversa: redesenho completo
+    delete elementos.chatMensagens.dataset.ultima;
     elementos.chatInput.value = "";
 
     renderizarResumoPedido(pedido);
@@ -545,15 +546,20 @@ export function configurarChat() {
         }
     });
 
+    let enviandoMensagem = false;
+
     elementos.formChat.addEventListener("submit", async evento => {
 
         evento.preventDefault();
+
+        if (enviandoMensagem) return;
 
         const texto = elementos.chatInput.value.trim();
         const pedido = chat.pedido;
 
         if (!texto || !pedido) return;
 
+        enviandoMensagem = true;
         elementos.btnEnviarMensagem.disabled = true;
 
         try {
@@ -568,6 +574,7 @@ export function configurarChat() {
             console.error("[SERF:Chat] Falha ao enviar mensagem:", erro);
             SERFAvisos.erro("Não foi possível enviar a mensagem", erro);
         } finally {
+            enviandoMensagem = false;
             elementos.btnEnviarMensagem.disabled = false;
             elementos.chatInput.focus();
         }

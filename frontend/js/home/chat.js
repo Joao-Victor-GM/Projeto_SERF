@@ -39,6 +39,9 @@ export const chat = {
 // entrega mesmo se o Realtime cair ou for bloqueado (rede, RLS, token).
 export const INTERVALO_SINCRONIZACAO_CHAT = 4000;
 
+// Chave canônica no Map: evita duplicata caso PostgREST e Realtime serializem o id de forma diferente
+const chaveMensagem = mensagem => String(mensagem.id);
+
 // Com o Realtime ativo, o plano B só confere a cada N ciclos (4 s × 5 = 20 s).
 const CICLOS_SINCRONIZACAO_COM_REALTIME = 5;
 
@@ -67,7 +70,7 @@ export async function sincronizarMensagensChat(idPedido) {
 
         if (chat.pedido?.id !== idPedido) return;
 
-        const novas = historico.filter(mensagem => !chat.mensagens.has(mensagem.id));
+        const novas = historico.filter(mensagem => !chat.mensagens.has(chaveMensagem(mensagem)));
 
         if (novas.length === 0) return;
 
@@ -175,12 +178,21 @@ function htmlDaMensagem(mensagem, nomeParceiro) {
 // (custo quadrático: 300 mensagens levavam segundos).
 export function adicionarMensagens(lista) {
 
-    const novas = lista.filter(mensagem => !chat.mensagens.has(mensagem.id));
-    lista.forEach(mensagem => chat.mensagens.set(mensagem.id, mensagem));
-
-    if (novas.length === 0) return;
-
     const container = elementos.chatMensagens;
+    const novas = [];
+
+    for (const mensagem of lista) {
+        if (!mensagem || mensagem.id === undefined || mensagem.id === null) continue;
+        const chave = chaveMensagem(mensagem);
+        if (!chat.mensagens.has(chave)) novas.push(mensagem);
+        chat.mensagens.set(chave, mensagem);
+    }
+
+    if (novas.length === 0) {
+        if (container.dataset.desenhadas === undefined) renderizarMensagens();
+        return;
+    }
+
     const desenhadas = Number(container.dataset.desenhadas ?? -1);
     const ultima = Number(container.dataset.ultima ?? Infinity);
 

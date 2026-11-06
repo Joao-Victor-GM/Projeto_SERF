@@ -94,3 +94,17 @@ test("links que abrem outra aba usam rel=noopener", () => {
         for (const [link] of fonte.matchAll(/<a [^>]*target="_blank"[^>]*>/g)) assert.match(link, /rel="noopener/, link);
     }
 });
+
+test("módulos ES da Home têm identidade única: sem query string na entrada e sem ciclo para inicializacao.js", () => {
+    for (const pagina of paginas) {
+        for (const [tag] of ler(pagina).matchAll(/<script[^>]*type="module"[^>]*>/g)) {
+            assert.doesNotMatch(tag, /src="[^"]*\?[^"]*"/, `${pagina}: <script type="module"> com query string duplica a execução de imports relativos`);
+        }
+    }
+
+    const pastaHome = path.join(FRONT, "js/home");
+    for (const arquivo of fs.readdirSync(pastaHome).filter(f => f.endsWith(".js") && f !== "inicializacao.js")) {
+        const codigo = fs.readFileSync(path.join(pastaHome, arquivo), "utf8");
+        assert.doesNotMatch(codigo, /from\s+["']\.\/inicializacao\.js["']/, `${arquivo}: ciclo de import para inicializacao.js`);
+    }
+});

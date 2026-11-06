@@ -13,7 +13,6 @@ import { aplicarStatusPedido, obterPedido } from "./estado.js";
 import { atualizarDashboard } from "./dashboard.js";
 import { chat } from "./chat.js";
 import { renderizarGestaoStatus, renderizarNota, renderizarPagamento, renderizarResumoPedido } from "./pedido-modal.js";
-import { recarregarPedidos } from "./inicializacao.js";
 
 
 // Pedidos em tempo real (tabela pedidos na publicação supabase_realtime).
@@ -78,7 +77,7 @@ export function assinarNotasTempoReal() {
     );
 }
 
-export function assinarPedidosTempoReal() {
+export function assinarPedidosTempoReal(aoRecarregar) {
 
     if (canalPedidos) return;
 
@@ -103,8 +102,10 @@ export function assinarPedidosTempoReal() {
 
                 // Pedido novo (ou desconhecido): recarrega com os JOINs.
                 // Agrupa eventos em sequência numa única consulta.
-                clearTimeout(recargaPedidosAgendada);
-                recargaPedidosAgendada = setTimeout(recarregarPedidos, 400);
+                if (typeof aoRecarregar === "function") {
+                    clearTimeout(recargaPedidosAgendada);
+                    recargaPedidosAgendada = setTimeout(aoRecarregar, 400);
+                }
             }
     );
 }

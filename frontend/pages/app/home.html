@@ -847,8 +847,9 @@
     <script src="../../js/notas.js" defer></script>
     <!-- Home em módulos (scripts clássicos, escopo compartilhado): a ORDEM importa -->
     <!-- Home em módulos ES (js/home/): a entrada importa o resto, na ordem certa.
-         Módulos não carregam de file:// — abra por um servidor (npm run servidor, Live Server). -->
-    <script type="module" src="../../js/home/inicializacao.js?v=20261106"></script>
+         Módulos não carregam de file:// — abra por um servidor (npm run servidor, Live Server).
+         Não usar query string (?v=...) na entrada do módulo para não duplicar o grafo ES. -->
+    <script type="module" src="../../js/home/inicializacao.js"></script>
     <script src="../../js/ui/aviso-servidor.js?v=20261106"></script>
     <script src="../../js/catalogo.js?v=20261106" defer></script>
     <script src="../../js/radar-oportunidades.js?v=20261106" defer></script>

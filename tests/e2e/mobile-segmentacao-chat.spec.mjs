@@ -33,8 +33,7 @@ test("celular (360x640): segmentação não corta o topo e permite digitar nicho
     await expect(page.locator(".card-nicho")).toHaveCount(16);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-    const caixaPasso2 = await page.locator(".container-triagem").boundingBox();
-    expect(caixaPasso2.y).toBeGreaterThanOrEqual(0);
+    await expect.poll(async () => (await page.locator(".container-triagem").boundingBox()).y).toBeGreaterThanOrEqual(0);
 
     // Filtrar por texto mantém "Outros" disponível
     await page.locator("#buscaNicho").fill("inexistente");
@@ -100,12 +99,45 @@ test("celular com teclado aberto (390x420, iOS): campo de chat fica visível, co
     expect(caixaInput.height).toBeGreaterThanOrEqual(36);
     expect(caixaInput.y + caixaInput.height).toBeLessThanOrEqual(420);
 
+    // Espera o histórico inicial carregar antes de medir e enviar
+    await expect(page.locator("#chatMensagens .chat-balao")).toHaveCount(2);
+
     await chatInput.click();
     await chatInput.fill("Entrega confirmada para amanhã às 8h!");
     await page.locator("#btnEnviarMensagem").click();
 
-    await expect(page.locator("#chatMensagens")).toContainText("Entrega confirmada para amanhã às 8h!");
-    expect(chamadas.some(c => c.tabela === "mensagens_pedidos" && c.metodo === "POST")).toBe(true);
+    await expect(page.locator("#chatMensagens .chat-balao")).toHaveCount(3);
+    await expect(page.locator("#chatMensagens .chat-balao").filter({ hasText: "Entrega confirmada para amanhã às 8h!" })).toHaveCount(1);
+    expect(chamadas.filter(c => c.tabela === "mensagens_pedidos" && c.metodo === "POST")).toHaveLength(1);
+    expect(errosRelevantes(errosDaPagina)).toEqual([]);
+});
+
+test("chat: enviar mensagem pelo Enter ou clique não duplica balões nem requisições", async ({ page }) => {
+    const { chamadas, errosDaPagina } = await simularSupabase(page, { usuario: EMPRESA, tabelas: criarTabelas() });
+    await page.goto("/pages/app/home.html");
+
+    await page.locator('#pedidosTableBody [data-pedido="101"]').click();
+    const baloes = page.locator("#chatMensagens .chat-balao");
+    await expect(baloes).toHaveCount(2);
+
+    // 1º envio com Enter (seguido de segundo Enter imediato enquanto envia)
+    await page.locator("#chatInput").fill("Primeira mensagem única");
+    await Promise.all([
+        page.locator("#chatInput").press("Enter"),
+        page.locator("#chatInput").press("Enter")
+    ]);
+
+    await expect(baloes).toHaveCount(3);
+    await expect(baloes.filter({ hasText: "Primeira mensagem única" })).toHaveCount(1);
+    expect(chamadas.filter(c => c.tabela === "mensagens_pedidos" && c.metodo === "POST")).toHaveLength(1);
+
+    // 2º envio pelo botão Enviar
+    await page.locator("#chatInput").fill("Segunda mensagem única");
+    await page.locator("#btnEnviarMensagem").click();
+
+    await expect(baloes).toHaveCount(4);
+    await expect(baloes.filter({ hasText: "Segunda mensagem única" })).toHaveCount(1);
+    expect(chamadas.filter(c => c.tabela === "mensagens_pedidos" && c.metodo === "POST")).toHaveLength(2);
     expect(errosRelevantes(errosDaPagina)).toEqual([]);
 });
 
